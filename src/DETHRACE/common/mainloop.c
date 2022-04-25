@@ -399,7 +399,9 @@ void UpdateFramePeriod(tU32* pCamera_period) {
             *pCamera_period = 1000;
         }
     } else {
+#ifndef DETHRACE_FIX_BUGS
         *pCamera_period = 10;
+#endif
     }
 }
 

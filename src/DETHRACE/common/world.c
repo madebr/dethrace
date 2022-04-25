@@ -710,7 +710,6 @@ int LoadNTrackModels(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
         }
         for (j = 0; j < total; j++) {
             if (temp_array[j]) {
-                LOG_DEBUG("adding track model %s %d, %d", temp_array[j]->identifier, temp_array[j]->nfaces, temp_array[j]->nvertices);
                 switch (AddModelToStorage(pStorage_space, temp_array[j])) {
                 case eStorage_not_enough_room:
                     FatalError(70);
@@ -735,7 +734,6 @@ int LoadNTrackModels(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
                     }
                     //RemoveDoubleSided(temp_array[j]);
                     BrModelAdd(temp_array[j]);
-                    LOG_DEBUG("added track model %s %d, %d", temp_array[j]->identifier, temp_array[j]->nfaces, temp_array[j]->nvertices);
                     new_ones++;
                 }
             }
