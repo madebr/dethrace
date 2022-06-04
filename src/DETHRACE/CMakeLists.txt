@@ -170,14 +170,22 @@ if(NOT MSVC)
         find_package(OpenGL REQUIRED)
         if(TARGET OpenGL::OpenGL)
             target_link_libraries(dethrace PRIVATE OpenGL::OpenGL)
-        else()
+        elseif(TARGET OpenGL::GL)
             target_link_libraries(dethrace PRIVATE OpenGL::GL)
+        else()
+            target_link_libraries(dethrace PRIVATE ${OPENGL_LIBRARIES})
         endif()
     endif()
 else()
     target_link_libraries(dethrace PRIVATE dbghelp)
     target_link_options(dethrace PRIVATE /subsystem:windows /ENTRY:mainCRTStartup)
     target_compile_definitions(dethrace PRIVATE -D_CRT_SECURE_NO_WARNINGS -DSDL_MAIN_HANDLED)
+endif()
+
+if(EMSCRIPTEN)
+    set_target_properties(dethrace PROPERTIES
+        SUFFIX ".html"
+    )
 endif()
 
 if(DETHRACE_IDE_ROOT_DIR)

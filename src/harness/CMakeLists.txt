@@ -83,6 +83,11 @@ elseif(APPLE)
     target_sources(harness PRIVATE
         os/macos.c
     )
+elseif(EMSCRIPTEN)
+    enable_language(CXX)
+    target_sources(harness PRIVATE
+        os/emscripten.cpp
+    )
 else()
     target_sources(harness PRIVATE
         os/linux.c

@@ -14,6 +14,16 @@
 # (See accompanying file LICENSE_1_0.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
 
+if(EMSCRIPTEN)
+    set(SDL2_FOUND TRUE)
+    add_library(SDL2::SDL2 INTERFACE IMPORTED)
+    set_target_properties(SDL2::SDL2 PROPERTIES
+        INTERFACE_LINK_OPTIONS "-s;USE_SDL=2"
+        INTERFACE_COMPILE_OPTIONS "-s;USE_SDL=2"
+    )
+    return()
+endif()
+
 # Set up architectures (for windows) and prefixes (for mingw builds)
 if(WIN32)
     if(MINGW)
