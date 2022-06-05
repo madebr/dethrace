@@ -9,7 +9,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "netgame.h"
@@ -20,6 +19,10 @@
 #include "pratcam.h"
 #include "sound.h"
 #include "utility.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -300,7 +303,7 @@ int GotPowerup(tCar_spec* pCar, int pIndex) {
 
 // IDA: void __cdecl LoadPowerups()
 void LoadPowerups() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     char s[256];
     int i;
@@ -369,7 +372,7 @@ void LoadPowerups() {
         the_powerup->prat_cam_event = GetAnInt(f);
         the_powerup->net_type = GetAnInt(f);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl InitPowerups()

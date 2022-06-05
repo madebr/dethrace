@@ -161,7 +161,7 @@ int GetPedCount();
 
 int GetPedPosition(int pIndex, br_vector3* pPos);
 
-void CreatePedestrian(FILE* pG, tPedestrian_instruction* pInstructions, int pInstruc_count, int pInit_instruc, int pRef_num, int pForce_read);
+void CreatePedestrian(VFILE* pG, tPedestrian_instruction* pInstructions, int pInstruc_count, int pInit_instruc, int pRef_num, int pForce_read);
 
 void ResetProxRay();
 
@@ -169,7 +169,7 @@ void PedMaterialFromHell();
 
 void ResetPedMaterial();
 
-void LoadInPedestrians(FILE* pF, int pSubs_count, tPed_subs* pSubs_array);
+void LoadInPedestrians(VFILE* pF, int pSubs_count, tPed_subs* pSubs_array);
 
 br_actor* BuildPedPaths(tPedestrian_instruction* pInstructions, int pInstruc_count, int pInit_instruc);
 

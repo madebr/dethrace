@@ -75,19 +75,19 @@ tAdd_to_storage_result AddMaterialToStorage(tBrender_storage* pStorage_space, br
 
 tAdd_to_storage_result AddModelToStorage(tBrender_storage* pStorage_space, br_model* pThe_mod);
 
-int LoadNPixelmaps(tBrender_storage* pStorage_space, FILE* pF, int pCount);
+int LoadNPixelmaps(tBrender_storage* pStorage_space, VFILE* pF, int pCount);
 
 br_pixelmap* LoadSinglePixelmap(tBrender_storage* pStorage_space, char* pName);
 
 br_material* LoadSingleMaterial(tBrender_storage* pStorage_space, char* pName);
 
-int LoadNShadeTables(tBrender_storage* pStorage_space, FILE* pF, int pCount);
+int LoadNShadeTables(tBrender_storage* pStorage_space, VFILE* pF, int pCount);
 
 br_pixelmap* LoadSingleShadeTable(tBrender_storage* pStorage_space, char* pName);
 
-int LoadNMaterials(tBrender_storage* pStorage_space, FILE* pF, int pCount);
+int LoadNMaterials(tBrender_storage* pStorage_space, VFILE* pF, int pCount);
 
-int LoadNModels(tBrender_storage* pStorage_space, FILE* pF, int pCount);
+int LoadNModels(tBrender_storage* pStorage_space, VFILE* pF, int pCount);
 
 void DodgyModelUpdate(br_model* pM);
 
@@ -105,17 +105,17 @@ void ProcessModelFaceMaterials2(br_model* pModel, tPMFM2CB pCallback);
 
 void ProcessModelFaceMaterials(br_model* pModel, tPMFMCB pCallback);
 
-int LoadNTrackModels(tBrender_storage* pStorage_space, FILE* pF, int pCount);
+int LoadNTrackModels(tBrender_storage* pStorage_space, VFILE* pF, int pCount);
 
-void LoadSomePixelmaps(tBrender_storage* pStorage_space, FILE* pF);
+void LoadSomePixelmaps(tBrender_storage* pStorage_space, VFILE* pF);
 
-void LoadSomeShadeTables(tBrender_storage* pStorage_space, FILE* pF);
+void LoadSomeShadeTables(tBrender_storage* pStorage_space, VFILE* pF);
 
-void LoadSomeMaterials(tBrender_storage* pStorage_space, FILE* pF);
+void LoadSomeMaterials(tBrender_storage* pStorage_space, VFILE* pF);
 
-void LoadSomeModels(tBrender_storage* pStorage_space, FILE* pF);
+void LoadSomeModels(tBrender_storage* pStorage_space, VFILE* pF);
 
-void LoadSomeTrackModels(tBrender_storage* pStorage_space, FILE* pF);
+void LoadSomeTrackModels(tBrender_storage* pStorage_space, VFILE* pF);
 
 void AddFunkGrooveBinding(int pSlot_number, float* pPeriod_address);
 
@@ -139,13 +139,13 @@ br_uint_32 AddProximities(br_actor* pActor, br_material* pMat, tFunkotronic_spec
 
 void Adjust2FloatsForExceptions(float* pVictim1, float* pVictim2, br_pixelmap* pCulprit);
 
-void AddFunkotronics(FILE* pF, int pOwner, int pRef_offset);
+void AddFunkotronics(VFILE* pF, int pOwner, int pRef_offset);
 
 void DisposeGroovidelics(int pOwner);
 
 tGroovidelic_spec* AddNewGroovidelic();
 
-void AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
+void AddGroovidelics(VFILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent);
 
 void KillGroovadelic(int pOwner);
 
@@ -243,7 +243,7 @@ void SetCarSimplificationLevel(int pLevel);
 
 int GetCarSimplificationLevel();
 
-void ParseSpecialVolume(FILE* pF, tSpecial_volume* pSpec, char* pScreen_name_str);
+void ParseSpecialVolume(VFILE* pF, tSpecial_volume* pSpec, char* pScreen_name_str);
 
 void AddExceptionToList(tException_list* pDst, tException_list pNew);
 

@@ -11,6 +11,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+typedef struct VFILE VFILE;
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -2296,7 +2298,7 @@ typedef struct tFlic_descriptor {
     int must_finish;
     int bytes_still_to_be_read;
     int bytes_in_buffer;
-    FILE* f;
+    VFILE* f;
     tFlic_descriptor_ptr next;
 } tFlic_descriptor;
 

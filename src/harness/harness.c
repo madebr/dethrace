@@ -80,16 +80,16 @@ static int splatpack_xmasdemo_ascii_shift_table[128] = {
 
 int Harness_ProcessCommandLine(int* argc, char* argv[]);
 
-void Harness_DetectGameMode() {
-    if (access("DATA/RACES/CASTLE.TXT", F_OK) != -1) {
+static void Harness_DetectGameMode() {
+    if (VFS_access("DATA/RACES/CASTLE.TXT", F_OK) != -1) {
         // All splatpack edition have the castle track
-        if (access("DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
+        if (VFS_access("DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
             // Only the full splat release has the castle2 track
             harness_game_info.defines.INTRO_SMK_FILE = "SPLINTRO.SMK";
             harness_game_info.defines.GERMAN_LOADSCRN = "LOADSCRN.PIX";
             harness_game_info.mode = eGame_splatpack;
             LOG_INFO("\"%s\"", "Splat Pack");
-        } else if (access("DATA/RACES/TINSEL.TXT", F_OK) != -1) {
+        } else if (VFS_access("DATA/RACES/TINSEL.TXT", F_OK) != -1) {
             // Only the the splat x-mas demo has the tinsel track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "";
@@ -102,9 +102,9 @@ void Harness_DetectGameMode() {
             harness_game_info.mode = eGame_splatpack_demo;
             LOG_INFO("\"%s\"", "Splat Pack demo");
         }
-    } else if (access("DATA/RACES/CITYB3.TXT", F_OK) != -1) {
+    } else if (VFS_access("DATA/RACES/CITYB3.TXT", F_OK) != -1) {
         // All non-splatpack edition have the cityb3 track
-        if (access("DATA/RACES/CITYA1.TXT", F_OK) == -1) {
+        if (VFS_access("DATA/RACES/CITYA1.TXT", F_OK) == -1) {
             // The demo does not have the citya1 track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "COWLESS.PIX";
@@ -115,7 +115,7 @@ void Harness_DetectGameMode() {
         }
     } else {
     carmageddon:
-        if (access("DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
+        if (VFS_access("DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
             harness_game_info.defines.INTRO_SMK_FILE = "Mix_intr.smk";
         } else {
             harness_game_info.defines.INTRO_SMK_FILE = "MIX_INTR.SMK";
@@ -126,18 +126,18 @@ void Harness_DetectGameMode() {
     }
 
     harness_game_info.localization = eGameLocalization_none;
-    if (access("DATA/TRNSLATE.TXT", F_OK) != -1) {
-        FILE* f = fopen("DATA/TRNSLATE.TXT", "rb");
-        fseek(f, 0, SEEK_END);
-        int filesize = ftell(f);
-        fseek(f, 0, SEEK_SET);
+    if (VFS_access("DATA/TRNSLATE.TXT", F_OK) != -1) {
+        VFILE* f = VFS_fopen("DATA/TRNSLATE.TXT", "rb");
+        VFS_fseek(f, 0, SEEK_END);
+        int filesize = VFS_ftell(f);
+        VFS_fseek(f, 0, SEEK_SET);
         char* buffer = malloc(filesize + 1);
-        int nb = fread(buffer, 1, filesize, f);
+        int nb = VFS_fread(buffer, 1, filesize, f);
         if (nb != filesize) {
             LOG_PANIC("Unable to read DATA/TRNSLATE.TXT");
         }
         buffer[filesize] = '\0';
-        fclose(f);
+        VFS_fclose(f);
         if (strstr(buffer, "NEUES SPIEL") != NULL) {
             harness_game_info.localization = eGameLocalization_german;
             LOG_INFO("Language: \"%s\"", "German");
@@ -172,8 +172,6 @@ void Harness_DetectGameMode() {
 }
 
 void Harness_Init(int* argc, char* argv[]) {
-    int result;
-
     // disable the original CD check code
     harness_game_config.disable_cd_check = 1;
     // original physics time step. Lower values seem to work better at 30+ fps
@@ -195,15 +193,7 @@ void Harness_Init(int* argc, char* argv[]) {
     }
 
     char* root_dir = getenv("DETHRACE_ROOT_DIR");
-    if (root_dir == NULL) {
-        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '.'");
-    } else {
-        printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
-        result = chdir(root_dir);
-        if (result != 0) {
-            LOG_PANIC("Failed to chdir. Error is %s", strerror(errno));
-        }
-    }
+    VFS_Init(root_dir);
     if (harness_game_info.mode == eGame_none) {
         Harness_DetectGameMode();
     }
@@ -411,9 +401,4 @@ void Harness_Hook_S3Service(int unk1, int unk2) {
 }
 
 void Harness_Hook_S3StopAllOutletSounds() {
-}
-
-// Filesystem hooks
-FILE* Harness_Hook_fopen(const char* pathname, const char* mode) {
-    return OS_fopen(pathname, mode);
 }

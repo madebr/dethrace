@@ -10,7 +10,10 @@
 #include "utility.h"
 #include "brender/brender.h"
 #include "pd/sys.h"
+
 #include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 
 tS3_sound_tag gWhirr_noise;
@@ -69,8 +72,8 @@ void TogglePratcam() {
 
 // IDA: void __usercall LoadPratcam(char *pFolder_name@<EAX>)
 void LoadPratcam(char* pFolder_name) {
-    FILE* f;
-    FILE* g;
+    VFILE* f;
+    VFILE* g;
     tPath_name the_path;
     int i;
     int j;
@@ -114,8 +117,8 @@ void LoadPratcam(char* pFolder_name) {
         if (gPratcam_flics[i].data == NULL) {
             FatalError(31);
         }
-        fread(gPratcam_flics[i].data, 1, gPratcam_flics[i].data_length, g);
-        fclose(g);
+        VFS_fread(gPratcam_flics[i].data, 1, gPratcam_flics[i].data_length, g);
+        VFS_fclose(g);
     }
     GetALineAndDontArgue(f, s);
     if (strcmp(s, "END") != 0) {
@@ -173,7 +176,7 @@ void LoadPratcam(char* pFolder_name) {
     if (strcmp(s, "END") != 0) {
         FatalError(34);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl NextPratcamChunk()

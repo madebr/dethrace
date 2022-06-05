@@ -10,11 +10,11 @@ extern br_scalar gWheel_circ_to_width;
 extern tU8 gSmoke_damage_step[12];
 extern int gSteal_ranks[5];
 
-int ReadCrushData(FILE* pF, tCrush_data* pCrush_data);
+int ReadCrushData(VFILE* pF, tCrush_data* pCrush_data);
 
-float SkipCrushData(FILE* pF);
+float SkipCrushData(VFILE* pF);
 
-int WriteCrushData(FILE* pF, tCrush_data* pCrush_data);
+int WriteCrushData(VFILE* pF, tCrush_data* pCrush_data);
 
 void DisposeCrushData(tCrush_data* pCrush_data);
 

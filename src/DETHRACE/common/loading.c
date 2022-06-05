@@ -1,9 +1,5 @@
 #include "loading.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "brender/brender.h"
 #include "brucetrk.h"
 #include "car.h"
@@ -20,9 +16,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/hooks.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "newgame.h"
@@ -34,7 +27,16 @@
 #include "spark.h"
 #include "utility.h"
 #include "world.h"
+
+#include "harness/config.h"
+#include "harness/hooks.h"
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define HITHER_MULTIPLIER 2.0f
 #define AMBIENT_MULTIPLIER 0.01f
@@ -128,118 +130,118 @@ int gDemo_power;
 int gDemo_offensive;
 
 // IDA: tU32 __usercall ReadU32@<EAX>(FILE *pF@<EAX>)
-tU32 ReadU32(FILE* pF) {
+tU32 ReadU32(VFILE* pF) {
     tU32 raw_long;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_long, sizeof(raw_long), 1, pF);
+    VFS_fread(&raw_long, sizeof(raw_long), 1, pF);
     return raw_long;
 }
 
 // IDA: tU16 __usercall ReadU16@<AX>(FILE *pF@<EAX>)
-tU16 ReadU16(FILE* pF) {
+tU16 ReadU16(VFILE* pF) {
     tU16 raw_short;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_short, sizeof(raw_short), 1, pF);
+    VFS_fread(&raw_short, sizeof(raw_short), 1, pF);
     return raw_short;
 }
 
 // IDA: tU8 __usercall ReadU8@<AL>(FILE *pF@<EAX>)
-tU8 ReadU8(FILE* pF) {
+tU8 ReadU8(VFILE* pF) {
     tU8 raw_byte;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_byte, sizeof(raw_byte), 1, pF);
+    VFS_fread(&raw_byte, sizeof(raw_byte), 1, pF);
     return raw_byte;
 }
 
 // IDA: tS32 __usercall ReadS32@<EAX>(FILE *pF@<EAX>)
-tS32 ReadS32(FILE* pF) {
+tS32 ReadS32(VFILE* pF) {
     tS32 raw_long;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_long, sizeof(raw_long), 1, pF);
+    VFS_fread(&raw_long, sizeof(raw_long), 1, pF);
     return raw_long;
 }
 
 // IDA: tS16 __usercall ReadS16@<AX>(FILE *pF@<EAX>)
-tS16 ReadS16(FILE* pF) {
+tS16 ReadS16(VFILE* pF) {
     tS16 raw_short;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_short, sizeof(raw_short), 1, pF);
+    VFS_fread(&raw_short, sizeof(raw_short), 1, pF);
     return raw_short;
 }
 
 // IDA: tS8 __usercall ReadS8@<AL>(FILE *pF@<EAX>)
-tS8 ReadS8(FILE* pF) {
+tS8 ReadS8(VFILE* pF) {
     tS8 raw_byte;
     LOG_TRACE("(%p)", pF);
 
-    fread(&raw_byte, sizeof(raw_byte), 1, pF);
+    VFS_fread(&raw_byte, sizeof(raw_byte), 1, pF);
     return raw_byte;
 }
 
 // IDA: void __usercall WriteU32L(FILE *pF@<EAX>, tU32 pNumber@<EDX>)
-void WriteU32L(FILE* pF, tU32 pNumber) {
+void WriteU32L(VFILE* pF, tU32 pNumber) {
     tU32 raw_long;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_long = pNumber;
-    fwrite(&raw_long, sizeof(raw_long), 1, pF);
+    VFS_fwrite(&raw_long, sizeof(raw_long), 1, pF);
 }
 
 // IDA: void __usercall WriteU16L(FILE *pF@<EAX>, tU16 pNumber@<EDX>)
-void WriteU16L(FILE* pF, tU16 pNumber) {
+void WriteU16L(VFILE* pF, tU16 pNumber) {
     tU16 raw_short;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_short = pNumber;
-    fwrite(&raw_short, sizeof(raw_short), 1, pF);
+    VFS_fwrite(&raw_short, sizeof(raw_short), 1, pF);
 }
 
 // IDA: void __usercall WriteU8L(FILE *pF@<EAX>, tU8 pNumber@<EDX>)
-void WriteU8L(FILE* pF, tU8 pNumber) {
+void WriteU8L(VFILE* pF, tU8 pNumber) {
     tU8 raw_byte;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_byte = pNumber;
-    fwrite(&raw_byte, sizeof(raw_byte), 1, pF);
+    VFS_fwrite(&raw_byte, sizeof(raw_byte), 1, pF);
 }
 
 // IDA: void __usercall WriteS32L(FILE *pF@<EAX>, tS32 pNumber@<EDX>)
-void WriteS32L(FILE* pF, tS32 pNumber) {
+void WriteS32L(VFILE* pF, tS32 pNumber) {
     tS32 raw_long;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_long = pNumber;
-    fwrite(&raw_long, sizeof(raw_long), 1, pF);
+    VFS_fwrite(&raw_long, sizeof(raw_long), 1, pF);
 }
 
 // IDA: void __usercall WriteS16L(FILE *pF@<EAX>, tS16 pNumber@<EDX>)
-void WriteS16L(FILE* pF, tS16 pNumber) {
+void WriteS16L(VFILE* pF, tS16 pNumber) {
     tS16 raw_short;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_short = pNumber;
-    fwrite(&raw_short, sizeof(raw_short), 1, pF);
+    VFS_fwrite(&raw_short, sizeof(raw_short), 1, pF);
 }
 
 // IDA: void __usercall WriteS8L(FILE *pF@<EAX>, tS8 pNumber@<EDX>)
-void WriteS8L(FILE* pF, tS8 pNumber) {
+void WriteS8L(VFILE* pF, tS8 pNumber) {
     tS8 raw_byte;
     LOG_TRACE("(%p, %d)", pF, pNumber);
 
     raw_byte = pNumber;
-    fwrite(&raw_byte, sizeof(raw_byte), 1, pF);
+    VFS_fwrite(&raw_byte, sizeof(raw_byte), 1, pF);
 }
 
 // IDA: void __usercall SkipBytes(FILE *pF@<EAX>, int pBytes_to_skip@<EDX>)
-void SkipBytes(FILE* pF, int pBytes_to_skip) {
+void SkipBytes(VFILE* pF, int pBytes_to_skip) {
     LOG_TRACE("(%p, %d)", pF, pBytes_to_skip);
 
-    fseek(pF, pBytes_to_skip, 1);
+    VFS_fseek(pF, pBytes_to_skip, 1);
 }
 
 // IDA: tU32 __usercall MemReadU32@<EAX>(char **pPtr@<EAX>)
@@ -304,7 +306,7 @@ void MemSkipBytes(char** pPtr, int pBytes_to_skip) {
 
 // IDA: void __cdecl LoadGeneralParameters()
 void LoadGeneralParameters() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     int temp;
@@ -313,10 +315,10 @@ void LoadGeneralParameters() {
 
     PathCat(the_path, gApplication_path, "ACTORS");
     PathCat(the_path, the_path, "PROG.ACT");
-    f = fopen(the_path, "rb");
+    f = VFS_fopen(the_path, "rb");
     if (f != NULL) {
-        fgets(s, sizeof(s) - 1, f);
-        fclose(f);
+        VFS_fgets(s, sizeof(s) - 1, f);
+        VFS_fclose(f);
         for (i = 0; i < strlen(gDecode_string); i++) {
             gDecode_string[i] -= 50;
         }
@@ -448,7 +450,7 @@ void LoadGeneralParameters() {
     gCut_delay_3 = GetAFloat(f);
     gCut_delay_4 = GetAFloat(f);
     gZombie_factor = 1.0f;
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl FinishLoadingGeneral()
@@ -672,7 +674,7 @@ void LoadInRegistees() {
 
 // IDA: void __cdecl LoadKeyMapping()
 void LoadKeyMapping() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     LOG_TRACE("()");
@@ -680,15 +682,15 @@ void LoadKeyMapping() {
     PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
     the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
     f = DRfopen(the_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(9);
     }
 
     for (i = 0; i < 67; i++) {
-        fscanf(f, "%d", &gKey_mapping[i]);
+        VFS_fscanf(f, "%d", &gKey_mapping[i]);
     }
 
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __usercall LoadInterfaceStuff(int pWithin_race@<EAX>)
@@ -1030,7 +1032,7 @@ void AdjustCarCoordinates(tCar_spec* pCar) {
 }
 
 // IDA: void __usercall LoadSpeedo(FILE *pF@<EAX>, int pIndex@<EDX>, tCar_spec *pCar_spec@<EBX>)
-void LoadSpeedo(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
+void LoadSpeedo(VFILE* pF, int pIndex, tCar_spec* pCar_spec) {
     tPath_name the_path;
     char s[256];
     char* str;
@@ -1082,7 +1084,7 @@ void LoadSpeedo(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
 }
 
 // IDA: void __usercall LoadTacho(FILE *pF@<EAX>, int pIndex@<EDX>, tCar_spec *pCar_spec@<EBX>)
-void LoadTacho(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
+void LoadTacho(VFILE* pF, int pIndex, tCar_spec* pCar_spec) {
     tPath_name the_path;
     char s[256];
     char* str;
@@ -1126,7 +1128,7 @@ void LoadTacho(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
 }
 
 // IDA: void __usercall LoadHeadups(FILE *pF@<EAX>, int pIndex@<EDX>, tCar_spec *pCar_spec@<EBX>)
-void LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
+void LoadHeadups(VFILE* pF, int pIndex, tCar_spec* pCar_spec) {
     char s[256];
     char* str;
     int j;
@@ -1175,7 +1177,7 @@ void LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
 }
 
 // IDA: void __usercall ReadNonCarMechanicsData(FILE *pF@<EAX>, tNon_car_spec *non_car@<EDX>)
-void ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* non_car) {
+void ReadNonCarMechanicsData(VFILE* pF, tNon_car_spec* non_car) {
     int number;
     int i;
     int j;
@@ -1246,7 +1248,7 @@ void ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* non_car) {
 }
 
 // IDA: void __usercall ReadMechanicsData(FILE *pF@<EAX>, tCar_spec *c@<EDX>)
-void ReadMechanicsData(FILE* pF, tCar_spec* c) {
+void ReadMechanicsData(VFILE* pF, tCar_spec* c) {
     char s[256];
     char version;
     int i;
@@ -1408,7 +1410,7 @@ void ReadMechanicsData(FILE* pF, tCar_spec* c) {
 }
 
 // IDA: void __usercall LoadGear(FILE *pF@<EAX>, int pIndex@<EDX>, tCar_spec *pCar_spec@<EBX>)
-void LoadGear(FILE* pF, int pIndex, tCar_spec* pCar_spec) {
+void LoadGear(VFILE* pF, int pIndex, tCar_spec* pCar_spec) {
     tPath_name the_path;
     char s[256];
     char* str;
@@ -1435,7 +1437,7 @@ void AddRefOffset(int* pRef_holder) {
 }
 
 // IDA: void __usercall GetDamageProgram(FILE *pF@<EAX>, tCar_spec *pCar_spec@<EDX>, tImpact_location pImpact_location@<EBX>)
-void GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location) {
+void GetDamageProgram(VFILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location) {
     tDamage_clause* the_clause;
     int i;
     int j;
@@ -1551,7 +1553,7 @@ void LinkModelsToActor(br_actor* pActor, br_model** pModel_array, int pModel_cou
 }
 
 // IDA: void __usercall ReadShrapnelMaterials(FILE *pF@<EAX>, tCollision_info *pCar_spec@<EDX>)
-void ReadShrapnelMaterials(FILE* pF, tCollision_info* pCar_spec) {
+void ReadShrapnelMaterials(VFILE* pF, tCollision_info* pCar_spec) {
     char s[256];
     char version;
     int i;
@@ -1665,9 +1667,9 @@ void SetModelFlags(br_model* pModel, int pOwner) {
 
 // IDA: void __usercall LoadCar(char *pCar_name@<EAX>, tDriver pDriver@<EDX>, tCar_spec *pCar_spec@<EBX>, int pOwner@<ECX>, char *pDriver_name, tBrender_storage *pStorage_space)
 void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner, char* pDriver_name, tBrender_storage* pStorage_space) {
-    FILE* f;
-    FILE* g;
-    FILE* h;
+    VFILE* f;
+    VFILE* g;
+    VFILE* h;
     tPath_name the_path;
     int i;
     int j;
@@ -1934,17 +1936,17 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
         PathCat(the_path, gApplication_path, gGraf_specs[gGraf_spec_index].data_dir_name);
         PathCat(the_path, the_path, "HEADUP.TXT");
         h = DRfopen(the_path, "rt");
-        if (!h) {
+        if (h == NULL) {
             FatalError(102);
         }
         PossibleService();
         LoadHeadups(h, 0, pCar_spec);
         LoadHeadups(h, 1, pCar_spec);
         PossibleService();
-        fclose(h);
+        VFS_fclose(h);
         PathCat(the_path, gApplication_path, "PARTSHOP.TXT");
         h = DRfopen(the_path, "rt");
-        if (!h) {
+        if (h == NULL) {
             FatalError(103);
         }
         for (i = 0; i < COUNT_OF(pCar_spec->power_ups); ++i) {
@@ -1965,14 +1967,14 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
             }
             PossibleService();
         }
-        fclose(h);
+        VFS_fclose(h);
         AdjustCarCoordinates(&gProgram_state.current_car);
         AdjustRenderScreenSize();
         PossibleService();
         ReinitialiseRearviewCamera();
         GetALineAndDontArgue(f, s);
     } else {
-        while (!feof(f)) {
+        while (!VFS_feof(f)) {
             GetALineAndDontArgue(f, s);
             if (strcmp(s, "END OF DRIVABLE STUFF") == 0) {
                 break;
@@ -2226,7 +2228,7 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
         vertex_total += V11MODEL(model)->groups[i].nvertices;
     }
     for (i = 0; i < COUNT_OF(pCar_spec->fire_vertex); i++) {
-        if (feof(f)) {
+        if (VFS_feof(f)) {
             initial_vertex = IRandomBetween(0, vertex_total - 1);
             pCar_spec->fire_vertex[i] = initial_vertex;
         } else {
@@ -2247,8 +2249,8 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
             }
         }
     }
-    fclose(f);
-    fclose(g);
+    VFS_fclose(f);
+    VFS_fclose(g);
 }
 
 // IDA: void __cdecl LoadHeadupImages()
@@ -2281,8 +2283,8 @@ void DisposeHeadupImages() {
 }
 
 // IDA: FILE* __cdecl OpenRaceFile()
-FILE* OpenRaceFile() {
-    FILE* f;
+VFILE* OpenRaceFile() {
+    VFILE* f;
     tPath_name the_path;
 
     PathCat(the_path, gApplication_path, gRaces_file_names[gCurrent_race_file_index]);
@@ -2294,7 +2296,7 @@ FILE* OpenRaceFile() {
 }
 
 // IDA: void __usercall SkipRestOfRace(FILE *pF@<EAX>)
-void SkipRestOfRace(FILE* pF) {
+void SkipRestOfRace(VFILE* pF) {
     int j;
     int k;
     int text_chunk_count;
@@ -2323,7 +2325,7 @@ void SkipRestOfRace(FILE* pF) {
 
 // IDA: void __usercall LoadRaces(tRace_list_spec *pRace_list@<EAX>, int *pCount@<EDX>, int pRace_type_index@<EBX>)
 void LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index) {
-    FILE* f;
+    VFILE* f;
     int i;
     int j;
     int k;
@@ -2349,7 +2351,7 @@ void LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index) {
     }
 
     *pCount = number_of_racers;
-    fclose(f);
+    VFS_fclose(f);
     j = 0;
     if (harness_game_info.mode == eGame_carmageddon_demo || harness_game_info.mode == eGame_splatpack_demo) {
         j = 99;
@@ -2438,7 +2440,7 @@ void LoadOpponentGridIcon(tRace_info* pRace_info, int pIndex) {
 
 // IDA: void __usercall LoadRaceInfo(int pRace_index@<EAX>, tRace_info *pRace_info@<EDX>)
 void LoadRaceInfo(int pRace_index, tRace_info* pRace_info) {
-    FILE* f;
+    VFILE* f;
     int i;
     int j;
     int k;
@@ -2509,7 +2511,7 @@ void LoadRaceInfo(int pRace_index, tRace_info* pRace_info) {
         }
         the_chunk++;
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __usercall DisposeRaceInfo(tRace_info *pRace_info@<EAX>)
@@ -2578,7 +2580,7 @@ void DisposeGridIcons(tRace_info* pRace_info) {
 
 // IDA: void __cdecl LoadOpponents()
 void LoadOpponents() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     int j;
@@ -2653,12 +2655,12 @@ void LoadOpponents() {
     if (strcmp(s, "END")) {
         FatalError(55);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: br_font* __usercall LoadBRFont@<EAX>(char *pName@<EAX>)
 br_font* LoadBRFont(char* pName) {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     br_font* the_font;
     tU32 data_size;
@@ -2673,7 +2675,7 @@ br_font* LoadBRFont(char* pName) {
     the_font = BrMemAllocate(sizeof(br_font), kMem_br_font);
 
     // we read 0x18 bytes as that is the size of the struct in 32 bit code.
-    fread(the_font, 0x18, 1, f);
+    VFS_fread(the_font, 0x18, 1, f);
     the_font->flags = BrSwap32(the_font->flags);
 
     // swap endianness
@@ -2684,20 +2686,20 @@ br_font* LoadBRFont(char* pName) {
 
     data_size = sizeof(br_int_8) * 256;
     the_font->width = BrMemAllocate(data_size, kMem_br_font_wid);
-    fread(the_font->width, data_size, 1, f);
+    VFS_fread(the_font->width, data_size, 1, f);
     data_size = sizeof(br_uint_16) * 256;
     the_font->encoding = BrMemAllocate(data_size, kMem_br_font_enc);
-    fread(the_font->encoding, data_size, 1u, f);
+    VFS_fread(the_font->encoding, data_size, 1u, f);
     for (i = 0; i < 256; i++) {
         the_font->encoding[i] = the_font->encoding[i] >> 8 | the_font->encoding[i] << 8;
     }
     PossibleService();
-    fread(&data_size, sizeof(tU32), 1u, f);
+    VFS_fread(&data_size, sizeof(tU32), 1u, f);
     data_size = BrSwap32(data_size);
     PossibleService();
     the_font->glyphs = BrMemAllocate(data_size, kMem_br_font_glyphs);
-    fread(the_font->glyphs, data_size, 1u, f);
-    fclose(f);
+    VFS_fread(the_font->glyphs, data_size, 1u, f);
+    VFS_fclose(f);
     return the_font;
 }
 
@@ -2737,7 +2739,7 @@ void DisposeChromeFont(br_pixelmap* pThe_font) {
 }
 
 // IDA: int __usercall GetALineAndInterpretCommand@<EAX>(FILE *pF@<EAX>, char **pString_list@<EDX>, int pCount@<EBX>)
-int GetALineAndInterpretCommand(FILE* pF, char** pString_list, int pCount) {
+int GetALineAndInterpretCommand(VFILE* pF, char** pString_list, int pCount) {
     int i;
     char s[256];
     char* str;
@@ -2757,7 +2759,7 @@ int GetALineAndInterpretCommand(FILE* pF, char** pString_list, int pCount) {
 }
 
 // IDA: int __usercall GetAnInt@<EAX>(FILE *pF@<EAX>)
-int GetAnInt(FILE* pF) {
+int GetAnInt(VFILE* pF) {
     char s[256];
     char* str;
     int result;
@@ -2769,7 +2771,7 @@ int GetAnInt(FILE* pF) {
 }
 
 // IDA: float __usercall GetAFloat@<ST0>(FILE *pF@<EAX>)
-float GetAFloat(FILE* pF) {
+float GetAFloat(VFILE* pF) {
     char s[256];
     char* str;
     float result;
@@ -2781,7 +2783,7 @@ float GetAFloat(FILE* pF) {
 }
 
 // IDA: float __usercall GetAFloatPercent@<ST0>(FILE *pF@<EAX>)
-float GetAFloatPercent(FILE* pF) {
+float GetAFloatPercent(VFILE* pF) {
     char s[256];
     char* str;
     float result;
@@ -2790,7 +2792,7 @@ float GetAFloatPercent(FILE* pF) {
 }
 
 // IDA: void __usercall GetPairOfFloats(FILE *pF@<EAX>, float *pF1@<EDX>, float *pF2@<EBX>)
-void GetPairOfFloats(FILE* pF, float* pF1, float* pF2) {
+void GetPairOfFloats(VFILE* pF, float* pF1, float* pF2) {
     char s[256];
     char* str;
 
@@ -2802,7 +2804,7 @@ void GetPairOfFloats(FILE* pF, float* pF1, float* pF2) {
 }
 
 // IDA: void __usercall GetThreeFloats(FILE *pF@<EAX>, float *pF1@<EDX>, float *pF2@<EBX>, float *pF3@<ECX>)
-void GetThreeFloats(FILE* pF, float* pF1, float* pF2, float* pF3) {
+void GetThreeFloats(VFILE* pF, float* pF1, float* pF2, float* pF3) {
     char s[256];
     char* str;
 
@@ -2816,7 +2818,7 @@ void GetThreeFloats(FILE* pF, float* pF1, float* pF2, float* pF3) {
 }
 
 // IDA: void __usercall GetPairOfInts(FILE *pF@<EAX>, int *pF1@<EDX>, int *pF2@<EBX>)
-void GetPairOfInts(FILE* pF, int* pF1, int* pF2) {
+void GetPairOfInts(VFILE* pF, int* pF1, int* pF2) {
     char s[256];
     char* str;
 
@@ -2828,7 +2830,7 @@ void GetPairOfInts(FILE* pF, int* pF1, int* pF2) {
 }
 
 // IDA: void __usercall GetThreeInts(FILE *pF@<EAX>, int *pF1@<EDX>, int *pF2@<EBX>, int *pF3@<ECX>)
-void GetThreeInts(FILE* pF, int* pF1, int* pF2, int* pF3) {
+void GetThreeInts(VFILE* pF, int* pF1, int* pF2, int* pF3) {
     char s[256];
     char* str;
 
@@ -2842,7 +2844,7 @@ void GetThreeInts(FILE* pF, int* pF1, int* pF2, int* pF3) {
 }
 
 // IDA: void __usercall GetThreeIntsAndAString(FILE *pF@<EAX>, int *pF1@<EDX>, int *pF2@<EBX>, int *pF3@<ECX>, char *pS)
-void GetThreeIntsAndAString(FILE* pF, int* pF1, int* pF2, int* pF3, char* pS) {
+void GetThreeIntsAndAString(VFILE* pF, int* pF1, int* pF2, int* pF3, char* pS) {
     char s[256];
     char* str;
     LOG_TRACE("(%p, %p, %p, %p, \"%s\")", pF, pF1, pF2, pF3, pS);
@@ -2850,7 +2852,7 @@ void GetThreeIntsAndAString(FILE* pF, int* pF1, int* pF2, int* pF3, char* pS) {
 }
 
 // IDA: void __usercall GetFourInts(FILE *pF@<EAX>, int *pF1@<EDX>, int *pF2@<EBX>, int *pF3@<ECX>, int *pF4)
-void GetFourInts(FILE* pF, int* pF1, int* pF2, int* pF3, int* pF4) {
+void GetFourInts(VFILE* pF, int* pF1, int* pF2, int* pF3, int* pF4) {
     char s[256];
     char* str;
 
@@ -2866,27 +2868,27 @@ void GetFourInts(FILE* pF, int* pF1, int* pF2, int* pF3, int* pF4) {
 }
 
 // IDA: br_scalar __usercall GetAScalar@<ST0>(FILE *pF@<EAX>)
-br_scalar GetAScalar(FILE* pF) {
+br_scalar GetAScalar(VFILE* pF) {
     LOG_TRACE("(%p)", pF);
 
     return GetAFloat(pF);
 }
 
 // IDA: void __usercall GetPairOfScalars(FILE *pF@<EAX>, br_scalar *pS1@<EDX>, br_scalar *pS2@<EBX>)
-void GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2) {
+void GetPairOfScalars(VFILE* pF, br_scalar* pS1, br_scalar* pS2) {
     LOG_TRACE("(%p, %p, %p)", pF, pS1, pS2);
     NOT_IMPLEMENTED();
 }
 
 // IDA: void __usercall GetThreeScalars(FILE *pF@<EAX>, br_scalar *pS1@<EDX>, br_scalar *pS2@<EBX>, br_scalar *pS3@<ECX>)
-void GetThreeScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3) {
+void GetThreeScalars(VFILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3) {
     LOG_TRACE("(%p, %p, %p, %p)", pF, pS1, pS2, pS3);
 
     GetThreeFloats(pF, pS1, pS2, pS3);
 }
 
 // IDA: void __usercall GetFourScalars(FILE *pF@<EAX>, br_scalar *pF1@<EDX>, br_scalar *pF2@<EBX>, br_scalar *pF3@<ECX>, br_scalar *pF4)
-void GetFourScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4) {
+void GetFourScalars(VFILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4) {
     char s[256];
     char* str;
     float f1;
@@ -2911,7 +2913,7 @@ void GetFourScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br
 }
 
 // IDA: void __usercall GetFiveScalars(FILE *pF@<EAX>, br_scalar *pF1@<EDX>, br_scalar *pF2@<EBX>, br_scalar *pF3@<ECX>, br_scalar *pF4, br_scalar *pF5)
-void GetFiveScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4, br_scalar* pF5) {
+void GetFiveScalars(VFILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4, br_scalar* pF5) {
     char s[256];
     char* str;
     float f1;
@@ -2924,7 +2926,7 @@ void GetFiveScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br
 }
 
 // IDA: void __usercall GetNScalars(FILE *pF@<EAX>, int pNumber@<EDX>, br_scalar *pScalars@<EBX>)
-void GetNScalars(FILE* pF, int pNumber, br_scalar* pScalars) {
+void GetNScalars(VFILE* pF, int pNumber, br_scalar* pScalars) {
     char s[256];
     char* str;
     float fleurting_point_numero;
@@ -2941,7 +2943,7 @@ void GetNScalars(FILE* pF, int pNumber, br_scalar* pScalars) {
 }
 
 // IDA: void __usercall GetPairOfFloatPercents(FILE *pF@<EAX>, float *pF1@<EDX>, float *pF2@<EBX>)
-void GetPairOfFloatPercents(FILE* pF, float* pF1, float* pF2) {
+void GetPairOfFloatPercents(VFILE* pF, float* pF1, float* pF2) {
     char s[256];
     char* str;
     LOG_TRACE("(%p, %p, %p)", pF, pF1, pF2);
@@ -2956,7 +2958,7 @@ void GetPairOfFloatPercents(FILE* pF, float* pF1, float* pF2) {
 }
 
 // IDA: void __usercall GetThreeFloatPercents(FILE *pF@<EAX>, float *pF1@<EDX>, float *pF2@<EBX>, float *pF3@<ECX>)
-void GetThreeFloatPercents(FILE* pF, float* pF1, float* pF2, float* pF3) {
+void GetThreeFloatPercents(VFILE* pF, float* pF1, float* pF2, float* pF3) {
     char s[256];
     char* str;
     LOG_TRACE("(%p, %p, %p, %p)", pF, pF1, pF2, pF3);
@@ -2974,7 +2976,7 @@ void GetThreeFloatPercents(FILE* pF, float* pF1, float* pF2, float* pF3) {
 }
 
 // IDA: void __usercall GetAString(FILE *pF@<EAX>, char *pString@<EDX>)
-void GetAString(FILE* pF, char* pString) {
+void GetAString(VFILE* pF, char* pString) {
     char s[256];
     char* str;
 
@@ -3033,7 +3035,7 @@ void DisposeOpponentsCars(tRace_info* pRace_info) {
 // IDA: void __cdecl LoadMiscStrings()
 void LoadMiscStrings() {
     int i;
-    FILE* f;
+    VFILE* f;
     char s[256];
     tPath_name the_path;
     LOG_TRACE("()");
@@ -3047,11 +3049,11 @@ void LoadMiscStrings() {
         GetALineAndDontArgue(f, s);
         gMisc_strings[i] = BrMemAllocate(strlen(s) + 1, kMem_misc_string);
         strcpy(gMisc_strings[i], s);
-        if (feof(f)) {
+        if (VFS_feof(f)) {
             break;
         }
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __usercall FillInRaceInfo(tRace_info *pThe_race@<EAX>)
@@ -3062,11 +3064,11 @@ void FillInRaceInfo(tRace_info* pThe_race) {
 }
 
 // IDA: FILE* __usercall OldDRfopen@<EAX>(char *pFilename@<EAX>, char *pMode@<EDX>)
-FILE* OldDRfopen(char* pFilename, char* pMode) {
-    FILE* fp;
-    FILE* file_ptr;
-    FILE* test1;
-    FILE* test2;
+VFILE* OldDRfopen(char* pFilename, char* pMode) {
+    VFILE* fp;
+    VFILE* file_ptr;
+    VFILE* test1;
+    VFILE* test2;
     char* data_dir;
     tPath_name CD_dir;
     tPath_name path_file;
@@ -3077,7 +3079,7 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
 
     LOG_TRACE("(\"%s\", \"%s\")", pFilename, pMode);
 
-    fp = Harness_Hook_fopen(pFilename, pMode);
+    fp = VFS_fopen(pFilename, pMode);
 
     if (fp != NULL) {
 
@@ -3102,12 +3104,12 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
                     && strcmp(&pFilename[len - 10], "KEYMAP.TXT") != 0
                     && strcmp(&pFilename[len - 9], "PATHS.TXT") != 0
                     && strcmp(&pFilename[len - 11], "PRATCAM.TXT") != 0) {
-                    ch = fgetc(fp);
+                    ch = VFS_fgetc(fp);
                     if (ch != gDecode_thing) {
-                        fclose(fp);
+                        VFS_fclose(fp);
                         return NULL;
                     }
-                    ungetc(ch, fp);
+                    VFS_ungetc(ch, fp);
                     return fp;
                 }
             }
@@ -3128,8 +3130,8 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
             LOG_WARN("PATHS.TXT not found");
             return NULL;
         }
-        test1 = fopen(path_file, "rt");
-        if (!test1) {
+        test1 = VFS_fopen(path_file, "rt");
+        if (test1 == NULL) {
             source_exists = 0;
             LOG_WARN("PATHS.TXT couldnt be opened");
             return NULL;
@@ -3141,7 +3143,7 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
         strcat(source_check, gDir_separator);
         strcat(source_check, "GENERAL.TXT");
 
-        fclose(test1);
+        VFS_fclose(test1);
         if (PDCheckDriveExists(source_check)) {
             source_exists++;
         } else {
@@ -3161,7 +3163,7 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
             strcat(CD_dir, gDir_separator);
             strcat(CD_dir, data_dir);
             if (PDCheckDriveExists(CD_dir)) {
-                fp = fopen(CD_dir, pMode);
+                fp = VFS_fopen(CD_dir, pMode);
             }
         }
     }
@@ -3183,8 +3185,8 @@ void DoNotAllowOpenToFail() {
 }
 
 // IDA: FILE* __usercall DRfopen@<EAX>(char *pFilename@<EAX>, char *pMode@<EDX>)
-FILE* DRfopen(char* pFilename, char* pMode) {
-    FILE* result;
+VFILE* DRfopen(char* pFilename, char* pMode) {
+    VFILE* result;
     tPath_name CD_dir;
     char msg[336];
     LOG_TRACE("(\"%s\", \"%s\")", pFilename, pMode);
@@ -3209,18 +3211,18 @@ FILE* DRfopen(char* pFilename, char* pMode) {
 int GetCDPathFromPathsTxtFile(char* pPath_name) {
     static int got_it_already = 0;
     static tPath_name cd_pathname;
-    FILE* paths_txt_fp;
+    VFILE* paths_txt_fp;
     tPath_name paths_txt;
     LOG_TRACE9("()");
 
     if (!got_it_already) {
         sprintf(paths_txt, "%s%s%s", gApplication_path, gDir_separator, "PATHS.TXT");
-        paths_txt_fp = fopen(paths_txt, "rt");
+        paths_txt_fp = VFS_fopen(paths_txt, "rt");
         if (paths_txt_fp == NULL) {
             return 0;
         }
         GetALineAndDontArgue(paths_txt_fp, cd_pathname);
-        fclose(paths_txt_fp);
+        VFS_fclose(paths_txt_fp);
         got_it_already = 1;
     }
     memcpy(pPath_name, cd_pathname, 256);
@@ -3236,7 +3238,7 @@ int TestForOriginalCarmaCDinDrive() {
     tPath_name cd_pathname;
     tPath_name cd_data_pathname;
     tPath_name cutscene_pathname;
-    FILE* paths_txt_fp;
+    VFILE* paths_txt_fp;
     tPath_name paths_txt;
     int paths_txt_first_char;
 
@@ -3254,14 +3256,14 @@ int TestForOriginalCarmaCDinDrive() {
         return 0;
     }
 
-    paths_txt_fp = fopen(paths_txt, "rt");
-    if (!paths_txt_fp) {
+    paths_txt_fp = VFS_fopen(paths_txt, "rt");
+    if (paths_txt_fp == NULL) {
         return 0;
     }
-    paths_txt_first_char = fgetc(paths_txt_fp);
-    ungetc(paths_txt_first_char, paths_txt_fp);
+    paths_txt_first_char = VFS_fgetc(paths_txt_fp);
+    VFS_ungetc(paths_txt_first_char, paths_txt_fp);
     GetALineAndDontArgue(paths_txt_fp, cd_pathname);
-    fclose(paths_txt_fp);
+    VFS_fclose(paths_txt_fp);
     strcpy(cd_data_pathname, cd_pathname);
     strcat(cd_data_pathname, gDir_separator);
     strcat(cd_data_pathname, "DATA");
@@ -3308,7 +3310,7 @@ int CarmaCDinDriveOrFullGameInstalled() {
 }
 
 // IDA: void __usercall ReadNetworkSettings(FILE *pF@<EAX>, tNet_game_options *pOptions@<EDX>)
-void ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions) {
+void  ReadNetworkSettings(VFILE* pF, tNet_game_options* pOptions) {
     LOG_TRACE("(%p, %p)", pF, pOptions);
 
     pOptions->enable_text_messages = GetAnInt(pF);
@@ -3325,28 +3327,28 @@ void ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions) {
 }
 
 // IDA: int __usercall PrintNetOptions@<EAX>(FILE *pF@<EAX>, int pIndex@<EDX>)
-int PrintNetOptions(FILE* pF, int pIndex) {
+int PrintNetOptions(VFILE* pF, int pIndex) {
     LOG_TRACE("(%p, %d)", pF, pIndex);
 
-    fprintf(pF, "NETSETTINGS %d\n", pIndex);
-    fprintf(pF, "%d // Allow the sending of Abuse-o-Matic(tm) text messages\n", gNet_settings[pIndex].enable_text_messages);
-    fprintf(pF, "%d // Show cars on map\n", gNet_settings[pIndex].show_players_on_map);
-    fprintf(pF, "%d // Show peds on map\n", gNet_settings[pIndex].show_peds_on_map);
-    fprintf(pF, "%d // Show pickups on map\n", gNet_settings[pIndex].show_powerups_on_map);
-    fprintf(pF, "%d // Pickup respawn\n", gNet_settings[pIndex].powerup_respawn);
-    fprintf(pF, "%d // Open game\n", gNet_settings[pIndex].open_game);
-    fprintf(pF, "%d // Grid start\n", gNet_settings[pIndex].grid_start);
-    fprintf(pF, "%d // Race order\n", gNet_settings[pIndex].race_sequence_type);
-    fprintf(pF, "%d // Random car selection\n", gNet_settings[pIndex].random_car_choice);
-    fprintf(pF, "%d // Car choice mode\n", gNet_settings[pIndex].car_choice);
-    fprintf(pF, "%d // Starting credits index\n\n", gNet_settings[pIndex].starting_money_index);
+    VFS_fprintf(pF, "NETSETTINGS %d\n", pIndex);
+    VFS_fprintf(pF, "%d // Allow the sending of Abuse-o-Matic(tm) text messages\n", gNet_settings[pIndex].enable_text_messages);
+    VFS_fprintf(pF, "%d // Show cars on map\n", gNet_settings[pIndex].show_players_on_map);
+    VFS_fprintf(pF, "%d // Show peds on map\n", gNet_settings[pIndex].show_peds_on_map);
+    VFS_fprintf(pF, "%d // Show pickups on map\n", gNet_settings[pIndex].show_powerups_on_map);
+    VFS_fprintf(pF, "%d // Pickup respawn\n", gNet_settings[pIndex].powerup_respawn);
+    VFS_fprintf(pF, "%d // Open game\n", gNet_settings[pIndex].open_game);
+    VFS_fprintf(pF, "%d // Grid start\n", gNet_settings[pIndex].grid_start);
+    VFS_fprintf(pF, "%d // Race order\n", gNet_settings[pIndex].race_sequence_type);
+    VFS_fprintf(pF, "%d // Random car selection\n", gNet_settings[pIndex].random_car_choice);
+    VFS_fprintf(pF, "%d // Car choice mode\n", gNet_settings[pIndex].car_choice);
+    VFS_fprintf(pF, "%d // Starting credits index\n\n", gNet_settings[pIndex].starting_money_index);
     return 0;
 }
 
 // IDA: int __cdecl SaveOptions()
 int SaveOptions() {
     tPath_name the_path;
-    FILE* f;
+    VFILE* f;
     LOG_TRACE("()");
 
     PathCat(the_path, gApplication_path, "OPTIONS.TXT");
@@ -3366,31 +3368,31 @@ int SaveOptions() {
         return 0;                   \
     }
 
-    BAIL_IF_NEGATIVE(fprintf(f, "YonFactor %f\n", GetYonFactor()));
-    BAIL_IF_NEGATIVE(fprintf(f, "SkyTextureOn %d\n", GetSkyTextureOn()));
-    BAIL_IF_NEGATIVE(fprintf(f, "CarTexturingLevel %d\n", GetCarTexturingLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "RoadTexturingLevel %d\n", GetRoadTexturingLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "WallTexturingLevel %d\n", GetWallTexturingLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "ShadowLevel %d\n", GetShadowLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "DepthCueingOn %d\n", GetDepthCueingOn()));
-    BAIL_IF_NEGATIVE(fprintf(f, "Yon %f\n", GetYon()));
-    BAIL_IF_NEGATIVE(fprintf(f, "CarSimplificationLevel %d\n", GetCarSimplificationLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "AccessoryRendering %d\n", GetAccessoryRendering()));
-    BAIL_IF_NEGATIVE(fprintf(f, "SmokeOn %d\n", GetSmokeOn()));
-    BAIL_IF_NEGATIVE(fprintf(f, "SoundDetailLevel %d\n", GetSoundDetailLevel()));
-    BAIL_IF_NEGATIVE(fprintf(f, "ScreenSize %d\n", GetScreenSize()));
-    BAIL_IF_NEGATIVE(fprintf(f, "MapRenderX %f\n", gMap_render_x));
-    BAIL_IF_NEGATIVE(fprintf(f, "MapRenderY %f\n", gMap_render_y));
-    BAIL_IF_NEGATIVE(fprintf(f, "MapRenderWidth %f\n", gMap_render_width));
-    BAIL_IF_NEGATIVE(fprintf(f, "MapRenderHeight %f\n", gMap_render_height));
-    BAIL_IF_NEGATIVE(fprintf(f, "PlayerName 0\n%s\n", (gProgram_state.player_name[0][0] == '\0') ? "MAX DAMAGE" : gProgram_state.player_name[0]));
-    BAIL_IF_NEGATIVE(fprintf(f, "PlayerName 1\n%s\n", (gProgram_state.player_name[1][0] == '\0') ? "DIE ANNA" : gProgram_state.player_name[1]));
-    BAIL_IF_NEGATIVE(fprintf(f, "NetName 0\n%s\n", (gNet_player_name[0] == '\0') ? "RON TURN" : gNet_player_name));
-    BAIL_IF_NEGATIVE(fprintf(f, "EVolume %d\n", gProgram_state.effects_volume));
-    BAIL_IF_NEGATIVE(fprintf(f, "MVolume %d\n", gProgram_state.music_volume));
-    BAIL_IF_NEGATIVE(fprintf(f, "KeyMapIndex %d\n", gKey_map_index));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "YonFactor %f\n", GetYonFactor()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "SkyTextureOn %d\n", GetSkyTextureOn()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "CarTexturingLevel %d\n", GetCarTexturingLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "RoadTexturingLevel %d\n", GetRoadTexturingLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "WallTexturingLevel %d\n", GetWallTexturingLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "ShadowLevel %d\n", GetShadowLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "DepthCueingOn %d\n", GetDepthCueingOn()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "Yon %f\n", GetYon()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "CarSimplificationLevel %d\n", GetCarSimplificationLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "AccessoryRendering %d\n", GetAccessoryRendering()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "SmokeOn %d\n", GetSmokeOn()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "SoundDetailLevel %d\n", GetSoundDetailLevel()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "ScreenSize %d\n", GetScreenSize()));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "MapRenderX %f\n", gMap_render_x));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "MapRenderY %f\n", gMap_render_y));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "MapRenderWidth %f\n", gMap_render_width));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "MapRenderHeight %f\n", gMap_render_height));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "PlayerName 0\n%s\n", (gProgram_state.player_name[0][0] == '\0') ? "MAX DAMAGE" : gProgram_state.player_name[0]));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "PlayerName 1\n%s\n", (gProgram_state.player_name[1][0] == '\0') ? "DIE ANNA" : gProgram_state.player_name[1]));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "NetName 0\n%s\n", (gNet_player_name[0] == '\0') ? "RON TURN" : gNet_player_name));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "EVolume %d\n", gProgram_state.effects_volume));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "MVolume %d\n", gProgram_state.music_volume));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "KeyMapIndex %d\n", gKey_map_index));
 
-    BAIL_IF_NEGATIVE(fprintf(f, "NETGAMETYPE %d\n", gLast_game_type));
+    BAIL_IF_NEGATIVE(VFS_fprintf(f, "NETGAMETYPE %d\n", gLast_game_type));
     BAIL_IF_NEGATIVE(PrintNetOptions(f, 0));
     BAIL_IF_NEGATIVE(PrintNetOptions(f, 1));
     BAIL_IF_NEGATIVE(PrintNetOptions(f, 2));
@@ -3402,7 +3404,7 @@ int SaveOptions() {
 
 #undef BAIL_IF_NEGATIVE
 
-    fclose(f);
+    VFS_fclose(f);
 
     return 1;
 }
@@ -3410,7 +3412,7 @@ int SaveOptions() {
 // IDA: int __cdecl RestoreOptions()
 int RestoreOptions() {
     tPath_name the_path;
-    FILE* f;
+    VFILE* f;
     char line[80];
     char token[80];
     char* s;
@@ -3427,7 +3429,7 @@ int RestoreOptions() {
         LOG_WARN("Failed to open OPTIONS.TXT");
         return 0;
     }
-    while (fgets(line, 80, f)) {
+    while (VFS_fgets(line, 80, f)) {
         if (sscanf(line, "%79s%f", token, &arg) == 2) {
             if (!strcmp(token, "YonFactor")) {
                 SetYonFactor(arg);
@@ -3464,7 +3466,7 @@ int RestoreOptions() {
             } else if (!strcmp(token, "MapRenderHeight")) {
                 gMap_render_height = arg;
             } else if (!strcmp(token, "PlayerName")) {
-                fgets(line, 80, f);
+                VFS_fgets(line, 80, f);
                 s = strtok(line, "\n\r");
                 strcpy(gProgram_state.player_name[(int)arg], s);
             } else if (!strcmp(token, "EVolume")) {
@@ -3490,7 +3492,7 @@ int RestoreOptions() {
             } else if (!strcmp(token, "Joystick_range2y")) {
                 gJoystick_range2y = (int)arg;
             } else if (!strcmp(token, "NetName")) {
-                fgets(line, 80, f);
+                VFS_fgets(line, 80, f);
                 s = strtok(line, "\n\r");
                 strcpy(gNet_player_name, s);
             } else if (!strcmp(token, "NETGAMETYPE")) {
@@ -3500,7 +3502,7 @@ int RestoreOptions() {
             }
         }
     }
-    fclose(f);
+    VFS_fclose(f);
     return 1;
 }
 

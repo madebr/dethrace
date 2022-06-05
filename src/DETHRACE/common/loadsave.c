@@ -6,8 +6,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "intrface.h"
@@ -17,7 +15,13 @@
 #include "structur.h"
 #include "utility.h"
 #include "world.h"
+
 #include <brender/brender.h>
+
+#include "harness/config.h"
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -83,7 +87,7 @@ tU32 CalcLSChecksum(tSave_game* pSaved_game) {
 void LoadSavedGames() {
     tPath_name the_path;
     int i;
-    FILE* f;
+    VFILE* f;
     tU32 the_size;
     LOG_TRACE("()");
 
@@ -104,7 +108,7 @@ void LoadSavedGames() {
         the_size = GetFileLength(f);
         if (the_size == sizeof(tSave_game)) {
             gSaved_games[i] = BrMemCalloc(1, sizeof(tSave_game), kMem_saved_game);
-            fread(gSaved_games[i], 1, the_size, f);
+            VFS_fread(gSaved_games[i], 1, the_size, f);
             CorrectLoadByteOrdering(i);
             if (CalcLSChecksum(gSaved_games[i]) != gSaved_games[i]->checksum || gSaved_games[i]->version != SAVEGAME_VERSION) {
                 BrMemFree(gSaved_games[i]);
@@ -113,7 +117,7 @@ void LoadSavedGames() {
         } else {
             gSaved_games[i] = NULL;
         }
-        fclose(f);
+        VFS_fclose(f);
     }
 }
 
@@ -529,7 +533,7 @@ void CorrectSaveByteOrdering(int pIndex) {
 // IDA: void __usercall SaveTheGame(int pSlot_number@<EAX>)
 void SaveTheGame(int pSlot_number) {
     tPath_name the_path;
-    FILE* f;
+    VFILE* f;
     LOG_TRACE("(%d)", pSlot_number);
 
     gSaved_games[pSlot_number]->checksum = CalcLSChecksum(gSaved_games[pSlot_number]);
@@ -540,8 +544,8 @@ void SaveTheGame(int pSlot_number) {
     f = DRfopen(the_path, "wb");
     if (f != NULL) {
         CorrectSaveByteOrdering(pSlot_number);
-        fwrite(gSaved_games[pSlot_number], 1, sizeof(tSave_game), f);
-        fclose(f);
+        VFS_fwrite(gSaved_games[pSlot_number], 1, sizeof(tSave_game), f);
+        VFS_fclose(f);
         CorrectLoadByteOrdering(pSlot_number);
     }
 }

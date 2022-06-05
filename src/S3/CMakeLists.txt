@@ -1,5 +1,7 @@
 add_library(s3 STATIC)
 
+option(S3_FIX_BUGS "Fix S3 bugs" ON)
+
 target_include_directories(s3 
     PUBLIC
         include
@@ -40,5 +42,8 @@ target_sources(s3 PRIVATE
     s3music.h
     s3sound.c
     s3sound.h
-    
 )
+
+if(S3_FIX_BUGS)
+    target_compile_definitions(s3 PRIVATE S3_FIX_BUGS)
+endif()

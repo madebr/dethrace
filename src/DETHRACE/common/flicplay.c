@@ -5,13 +5,16 @@
 #include "errors.h"
 #include "globvars.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "main.h"
 #include "pd/sys.h"
 #include "sound.h"
 #include "utility.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -706,7 +709,7 @@ int StartFlic(char* pFile_name, int pIndex, tFlic_descriptor_ptr pFlic_info, tU3
 
         pFlic_info->data = pFlic_info->data_start;
         strcpy(gLast_flic_name, pFile_name);
-        fread(pFlic_info->data_start, 1, pFlic_info->bytes_in_buffer, pFlic_info->f);
+        VFS_fread(pFlic_info->data_start, 1, pFlic_info->bytes_in_buffer, pFlic_info->f);
         pFlic_info->bytes_still_to_be_read = total_size - pFlic_info->bytes_in_buffer;
     } else {
         pFlic_info->f = NULL;
@@ -793,7 +796,7 @@ int EndFlic(tFlic_descriptor_ptr pFlic_info) {
     if (pFlic_info->f != NULL) {
         BrMemFree(pFlic_info->data_start);
         pFlic_info->data_start = NULL;
-        fclose(pFlic_info->f);
+        VFS_fclose(pFlic_info->f);
         pFlic_info->f = NULL;
     }
     if (pFlic_info->data != NULL) {
@@ -1305,7 +1308,7 @@ int PlayNextFlicFrame2(tFlic_descriptor* pFlic_info, int pPanel_flic) {
             read_amount = pFlic_info->bytes_still_to_be_read;
         }
         if (read_amount != 0) {
-            fread(&pFlic_info->data_start[pFlic_info->bytes_in_buffer], 1, read_amount, pFlic_info->f);
+            VFS_fread(&pFlic_info->data_start[pFlic_info->bytes_in_buffer], 1, read_amount, pFlic_info->f);
         }
         pFlic_info->bytes_in_buffer += read_amount;
         pFlic_info->bytes_still_to_be_read -= read_amount;
@@ -1395,7 +1398,7 @@ void InitFlics() {
 // IDA: int __usercall LoadFlic@<EAX>(int pIndex@<EAX>)
 int LoadFlic(int pIndex) {
     tPath_name the_path;
-    FILE* f;
+    VFILE* f;
     char* the_buffer;
     LOG_TRACE("(%d)", pIndex);
 
@@ -1427,14 +1430,14 @@ int LoadFlic(int pIndex) {
             FatalError(14, gMain_flic_list[pIndex].file_name);
         }
 #ifdef DETHRACE_FIX_BUGS
-        fclose(f);
+        VFS_fclose(f);
 #endif
         return 0;
     }
 
-    fread(gMain_flic_list[pIndex].data_ptr, 1, gMain_flic_list[pIndex].the_size, f);
+    VFS_fread(gMain_flic_list[pIndex].data_ptr, 1, gMain_flic_list[pIndex].the_size, f);
     strcpy(gLast_flic_name, gMain_flic_list[pIndex].file_name);
-    fclose(f);
+    VFS_fclose(f);
     return 1;
 }
 
@@ -1449,7 +1452,7 @@ void UnlockFlic(int pIndex) {
 
 // IDA: int __usercall LoadFlicData@<EAX>(char *pName@<EAX>, tU8 **pData@<EDX>, tU32 *pData_length@<EBX>)
 int LoadFlicData(char* pName, tU8** pData, tU32* pData_length) {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     LOG_TRACE("(\"%s\", %p, %p)", pName, pData, pData_length);
 
@@ -1470,11 +1473,11 @@ int LoadFlicData(char* pName, tU8** pData, tU32* pData_length) {
     *pData_length = GetFileLength(f);
     *pData = BrMemAllocate(*pData_length, kMem_flic_data_2);
     if (*pData == NULL) {
-        fclose(f);
+        VFS_fclose(f);
         return 0;
     }
-    fread(*pData, 1, *pData_length, f);
-    fclose(f);
+    VFS_fread(*pData, 1, *pData_length, f);
+    VFS_fclose(f);
     return 1;
 }
 
@@ -1827,7 +1830,7 @@ br_pixelmap* GetPanelPixelmap(int pIndex) {
 
 // IDA: void __cdecl LoadInterfaceStrings()
 void LoadInterfaceStrings() {
-    FILE* f; // Added by DethRace
+    VFILE* f; // Added by DethRace
     char s[256];
     char s2[256];
     char* str;
@@ -1840,15 +1843,15 @@ void LoadInterfaceStrings() {
 
     gTranslation_count = 0;
     PathCat(the_path, gApplication_path, "TRNSLATE.TXT");
-    f = fopen(the_path, "rt");
+    f = VFS_fopen(the_path, "rt");
     if (f == NULL) {
         return;
     }
-    while (!feof(f)) {
+    while (!VFS_feof(f)) {
         GetALineAndDontArgue(f, s);
         gTranslation_count++;
     }
-    rewind(f);
+    VFS_rewind(f);
     gTranslations = BrMemAllocate(gTranslation_count * sizeof(tTranslation_record), kMem_translations);
     for (i = 0; i < gTranslation_count; i++) {
         GetALineAndDontArgue(f, s);
@@ -1936,7 +1939,7 @@ void LoadInterfaceStrings() {
     gTrans_fonts[12] = &gFonts[17];
 
 #ifdef DETHRACE_FIX_BUGS
-    fclose(f);
+    VFS_fclose(f);
 #endif
 }
 

@@ -183,7 +183,7 @@ void ChallengeOccurred(int pChallenger_index, int pAccepted);
 
 void LoadCopCars();
 
-void LoadInOppoPaths(FILE* pF);
+void LoadInOppoPaths(VFILE* pF);
 
 void DisposeOpponentPaths();
 

@@ -141,7 +141,7 @@ void DisposeFlame();
 
 void InitFlame();
 
-void InitSplash(FILE* pF);
+void InitSplash(VFILE* pF);
 
 void DisposeSplash();
 
@@ -175,11 +175,11 @@ void MungeSplash(tU32 pTime);
 
 void RenderSplashes();
 
-void GetSmokeShadeTables(FILE* f);
+void GetSmokeShadeTables(VFILE* f);
 
 void FreeSmokeShadeTables();
 
-void LoadInKevStuff(FILE* pF);
+void LoadInKevStuff(VFILE* pF);
 
 void DisposeKevStuff();
 

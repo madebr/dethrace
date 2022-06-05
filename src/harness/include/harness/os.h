@@ -23,17 +23,19 @@
 #include <unistd.h>
 #endif
 
+typedef struct os_diriter os_diriter;
+
 // Required: return timestamp in milliseconds.
 uint32_t OS_GetTime(void);
 
 // Required: sleep for specified milliseconds
 void OS_Sleep(int ms);
 
-// Required: begin a directory iteration and return name of first file
-char* OS_GetFirstFileInDirectory(char* path);
+// Required: begin a directory iteration
+os_diriter* OS_OpenDir(char* path);
 
 // Required: continue directory iteration. If no more files, return NULL
-char* OS_GetNextFileInDirectory(void);
+char* OS_GetNextFileInDirectory(os_diriter* diriter);
 
 // Required: copy the `basename` component of `path` into `base`
 void OS_Basename(char* path, char* base);

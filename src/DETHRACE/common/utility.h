@@ -35,9 +35,9 @@ br_scalar SRandomBetween(br_scalar pA, br_scalar pB);
 
 br_scalar SRandomPosNeg(br_scalar pN);
 
-char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS);
+char* GetALineWithNoPossibleService(VFILE* pF, unsigned char* pS);
 
-char* GetALineAndDontArgue(FILE* pF, char* pS);
+char* GetALineAndDontArgue(VFILE* pF, char* pS);
 
 void PathCat(char* pDestn_str, char* pStr_1, char* pStr_2);
 
@@ -45,7 +45,7 @@ int Chance(float pChance_per_second, int pPeriod);
 
 float tandeg(float pAngle);
 
-tU32 GetFileLength(FILE* pF);
+tU32 GetFileLength(VFILE* pF);
 
 int BooleanTo1Or0(int pB);
 
@@ -85,11 +85,11 @@ int sign(int pNumber);
 
 float fsign(float pNumber);
 
-FILE* OpenUniqueFileB(char* pPrefix, char* pExtension);
+VFILE* OpenUniqueFileB(char* pPrefix, char* pExtension);
 
-void PrintScreenFile(FILE* pF);
+void PrintScreenFile(VFILE* pF);
 
-void PrintScreenFile16(FILE* pF);
+void PrintScreenFile16(VFILE* pF);
 
 void PrintScreen();
 
@@ -165,7 +165,7 @@ void EncodeFileWrapper(char* pThe_path);
 
 void EncodeAllFilesInDirectory(char* pThe_path);
 
-void SkipNLines(FILE* pF);
+void SkipNLines(VFILE* pF);
 
 int DRStricmp(char* p1, char* p2);
 

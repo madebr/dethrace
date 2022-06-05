@@ -8,7 +8,6 @@
 #include "globvrkm.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "network.h"
@@ -25,6 +24,10 @@
 #include "trig.h"
 #include "utility.h"
 #include "world.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 #include <time.h>
 
@@ -2433,7 +2436,7 @@ int GetPedPosition(int pIndex, br_vector3* pPos) {
 }
 
 // IDA: void __usercall CreatePedestrian(FILE *pG@<EAX>, tPedestrian_instruction *pInstructions@<EDX>, int pInstruc_count@<EBX>, int pInit_instruc@<ECX>, int pRef_num, int pForce_read)
-void CreatePedestrian(FILE* pG, tPedestrian_instruction* pInstructions, int pInstruc_count, int pInit_instruc, int pRef_num, int pForce_read) {
+void CreatePedestrian(VFILE* pG, tPedestrian_instruction* pInstructions, int pInstruc_count, int pInit_instruc, int pRef_num, int pForce_read) {
     tPath_name the_path;
     char s[256];
     char s2[256];
@@ -2484,7 +2487,7 @@ void CreatePedestrian(FILE* pG, tPedestrian_instruction* pInstructions, int pIns
     if (the_pedestrian->cloned) {
         the_pedestrian->actor->material = gPed_material;
     } else {
-        rewind(pG);
+        VFS_rewind(pG);
         do {
             GetALineAndDontArgue(pG, s);
             str = strtok(s, "\t ,/");
@@ -2704,13 +2707,13 @@ void ResetPedMaterial() {
 }
 
 // IDA: void __usercall LoadInPedestrians(FILE *pF@<EAX>, int pSubs_count@<EDX>, tPed_subs *pSubs_array@<EBX>)
-void LoadInPedestrians(FILE* pF, int pSubs_count, tPed_subs* pSubs_array) {
+void LoadInPedestrians(VFILE* pF, int pSubs_count, tPed_subs* pSubs_array) {
     tPath_name the_path;
     char s[256];
     char s2[256];
     char* str;
     char* str2;
-    FILE* g;
+    VFILE* g;
     int the_ref;
     int i;
     int j;
@@ -2874,7 +2877,7 @@ void LoadInPedestrians(FILE* pF, int pSubs_count, tPed_subs* pSubs_array) {
             }
         }
     }
-    fclose(g);
+    VFS_fclose(g);
     if (duplicates_found) {
         WriteOutPeds();
         sprintf(s2,
@@ -3019,84 +3022,84 @@ void WriteOutPeds() {
     tPedestrian_data* the_pedestrian;
     tPedestrian_instruction* the_instruction;
     tPed_choice* the_choice;
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     LOG_TRACE("()");
 
     PathCat(the_path, gApplication_path, "PEDPATHS.TXT");
     f = DRfopen(the_path, "wt");
-    fprintf(f, "// ****** START OF PEDESTRIAN STUFF ******\n\n");
-    fprintf(f, "0\t\t\t\t// Ped subs table index\n\n");
-    fprintf(f, "%d\t\t\t\t// Number of pedestrians\n\n", gPed_count);
+    VFS_fprintf(f, "// ****** START OF PEDESTRIAN STUFF ******\n\n");
+    VFS_fprintf(f, "0\t\t\t\t// Ped subs table index\n\n");
+    VFS_fprintf(f, "%d\t\t\t\t// Number of pedestrians\n\n", gPed_count);
     for (i = 0, the_pedestrian = gPedestrian_array; i < gPed_count; i++, the_pedestrian++) {
-        fprintf(f, "// Pedestrian number %d\n\n", i + 1);
-        fprintf(f, "%d\t\t\t\t// Ref num\n", the_pedestrian->ref_number);
-        fprintf(f, "%d\t\t\t\t// Number of instructions\n", the_pedestrian->number_of_instructions);
-        fprintf(f, "%d\t\t\t\t// Initial instruction\n\n", the_pedestrian->first_instruction + 1);
+        VFS_fprintf(f, "// Pedestrian number %d\n\n", i + 1);
+        VFS_fprintf(f, "%d\t\t\t\t// Ref num\n", the_pedestrian->ref_number);
+        VFS_fprintf(f, "%d\t\t\t\t// Number of instructions\n", the_pedestrian->number_of_instructions);
+        VFS_fprintf(f, "%d\t\t\t\t// Initial instruction\n\n", the_pedestrian->first_instruction + 1);
         for (j = 0, the_instruction = the_pedestrian->instruction_list; j < the_pedestrian->number_of_instructions; j++, the_instruction++) {
             switch (the_instruction->type) {
             case ePed_instruc_point:
-                fprintf(f, "\tpoint\n");
-                fprintf(f, "\t%.3f,%.3f,%.3f\n",
+                VFS_fprintf(f, "\tpoint\n");
+                VFS_fprintf(f, "\t%.3f,%.3f,%.3f\n",
                     the_instruction->data.point_data.position.v[V_X],
                     the_instruction->data.point_data.position.v[V_Y],
                     the_instruction->data.point_data.position.v[V_Z]);
                 break;
             case ePed_instruc_xpoint:
-                fprintf(f, "\txpoint\n");
-                fprintf(f, "\t%.3f,%.3f,%.3f\n",
+                VFS_fprintf(f, "\txpoint\n");
+                VFS_fprintf(f, "\t%.3f,%.3f,%.3f\n",
                     the_instruction->data.point_data.position.v[V_X],
                     the_instruction->data.point_data.position.v[V_Y],
                     the_instruction->data.point_data.position.v[V_Z]);
                 break;
             case ePed_instruc_bchoice:
-                fprintf(f, "\tbchoice\n");
-                fprintf(f, "%d", the_instruction->data.choice_data.number_of_choices);
+                VFS_fprintf(f, "\tbchoice\n");
+                VFS_fprintf(f, "%d", the_instruction->data.choice_data.number_of_choices);
                 for (k = 0, the_choice = the_instruction->data.choice_data.choices; k < the_instruction->data.choice_data.number_of_choices; k++, the_choice++) {
-                    fprintf(f, "%d,%d,%d,", the_choice->danger_level, the_choice->percentage_chance, the_choice->marker_ref);
+                    VFS_fprintf(f, "%d,%d,%d,", the_choice->danger_level, the_choice->percentage_chance, the_choice->marker_ref);
                 }
                 break;
             case ePed_instruc_fchoice:
-                fprintf(f, "\tfchoice\n");
-                fprintf(f, "%d", the_instruction->data.choice_data.number_of_choices);
+                VFS_fprintf(f, "\tfchoice\n");
+                VFS_fprintf(f, "%d", the_instruction->data.choice_data.number_of_choices);
                 for (k = 0, the_choice = the_instruction->data.choice_data.choices; k < the_instruction->data.choice_data.number_of_choices; k++, the_choice++) {
-                    fprintf(f, "%d,%d,%d,", the_choice->danger_level, the_choice->percentage_chance, the_choice->marker_ref);
+                    VFS_fprintf(f, "%d,%d,%d,", the_choice->danger_level, the_choice->percentage_chance, the_choice->marker_ref);
                 }
                 break;
             case ePed_instruc_dead:
-                fprintf(f, "\tdead\n");
-                fprintf(f, "%d", the_instruction->data.death_data.death_sequence);
+                VFS_fprintf(f, "\tdead\n");
+                VFS_fprintf(f, "%d", the_instruction->data.death_data.death_sequence);
                 break;
             case ePed_instruc_bmarker:
-                fprintf(f, "\tbmarker\n");
-                fprintf(f, "%d", the_instruction->data.marker_data.marker_ref);
+                VFS_fprintf(f, "\tbmarker\n");
+                VFS_fprintf(f, "%d", the_instruction->data.marker_data.marker_ref);
                 break;
             case ePed_instruc_fmarker:
-                fprintf(f, "\tfmarker\n");
-                fprintf(f, "%d", the_instruction->data.marker_data.marker_ref);
+                VFS_fprintf(f, "\tfmarker\n");
+                VFS_fprintf(f, "%d", the_instruction->data.marker_data.marker_ref);
                 break;
             case ePed_instruc_baction:
-                fprintf(f, "\tbaction\n");
-                fprintf(f, "%d", the_instruction->data.action_data.action_index);
+                VFS_fprintf(f, "\tbaction\n");
+                VFS_fprintf(f, "%d", the_instruction->data.action_data.action_index);
                 break;
             case ePed_instruc_faction:
-                fprintf(f, "\tfaction\n");
-                fprintf(f, "%d", the_instruction->data.action_data.action_index);
+                VFS_fprintf(f, "\tfaction\n");
+                VFS_fprintf(f, "%d", the_instruction->data.action_data.action_index);
                 break;
             case ePed_instruc_reverse:
-                fprintf(f, "\treverse\n");
+                VFS_fprintf(f, "\treverse\n");
                 break;
             }
         }
-        fprintf(f, "\n\n");
+        VFS_fprintf(f, "\n\n");
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl AddPed()
 void AddPed() {
     tPedestrian_instruction* instructions;
-    FILE* g;
+    VFILE* g;
     tPath_name the_path;
     LOG_TRACE("()");
 
@@ -3110,7 +3113,7 @@ void AddPed() {
     instructions = BrMemAllocate(gPed_instruc_count * sizeof(tPedestrian_instruction), kMem_ped_new_instruc);
     memcpy(instructions, gPed_instrucs, gPed_instruc_count * sizeof(tPedestrian_instruction));
     CreatePedestrian(g, instructions, gPed_instruc_count, gInit_ped_instruc, gPed_ref_num, 1);
-    fclose(g);
+    VFS_fclose(g);
     gPed_instruc_count = 0;
     WriteOutPeds();
 }
@@ -3631,7 +3634,7 @@ void DisposePedestrians() {
 
 // IDA: void __cdecl DoPedReport()
 void DoPedReport() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     time_t the_bloody_time;
     int i;
@@ -3646,10 +3649,10 @@ void DoPedReport() {
     powerup_count = 0;
     ped_count = 0;
     PathCat(the_path, gApplication_path, "PEDINFO.TXT");
-    f = fopen(the_path, "at");
+    f = VFS_fopen(the_path, "at");
     time(&the_bloody_time);
-    fprintf(f, "PEDESTRIAN REPORT FOR '%s' ON %s\n\n", gCurrent_race.name, ctime(&the_bloody_time));
-    fprintf(f, "RefNum   Count\n===============================\n");
+    VFS_fprintf(f, "PEDESTRIAN REPORT FOR '%s' ON %s\n\n", gCurrent_race.name, ctime(&the_bloody_time));
+    VFS_fprintf(f, "RefNum   Count\n===============================\n");
     last_ref_num = -1;
     for (i = 0; i < gPed_count; i++) {
         if (last_ref_num < gPedestrian_array[i].ref_number) {
@@ -3658,7 +3661,7 @@ void DoPedReport() {
     }
     for (i = 0; i <= last_ref_num; i++) {
         if (i == 100) {
-            fprintf(f, "\n");
+            VFS_fprintf(f, "\n");
         }
         count = 0;
         for (j = 0; j < gPed_count; j++) {
@@ -3674,14 +3677,14 @@ void DoPedReport() {
                 GetPowerupMessage(i - 100, s);
                 powerup_count += count;
             }
-            fprintf(f, "%6d    %5d      %s\n", i, count, s);
+            VFS_fprintf(f, "%6d    %5d      %s\n", i, count, s);
         }
     }
-    fprintf(f, "\n\nSUMMARY:\n\n");
-    fprintf(f, "Peds:     %5d\n", ped_count);
-    fprintf(f, "Powerups: %5d\n", powerup_count);
-    fprintf(f, "\n\n\n\n");
-    fclose(f);
+    VFS_fprintf(f, "\n\nSUMMARY:\n\n");
+    VFS_fprintf(f, "Peds:     %5d\n", ped_count);
+    VFS_fprintf(f, "Powerups: %5d\n", powerup_count);
+    VFS_fprintf(f, "\n\n\n\n");
+    VFS_fclose(f);
 }
 
 // IDA: void __usercall RenderProximityRays(br_pixelmap *pRender_screen@<EAX>, br_pixelmap *pDepth_buffer@<EDX>, br_actor *pCamera@<EBX>, br_matrix34 *pCamera_to_world@<ECX>, tU32 pTime)

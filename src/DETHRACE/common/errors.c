@@ -2,10 +2,12 @@
 #include "cutscene.h"
 #include "globvars.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "network.h"
 #include "pd/sys.h"
 #include "utility.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -206,18 +208,18 @@ void NonFatalError(int pStr_index, ...) {
 void CloseDiagnostics() {
     LOG_TRACE("()");
 
-    fclose(gDiagnostic_file);
+    VFS_fclose(gDiagnostic_file);
 }
 
 // IDA: void __cdecl OpenDiagnostics()
 void OpenDiagnostics() {
     LOG_TRACE("()");
 
-    gDiagnostic_file = fopen("DIAGNOST.TXT", "w");
+    gDiagnostic_file = VFS_fopen("DIAGNOST.TXT", "w");
 
-    fputs("DIAGNOSTIC OUTPUT\n", gDiagnostic_file);
+    VFS_fputs("DIAGNOSTIC OUTPUT\n", gDiagnostic_file);
     // todo: generate a real date
-    fprintf(gDiagnostic_file, "Date / time : %s\n\n\n", "Mon Mar 24 16 : 32 : 33 1997");
+    VFS_fprintf(gDiagnostic_file, "Date / time : %s\n\n\n", "Mon Mar 24 16 : 32 : 33 1997");
 }
 
 // Renamed from dprintf to avoid collisions to stdio
@@ -232,13 +234,13 @@ void dr_dprintf(char* fmt_string, ...) {
     }
     the_time = GetTotalTime() - first_time;
 
-    fprintf(gDiagnostic_file, "%7d.%02d: ", the_time / 1000, the_time % 100);
+    VFS_fprintf(gDiagnostic_file, "%7d.%02d: ", the_time / 1000, the_time % 100);
 
     va_start(args, fmt_string);
-    vfprintf(gDiagnostic_file, fmt_string, args);
+    VFS_vfprintf(gDiagnostic_file, fmt_string, args);
     va_end(args);
 
-    fputs("\n", gDiagnostic_file);
+    VFS_fputs("\n", gDiagnostic_file);
 }
 
 // IDA: int __usercall DoErrorInterface@<EAX>(int pMisc_text_index@<EAX>)

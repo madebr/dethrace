@@ -1,5 +1,4 @@
 #include "crush.h"
-#include "brender/brender.h"
 #include "car.h"
 #include "displays.h"
 #include "globvars.h"
@@ -17,6 +16,11 @@
 #include "spark.h"
 #include "utility.h"
 #include "world.h"
+
+#include "brender/brender.h"
+
+#include "harness/vfs.h"
+
 #include <stdlib.h>
 
 float gWobble_spam_y[8] = { 0.0f, -0.15f, 0.4f, 0.15f, -0.4f, 0.25f, 0.0f, -0.25f };
@@ -26,7 +30,7 @@ tU8 gSmoke_damage_step[12] = { 20u, 20u, 0u, 10u, 10u, 10u, 10u, 10u, 10u, 10u, 
 int gSteal_ranks[5] = { 0, 89, 72, 55, 38 };
 
 // IDA: int __usercall ReadCrushData@<EAX>(FILE *pF@<EAX>, tCrush_data *pCrush_data@<EDX>)
-int ReadCrushData(FILE* pF, tCrush_data* pCrush_data) {
+int ReadCrushData(VFILE* pF, tCrush_data* pCrush_data) {
     char s[256];
     char* str;
     int i;
@@ -63,7 +67,7 @@ int ReadCrushData(FILE* pF, tCrush_data* pCrush_data) {
 }
 
 // IDA: float __usercall SkipCrushData@<ST0>(FILE *pF@<EAX>)
-float SkipCrushData(FILE* pF) {
+float SkipCrushData(VFILE* pF) {
     int i;
     int j;
     int count_1;
@@ -90,7 +94,7 @@ float SkipCrushData(FILE* pF) {
 }
 
 // IDA: int __usercall WriteCrushData@<EAX>(FILE *pF@<EAX>, tCrush_data *pCrush_data@<EDX>)
-int WriteCrushData(FILE* pF, tCrush_data* pCrush_data) {
+int WriteCrushData(VFILE* pF, tCrush_data* pCrush_data) {
     int i;
     int j;
     int k;
@@ -98,23 +102,23 @@ int WriteCrushData(FILE* pF, tCrush_data* pCrush_data) {
     tCrush_neighbour* the_neighbour;
     LOG_TRACE("(%p, %p)", pF, pCrush_data);
 
-    fprintf(pF, "%f\n\r", pCrush_data->softness_factor);
-    fprintf(pF, "%f,%f\n\r", pCrush_data->min_fold_factor, pCrush_data->max_fold_factor);
-    fprintf(pF, "%f\n\r", pCrush_data->wibble_factor);
-    fprintf(pF, "%f\n\r", pCrush_data->limit_deviant);
-    fprintf(pF, "%f\n\r", pCrush_data->split_chance);
-    fprintf(pF, "%f\n\r", pCrush_data->min_y_fold_down);
-    fprintf(pF, "%d\n\r", pCrush_data->number_of_crush_points);
+    VFS_fprintf(pF, "%f\n\r", pCrush_data->softness_factor);
+    VFS_fprintf(pF, "%f,%f\n\r", pCrush_data->min_fold_factor, pCrush_data->max_fold_factor);
+    VFS_fprintf(pF, "%f\n\r", pCrush_data->wibble_factor);
+    VFS_fprintf(pF, "%f\n\r", pCrush_data->limit_deviant);
+    VFS_fprintf(pF, "%f\n\r", pCrush_data->split_chance);
+    VFS_fprintf(pF, "%f\n\r", pCrush_data->min_y_fold_down);
+    VFS_fprintf(pF, "%d\n\r", pCrush_data->number_of_crush_points);
     for (i = 0, the_spec = pCrush_data->crush_points; i < pCrush_data->number_of_crush_points; i++, the_spec++) {
-        fprintf(pF, "%d\n\r", the_spec->vertex_index);
-        fprintf(pF, "%f, %f, %f\n\r", the_spec->limits_neg.v[0], the_spec->limits_neg.v[1], the_spec->limits_neg.v[2]);
-        fprintf(pF, "%f, %f, %f\n\r", the_spec->limits_pos.v[0], the_spec->limits_pos.v[1], the_spec->limits_pos.v[2]);
-        fprintf(pF, "%f, %f, %f\n\r", the_spec->softness_neg.v[0], the_spec->softness_neg.v[1], the_spec->softness_neg.v[2]);
-        fprintf(pF, "%f, %f, %f\n\r", the_spec->softness_pos.v[0], the_spec->softness_pos.v[1], the_spec->softness_pos.v[2]);
-        fprintf(pF, "%d\n\r", the_spec->number_of_neighbours);
+        VFS_fprintf(pF, "%d\n\r", the_spec->vertex_index);
+        VFS_fprintf(pF, "%f, %f, %f\n\r", the_spec->limits_neg.v[0], the_spec->limits_neg.v[1], the_spec->limits_neg.v[2]);
+        VFS_fprintf(pF, "%f, %f, %f\n\r", the_spec->limits_pos.v[0], the_spec->limits_pos.v[1], the_spec->limits_pos.v[2]);
+        VFS_fprintf(pF, "%f, %f, %f\n\r", the_spec->softness_neg.v[0], the_spec->softness_neg.v[1], the_spec->softness_neg.v[2]);
+        VFS_fprintf(pF, "%f, %f, %f\n\r", the_spec->softness_pos.v[0], the_spec->softness_pos.v[1], the_spec->softness_pos.v[2]);
+        VFS_fprintf(pF, "%d\n\r", the_spec->number_of_neighbours);
         for (j = 0, the_neighbour = the_spec->neighbours; j < the_spec->number_of_neighbours; j++, the_neighbour++) {
-            fprintf(pF, "%d\n\r", the_neighbour->vertex_index);
-            fprintf(pF, "%d\n\r", the_neighbour->factor);
+            VFS_fprintf(pF, "%d\n\r", the_neighbour->vertex_index);
+            VFS_fprintf(pF, "%d\n\r", the_neighbour->factor);
         }
     }
     return 0;

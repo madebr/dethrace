@@ -10,7 +10,6 @@
 #include "globvars.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "intrface.h"
 #include "loading.h"
@@ -20,7 +19,12 @@
 #include "spark.h"
 #include "utility.h"
 #include "world.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <brender/brender.h>
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -679,7 +683,7 @@ void StripControls(unsigned char* pStr) {
 // IDA: void __cdecl LoadKeyNames()
 void LoadKeyNames() {
     int i;
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     unsigned char s[256];
     LOG_TRACE("()");
@@ -690,12 +694,12 @@ void LoadKeyNames() {
         FatalError(106);
     }
     for (i = 0; i < COUNT_OF(gKey_names); i++) {
-        fgets((char*)s, sizeof(s), f);
+        VFS_fgets((char*)s, sizeof(s), f);
         StripControls(s);
         gKey_names[i] = BrMemAllocate(strlen((char*)s) + 1, kMem_key_names);
         strcpy(gKey_names[i], (char*)s);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl DisposeKeyNames()
@@ -742,7 +746,7 @@ void GetKeyCoords(int pIndex, int* pY, int* pName_x, int* pKey_x, int* pEnd_box)
 
 // IDA: void __cdecl SetKeysToDefault()
 void SetKeysToDefault() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     LOG_TRACE("()");
@@ -754,14 +758,14 @@ void SetKeysToDefault() {
         FatalError(9);
     }
     for (i = 0; i < COUNT_OF(gKey_mapping); i++) {
-        fscanf(f, "%d", &gKey_mapping[i]);
+        VFS_fscanf(f, "%d", &gKey_mapping[i]);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __cdecl SaveKeyMapping()
 void SaveKeyMapping() {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     LOG_TRACE("()");
@@ -774,11 +778,11 @@ void SaveKeyMapping() {
         FatalError(9);
     }
     for (i = 0; i < COUNT_OF(gKey_mapping); i++) {
-        fprintf(f, "%d", gKey_mapping[i]);
-        fputc('\r', f);
-        fputc('\n', f);
+        VFS_fprintf(f, "%d", gKey_mapping[i]);
+        VFS_fputc('\r', f);
+        VFS_fputc('\n', f);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: void __usercall ChangeKeyMapIndex(int pNew_one@<EAX>)

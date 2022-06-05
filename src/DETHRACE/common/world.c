@@ -12,7 +12,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "loading.h"
 #include "opponent.h"
 #include "pd/sys.h"
@@ -22,6 +21,9 @@
 #include "spark.h"
 #include "trig.h"
 #include "utility.h"
+
+#include "harness/trace.h"
+#include "harness/vfs.h"
 
 #include <string.h>
 
@@ -285,7 +287,7 @@ tAdd_to_storage_result AddModelToStorage(tBrender_storage* pStorage_space, br_mo
 }
 
 // IDA: int __usercall LoadNPixelmaps@<EAX>(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>, int pCount@<EBX>)
-int LoadNPixelmaps(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
+int LoadNPixelmaps(tBrender_storage* pStorage_space, VFILE* pF, int pCount) {
     tPath_name the_path;
     int i;
     int j;
@@ -389,7 +391,7 @@ br_material* LoadSingleMaterial(tBrender_storage* pStorage_space, char* pName) {
 }
 
 // IDA: int __usercall LoadNShadeTables@<EAX>(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>, int pCount@<EBX>)
-int LoadNShadeTables(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
+int LoadNShadeTables(tBrender_storage* pStorage_space, VFILE* pF, int pCount) {
     tPath_name the_path;
     int i;
     int j;
@@ -460,7 +462,7 @@ br_pixelmap* LoadSingleShadeTable(tBrender_storage* pStorage_space, char* pName)
 }
 
 // IDA: int __usercall LoadNMaterials@<EAX>(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>, int pCount@<EBX>)
-int LoadNMaterials(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
+int LoadNMaterials(tBrender_storage* pStorage_space, VFILE* pF, int pCount) {
     tPath_name the_path;
     int i;
     int j;
@@ -502,7 +504,7 @@ int LoadNMaterials(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
 }
 
 // IDA: int __usercall LoadNModels@<EAX>(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>, int pCount@<EBX>)
-int LoadNModels(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
+int LoadNModels(tBrender_storage* pStorage_space, VFILE* pF, int pCount) {
     tPath_name the_path;
     int i;
     int j;
@@ -684,7 +686,7 @@ void ProcessModelFaceMaterials(br_model* pModel, tPMFMCB pCallback) {
 }
 
 // IDA: int __usercall LoadNTrackModels@<EAX>(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>, int pCount@<EBX>)
-int LoadNTrackModels(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
+int LoadNTrackModels(tBrender_storage* pStorage_space, VFILE* pF, int pCount) {
     tPath_name the_path;
     int i;
     int j;
@@ -742,7 +744,7 @@ int LoadNTrackModels(tBrender_storage* pStorage_space, FILE* pF, int pCount) {
 }
 
 // IDA: void __usercall LoadSomePixelmaps(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>)
-void LoadSomePixelmaps(tBrender_storage* pStorage_space, FILE* pF) {
+void LoadSomePixelmaps(tBrender_storage* pStorage_space, VFILE* pF) {
     tPath_name the_path;
     int i;
     int j;
@@ -760,7 +762,7 @@ void LoadSomePixelmaps(tBrender_storage* pStorage_space, FILE* pF) {
 }
 
 // IDA: void __usercall LoadSomeShadeTables(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>)
-void LoadSomeShadeTables(tBrender_storage* pStorage_space, FILE* pF) {
+void LoadSomeShadeTables(tBrender_storage* pStorage_space, VFILE* pF) {
     tPath_name the_path;
     int i;
     int j;
@@ -778,7 +780,7 @@ void LoadSomeShadeTables(tBrender_storage* pStorage_space, FILE* pF) {
 }
 
 // IDA: void __usercall LoadSomeMaterials(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>)
-void LoadSomeMaterials(tBrender_storage* pStorage_space, FILE* pF) {
+void LoadSomeMaterials(tBrender_storage* pStorage_space, VFILE* pF) {
     tPath_name the_path;
     int i;
     int j;
@@ -796,7 +798,7 @@ void LoadSomeMaterials(tBrender_storage* pStorage_space, FILE* pF) {
 }
 
 // IDA: void __usercall LoadSomeModels(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>)
-void LoadSomeModels(tBrender_storage* pStorage_space, FILE* pF) {
+void LoadSomeModels(tBrender_storage* pStorage_space, VFILE* pF) {
     tPath_name the_path;
     int i;
     int j;
@@ -814,7 +816,7 @@ void LoadSomeModels(tBrender_storage* pStorage_space, FILE* pF) {
 }
 
 // IDA: void __usercall LoadSomeTrackModels(tBrender_storage *pStorage_space@<EAX>, FILE *pF@<EDX>)
-void LoadSomeTrackModels(tBrender_storage* pStorage_space, FILE* pF) {
+void LoadSomeTrackModels(tBrender_storage* pStorage_space, VFILE* pF) {
     tPath_name the_path;
     int i;
     int j;
@@ -1050,7 +1052,7 @@ void Adjust2FloatsForExceptions(float* pVictim1, float* pVictim2, br_pixelmap* p
 }
 
 // IDA: void __usercall AddFunkotronics(FILE *pF@<EAX>, int pOwner@<EDX>, int pRef_offset@<EBX>)
-void AddFunkotronics(FILE* pF, int pOwner, int pRef_offset) {
+void AddFunkotronics(VFILE* pF, int pOwner, int pRef_offset) {
     char s[256];
     char* str;
     int first_time;
@@ -1074,7 +1076,7 @@ void AddFunkotronics(FILE* pF, int pOwner, int pRef_offset) {
     LOG_TRACE("(%p, %d, %d)", pF, pOwner, pRef_offset);
 
     first_time = 1;
-    while (!feof(pF)) {
+    while (!VFS_feof(pF)) {
         PossibleService();
         GetALineAndDontArgue(pF, s);
         if (strcmp(s, "END OF FUNK") == 0) {
@@ -1368,7 +1370,7 @@ tGroovidelic_spec* AddNewGroovidelic() {
 }
 
 // IDA: void __usercall AddGroovidelics(FILE *pF@<EAX>, int pOwner@<EDX>, br_actor *pParent_actor@<EBX>, int pRef_offset@<ECX>, int pAllowed_to_be_absent)
-void AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent) {
+void AddGroovidelics(VFILE* pF, int pOwner, br_actor* pParent_actor, int pRef_offset, int pAllowed_to_be_absent) {
     char s[256];
     char* str;
     int first_time;
@@ -1385,7 +1387,7 @@ void AddGroovidelics(FILE* pF, int pOwner, br_actor* pParent_actor, int pRef_off
 
     first_time = 1;
 
-    while (!(feof(pF))) {
+    while (!(VFS_feof(pF))) {
         PossibleService();
         GetALineAndDontArgue(pF, s);
         if (strcmp(s, "END OF GROOVE") == 0) {
@@ -1678,7 +1680,7 @@ void UpdateSpecVol() {
 // IDA: void __cdecl SaveSpecialVolumes()
 void SaveSpecialVolumes() {
     tPath_name the_path;
-    FILE* f;
+    VFILE* f;
     int i;
     tSpecial_volume* v;
     LOG_TRACE("()");
@@ -2181,7 +2183,7 @@ int GetCarSimplificationLevel() {
 }
 
 // IDA: void __usercall ParseSpecialVolume(FILE *pF@<EAX>, tSpecial_volume *pSpec@<EDX>, char *pScreen_name_str@<EBX>)
-void ParseSpecialVolume(FILE* pF, tSpecial_volume* pSpec, char* pScreen_name_str) {
+void ParseSpecialVolume(VFILE* pF, tSpecial_volume* pSpec, char* pScreen_name_str) {
     char s[256];
     pSpec->gravity_multiplier = GetAScalar(pF);
     pSpec->viscosity_multiplier = GetAScalar(pF);
@@ -2210,7 +2212,7 @@ void AddExceptionToList(tException_list* pDst, tException_list pNew) {
 
 // IDA: void __usercall LoadExceptionsFile(char *pName@<EAX>)
 void LoadExceptionsFile(char* pName) {
-    FILE* f;
+    VFILE* f;
     char line[256];
     char* tok;
     int file_version;
@@ -2238,9 +2240,9 @@ void FreeExceptions() {
 // IDA: void __usercall LoadTrack(char *pFile_name@<EAX>, tTrack_spec *pTrack_spec@<EDX>, tRace_info *pRace_info@<EBX>)
 void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info) {
     char temp_name[14];
-    FILE* f;
-    FILE* non_car_f;
-    FILE* g;
+    VFILE* f;
+    VFILE* non_car_f;
+    VFILE* g;
     int i;
     int j;
     int k;
@@ -2281,7 +2283,7 @@ void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_inf
     PathCat(the_path, gApplication_path, "RACES");
     PathCat(the_path, the_path, pFile_name);
     f = DRfopen(the_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(50);
     }
     GetALineAndDontArgue(f, s);
@@ -2634,7 +2636,7 @@ void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_inf
                 for (ped_subs_index = 0; ped_subs_index < count; ped_subs_index++) {
                     GetPairOfInts(g, &ped_subs[i].orig, &ped_subs[i].subs);
                 }
-                fclose(g);
+                VFS_fclose(g);
             }
         }
     }
@@ -2725,7 +2727,7 @@ void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_inf
         PossibleService();
         ReadShrapnelMaterials(non_car_f, &non_car->collision_info);
         gNon_car_spec_list[non_car->collision_info.index] = i + 1;
-        fclose(non_car_f);
+        VFS_fclose(non_car_f);
         non_car++;
     }
     GetSmokeShadeTables(f);
@@ -2752,7 +2754,7 @@ void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_inf
     if (strcmp(s, pFile_name) != 0) {
         FatalError(115, pFile_name);
     }
-    fclose(f);
+    VFS_fclose(f);
 }
 
 // IDA: br_uint_32 __cdecl RemoveBounds(br_actor *pActor, void *pArg)
@@ -3830,7 +3832,7 @@ void DuplicateIfNotAmpersand(br_actor* pActor) {
 
 // IDA: void __usercall DropActor(int pIndex@<EAX>)
 void DropActor(int pIndex) {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     char s[256];
     int i;
@@ -4331,7 +4333,7 @@ void BuildSpecVolModel(tSpecial_volume* pSpec, int pIndex, br_material* pInt_mat
 
 // IDA: void __usercall DropSpecVol(int pIndex@<EAX>)
 void DropSpecVol(int pIndex) {
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     int i;
     int spec_count;

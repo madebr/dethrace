@@ -1,5 +1,6 @@
 add_library(harness STATIC)
 
+
 if (NOT DEFINED IO_PLATFORM)
     set(IO_PLATFORM "SDL_OpenGL")
 endif()
@@ -35,6 +36,7 @@ target_sources(harness PRIVATE
     include/harness/trace.h
     include/harness/config.h
     include/harness/os.h
+    include/harness/vfs.h
 
     cameras/debug_camera.c
     cameras/debug_camera.h
@@ -49,6 +51,26 @@ target_sources(harness PRIVATE
     sound/sound.c
     sound/sound.h
 )
+
+if (DETHRACE_VFS)
+    target_compile_definitions(harness PUBLIC DETHRACE_VFS)
+    target_sources(harness PRIVATE
+        vfs/vfs.c
+        vfs/realfs.c
+        vfs/realfs.h
+        vfs/vfs_private.h
+    )
+endif()
+
+if (DETHRACE_VFS_ZIP)
+    target_compile_definitions(harness PRIVATE DETHRACE_VFS_ZIP)
+    target_sources(harness PRIVATE
+        vfs/zipfs.c
+        vfs/zipfs.h
+    )
+    target_link_Libraries(harness PRIVATE libzip::zip)
+endif()
+
 
 if (IO_PLATFORM STREQUAL "SDL_OpenGL")
     target_sources(harness PRIVATE

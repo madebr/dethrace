@@ -12,8 +12,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "grafdata.h"
-#include "harness/os.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "loading.h"
@@ -32,10 +30,14 @@
 #include "trig.h"
 #include "utility.h"
 #include "world.h"
-#include <limits.h>
-#include <stdlib.h>
 
+#include "harness/os.h"
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
+#include <limits.h>
 #include <math.h>
+#include <stdlib.h>
 
 int gPalette_munged;
 int gColourValues[1];
@@ -2616,7 +2618,7 @@ void LoadFont(int pFont_ID) {
     tPath_name the_path;
     int i;
     int number_of_chars;
-    FILE* f;
+    VFILE* f;
     tU32 the_size;
     LOG_TRACE("(%d)", pFont_ID);
 
@@ -2653,7 +2655,7 @@ void LoadFont(int pFont_ID) {
                 gFonts[pFont_ID].width_table[i] = the_size;
             }
         }
-        fclose(f);
+        VFS_fclose(f);
         gFonts[pFont_ID].file_read_once = 1;
     }
 }

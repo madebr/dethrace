@@ -1,6 +1,7 @@
 // Based on https://gist.github.com/jvranish/4441299
 
 #include "harness/os.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -26,7 +27,6 @@ static char _program_name[1024];
 #define MAX_STACK_FRAMES 64
 static void* stack_traces[MAX_STACK_FRAMES];
 #define TRACER_PID_STRING "TracerPid:"
-DIR* directory_iterator;
 
 uint32_t OS_GetTime() {
     struct timespec spec;
@@ -41,27 +41,28 @@ void OS_Sleep(int delay_ms) {
     nanosleep(&ts, &ts);
 }
 
-char* OS_GetFirstFileInDirectory(char* path) {
-    directory_iterator = opendir(path);
-    if (directory_iterator == NULL) {
+os_diriter* OS_OpenDir(char* path) {
+    DIR* pDir = opendir(path);
+    if (pDir == NULL) {
         return NULL;
     }
-    return OS_GetNextFileInDirectory();
+    return (os_diriter*)pDir;
 }
 
-char* OS_GetNextFileInDirectory(void) {
+char* OS_GetNextFileInDirectory(os_diriter* diriter) {
+    DIR* pDir;
     struct dirent* entry;
 
-    if (directory_iterator == NULL) {
+    pDir = (DIR*)diriter;
+    if (pDir == NULL) {
         return NULL;
     }
-    while ((entry = readdir(directory_iterator)) != NULL) {
+    while ((entry = readdir(pDir)) != NULL) {
         if (entry->d_type == DT_REG) {
             return entry->d_name;
         }
     }
-    closedir(directory_iterator);
-    directory_iterator = NULL;
+    closedir(pDir);
     return NULL;
 }
 

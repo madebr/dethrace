@@ -1727,7 +1727,7 @@ void InitFlame() {
 }
 
 // IDA: void __usercall InitSplash(FILE *pF@<EAX>)
-void InitSplash(FILE* pF) {
+void InitSplash(VFILE* pF) {
     int i;
     int num_files;
     int num;
@@ -2288,7 +2288,7 @@ void RenderSplashes() {
 }
 
 // IDA: void __usercall GetSmokeShadeTables(FILE *f@<EAX>)
-void GetSmokeShadeTables(FILE* f) {
+void GetSmokeShadeTables(VFILE* f) {
     int i;
     int red;
     int green;
@@ -2323,7 +2323,7 @@ void FreeSmokeShadeTables() {
 }
 
 // IDA: void __usercall LoadInKevStuff(FILE *pF@<EAX>)
-void LoadInKevStuff(FILE* pF) {
+void LoadInKevStuff(VFILE* pF) {
     LOG_TRACE("(%p)", pF);
 
     PossibleService();

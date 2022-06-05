@@ -1,5 +1,4 @@
 #include "utility.h"
-#include <stdlib.h>
 
 #include "brender/brender.h"
 #include "constants.h"
@@ -7,8 +6,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "loadsave.h"
@@ -18,8 +15,13 @@
 #include "sound.h"
 #include "world.h"
 
+#include "harness/config.h"
+#include "harness/trace.h"
+#include "harness/vfs.h"
+
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Added >>
@@ -99,7 +101,7 @@ void EncodeLine(char* pS) {
     int i;
     char* key;
     unsigned char c;
-    FILE* test;
+    VFILE* test;
     tPath_name the_path;
     char s[256];
 
@@ -116,9 +118,9 @@ void EncodeLine(char* pS) {
         strcat(the_path, gDir_separator);
         strcat(the_path, "GENERAL.TXT");
 
-        test = fopen(the_path, "rt");
-        if (test) {
-            fgets(s, 256, test);
+        test = VFS_fopen(the_path, "rt");
+        if (test != NULL) {
+            VFS_fgets(s, 256, test);
             if (s[0] != '@') {
                 gEncryption_method = 2;
             } else {
@@ -129,7 +131,7 @@ void EncodeLine(char* pS) {
                     gEncryption_method = 2;
                 }
             }
-            fclose(test);
+            VFS_fclose(test);
         } else {
             gEncryption_method = 2;
         }
@@ -232,7 +234,7 @@ br_scalar SRandomPosNeg(br_scalar pN) {
 }
 
 // IDA: char* __usercall GetALineWithNoPossibleService@<EAX>(FILE *pF@<EAX>, unsigned char *pS@<EDX>)
-char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS) {
+char* GetALineWithNoPossibleService(VFILE* pF, unsigned char* pS) {
     // Jeff removed "signed' to avoid compiler warnings..
     /*signed*/ char* result;
     /*signed*/ char s[256];
@@ -241,7 +243,7 @@ char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS) {
     int i;
 
     do {
-        result = fgets(s, 256, pF);
+        result = VFS_fgets(s, 256, pF);
         if (result == NULL) {
             s[0] = '\0';
             break;
@@ -258,13 +260,13 @@ char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS) {
         }
 
         while (1) {
-            ch = fgetc(pF);
+            ch = VFS_fgetc(pF);
             if (ch != '\r' && ch != '\n') {
                 break;
             }
         }
         if (ch != -1) {
-            ungetc(ch, pF);
+            VFS_ungetc(ch, pF);
         }
     } while (!isalnum(s[0])
         && s[0] != '-'
@@ -297,7 +299,7 @@ char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS) {
 }
 
 // IDA: char* __usercall GetALineAndDontArgue@<EAX>(FILE *pF@<EAX>, char *pS@<EDX>)
-char* GetALineAndDontArgue(FILE* pF, char* pS) {
+char* GetALineAndDontArgue(VFILE* pF, char* pS) {
     // LOG_TRACE10("(%p, \"%s\")", pF, pS);
 
     PossibleService();
@@ -332,12 +334,12 @@ float tandeg(float pAngle) {
 }
 
 // IDA: tU32 __usercall GetFileLength@<EAX>(FILE *pF@<EAX>)
-tU32 GetFileLength(FILE* pF) {
+tU32 GetFileLength(VFILE* pF) {
     tU32 the_size;
 
-    fseek(pF, 0, SEEK_END);
-    the_size = ftell(pF);
-    rewind(pF);
+    VFS_fseek(pF, 0, SEEK_END);
+    the_size = VFS_ftell(pF);
+    VFS_rewind(pF);
     return the_size;
 }
 
@@ -586,9 +588,9 @@ float fsign(float pNumber) {
 }
 
 // IDA: FILE* __usercall OpenUniqueFileB@<EAX>(char *pPrefix@<EAX>, char *pExtension@<EDX>)
-FILE* OpenUniqueFileB(char* pPrefix, char* pExtension) {
+VFILE* OpenUniqueFileB(char* pPrefix, char* pExtension) {
     int index;
-    FILE* f;
+    VFILE* f;
     tPath_name the_path;
     LOG_TRACE("(\"%s\", \"%s\")", pPrefix, pExtension);
 
@@ -599,13 +601,13 @@ FILE* OpenUniqueFileB(char* pPrefix, char* pExtension) {
         if (f == NULL) {
             return DRfopen(the_path, "wb");
         }
-        fclose(f);
+        VFS_fclose(f);
     }
     return NULL;
 }
 
 // IDA: void __usercall PrintScreenFile(FILE *pF@<EAX>)
-void PrintScreenFile(FILE* pF) {
+void PrintScreenFile(VFILE* pF) {
     int i;
     int j;
     int bit_map_size;
@@ -674,7 +676,7 @@ void PrintScreenFile(FILE* pF) {
 }
 
 // IDA: void __usercall PrintScreenFile16(FILE *pF@<EAX>)
-void PrintScreenFile16(FILE* pF) {
+void PrintScreenFile16(VFILE* pF) {
     int i;
     int j;
     int bit_map_size;
@@ -687,13 +689,13 @@ void PrintScreenFile16(FILE* pF) {
 
 // IDA: void __cdecl PrintScreen()
 void PrintScreen() {
-    FILE* f;
+    VFILE* f;
     LOG_TRACE("()");
 
     f = OpenUniqueFileB("DUMP", "BMP");
     if (f != NULL) {
         PrintScreenFile(f);
-        fclose(f);
+        VFS_fclose(f);
     }
 }
 
@@ -1231,8 +1233,8 @@ void EncodeLine2(char* pS) {
 
 // IDA: void __usercall EncodeFile(char *pThe_path@<EAX>)
 void EncodeFile(char* pThe_path) {
-    FILE* f;
-    FILE* d;
+    VFILE* f;
+    VFILE* d;
     char line[257];
     char new_file[256];
     char* s;
@@ -1247,28 +1249,28 @@ void EncodeFile(char* pThe_path) {
     strcpy(new_file, pThe_path);
     strcat(new_file, "ENC");
 
-    f = fopen(pThe_path, "rt");
-    if (!f) {
+    f = VFS_fopen(pThe_path, "rt");
+    if (f == NULL) {
         FatalError(0x6b, new_file);
     }
 
-    ch = fgetc(f);
-    ungetc(ch, f);
+    ch = VFS_fgetc(f);
+    VFS_ungetc(ch, f);
 
     if (gDecode_thing == '@' && gDecode_thing == (char)ch) {
-        fclose(f);
+        VFS_fclose(f);
         return;
     }
 
-    d = fopen(new_file, "wb");
-    if (!d) {
+    d = VFS_fopen(new_file, "wb");
+    if (d == NULL) {
         FatalError(0x6b, new_file);
     }
 
     result = &line[1];
 
-    while (!feof(f)) {
-        fgets(result, 256, f);
+    while (!VFS_feof(f)) {
+        VFS_fgets(result, 256, f);
 
         if (ch == '@') {
             decode = 1;
@@ -1287,29 +1289,29 @@ void EncodeFile(char* pThe_path) {
         }
 
         line[0] = '@';
-        fputs(&line[decode * 2], d);
+        VFS_fputs(&line[decode * 2], d);
         count = -1;
-        ch = fgetc(f);
+        ch = VFS_fgetc(f);
         while (ch == '\r' || ch == '\n') {
             count++;
         }
         if (count >= 2) {
-            fputc(0x0d, d);
-            fputc(0x0a, d);
+            VFS_fputc(0x0d, d);
+            VFS_fputc(0x0a, d);
         }
-        fputc(0x0d, d);
-        fputc(0x0a, d);
+        VFS_fputc(0x0d, d);
+        VFS_fputc(0x0a, d);
 
         if (ch != -1) {
-            ungetc(ch, f);
+            VFS_ungetc(ch, f);
         }
     }
-    fclose(f);
-    fclose(d);
+    VFS_fclose(f);
+    VFS_fclose(d);
 
     PDFileUnlock(pThe_path);
-    remove(pThe_path);
-    rename(new_file, pThe_path);
+    VFS_remove(pThe_path);
+    VFS_rename(new_file, pThe_path);
 }
 
 // IDA: void __usercall EncodeFileWrapper(char *pThe_path@<EAX>)
@@ -1373,7 +1375,7 @@ void EncodeAllFilesInDirectory(char* pThe_path) {
 }
 
 // IDA: void __usercall SkipNLines(FILE *pF@<EAX>)
-void SkipNLines(FILE* pF) {
+void SkipNLines(VFILE* pF) {
     int i;
     int count;
     char s[256];
