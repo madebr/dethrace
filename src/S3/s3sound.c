@@ -1,9 +1,11 @@
 #include "s3sound.h"
 #include "audio.h"
-#include "miniaudio/miniaudio.h"
 #include "resource.h"
 
+#include "miniaudio/miniaudio.h"
+
 #include "harness/vfs.h"
+#include "harness/trace.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,6 +144,75 @@ int S3ReadWavHeader(char* buf, tWAVEFORMATEX_** pWav_format, char** data_ptr, in
     return 0;
 }
 
+typedef struct {
+    ma_data_source_base base;
+    tS3_sample* sample;
+    ma_format format;
+    ma_uint64 bytesPosition;
+    char* data_ptr;
+    ma_uint64 data_size;
+} s3_ma_data_source_memory;
+
+static ma_result s3_ma_data_source_memory_read(ma_data_source* pDataSource, void* pFramesOut, ma_uint64 frameCount, ma_uint64* pFramesRead) {
+    s3_ma_data_source_memory* s3_memoryDataSource = (s3_ma_data_source_memory*) pDataSource;
+    // value of format == #bytes
+    ma_uint64 bytesRead = s3_memoryDataSource->format * frameCount;
+    ma_uint64 bytesLeft = s3_memoryDataSource->data_size - s3_memoryDataSource->bytesPosition;
+    if (bytesRead > bytesLeft) {
+        bytesRead = bytesLeft;
+    }
+    memcpy(pFramesOut, &s3_memoryDataSource->data_ptr[s3_memoryDataSource->bytesPosition], bytesRead);
+    s3_memoryDataSource->bytesPosition += bytesRead;
+    *pFramesRead = bytesRead;
+    return MA_SUCCESS;
+}
+
+static ma_result s3_ma_data_source_memory_seek(ma_data_source* pDataSource, ma_uint64 frameIndex) {
+    s3_ma_data_source_memory* s3_memoryDataSource = (s3_ma_data_source_memory*) pDataSource;
+
+    // value of format == #bytes
+    s3_memoryDataSource->bytesPosition = s3_memoryDataSource->format * frameIndex;
+    if (s3_memoryDataSource->bytesPosition >= s3_memoryDataSource->data_size) {
+        s3_memoryDataSource->bytesPosition = s3_memoryDataSource->data_size;
+        return MA_OUT_OF_RANGE;
+    }
+    return MA_SUCCESS;
+}
+
+static ma_result s3_ma_data_source_memory_get_data_format(ma_data_source* pDataSource, ma_format* pFormat, ma_uint32* pChannels, ma_uint32* pSampleRate, ma_channel* pChannelMap, size_t channelMapCap) {
+    s3_ma_data_source_memory* s3_memoryDataSource = (s3_ma_data_source_memory*) pDataSource;
+
+    *pFormat = s3_memoryDataSource->format;
+    *pChannels = s3_memoryDataSource->sample->channels;
+    *pSampleRate = s3_memoryDataSource->sample->rate;
+    // *pChannelMap = ???;
+    return MA_SUCCESS;
+}
+
+static ma_result s3_ma_data_source_memory_get_cursor(ma_data_source* pDataSource, ma_uint64* pCursor) {
+    NOT_IMPLEMENTED();
+    // return MA_NOT_IMPLEMENTED;
+}
+
+static ma_result s3_ma_data_source_memory_get_length(ma_data_source* pDataSource, ma_uint64* pLength) {
+    NOT_IMPLEMENTED();
+    // return MA_NOT_IMPLEMENTED;
+}
+
+static ma_result s3_ma_data_source_memory_set_looping(ma_data_source* pDataSource, ma_bool32 isLooping) {
+    return MA_SUCCESS;
+}
+
+const static ma_data_source_vtable g_s3_ma_data_source_vtable = {
+    s3_ma_data_source_memory_read,
+    s3_ma_data_source_memory_seek,
+    s3_ma_data_source_memory_get_data_format,
+    s3_ma_data_source_memory_get_cursor,
+    s3_ma_data_source_memory_get_length,
+    s3_ma_data_source_memory_set_looping,
+    0,
+};
+
 void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     VFILE* f;           // [esp+Ch] [ebp-C8h]
     size_t bytes_read; // [esp+14h] [ebp-C0h] BYREF
@@ -183,20 +254,57 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
         return 0;
     }
     pSample->freeptr = 0;
-    pSample->dataptr = 0;
+    pSample->dataptr = buf;
     pSample->size = data_size;
     pSample->rate = wav_format->nSamplesPerSec;
     pSample->resolution = wav_format->nAvgBytesPerSec;
     pSample->channels = wav_format->nChannels;
 
+    s3_ma_data_source_memory* data_source = malloc(sizeof(s3_ma_data_source_memory));
+    data_source->bytesPosition = 0;
+    data_source->sample = pSample;
+    data_source->data_ptr = data_ptr;
+    data_source->data_size = data_size;
+
+    pSample->data_source = data_source;
+    switch (wav_format->wBitsPerSample) {
+    case 8:
+        data_source->format = ma_format_u8;
+        break;
+    case 16:
+        data_source->format = ma_format_s16;
+        break;
+    case 24:
+        data_source->format = ma_format_s24;
+        break;
+    case 32:
+        data_source->format = ma_format_s32;
+        break;
+    default:
+        data_source->format = ma_format_unknown;
+        break;
+    }
+
+    ma_data_source_config baseConfig;
+    memset(&baseConfig, 0, sizeof(baseConfig));
+    baseConfig = ma_data_source_config_init();
+    baseConfig.vtable = &g_s3_ma_data_source_vtable;
+
+    if (ma_data_source_init(&baseConfig, data_source) != MA_SUCCESS) {
+        gS3_last_error = eS3_error_memory;
+        free(data_source);
+        S3MemFree(buf);
+        return NULL;
+    }
     ma_sound* sound = malloc(sizeof(ma_sound));
-    // TODO: load from memory - we've already read the file data
-    if (ma_sound_init_from_file(&engine, pFile_name, MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, NULL, NULL, sound) != MA_SUCCESS) {
-        gS3_last_error = eS3_error_readfile;
+
+    if (ma_sound_init_from_data_source(&engine, data_source, MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, NULL, sound) != MA_SUCCESS) {
+        gS3_last_error = eS3_error_memory;
+        free(sound);
+        free(data_source);
         S3MemFree(buf);
         return NULL; // Failed to load sound.
     }
-    S3MemFree(buf);
     return sound;
 
     // S3MemFree(buf);
@@ -224,7 +332,7 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     //     ds_buffer->lpVtbl->Unlock(ds_buffer, locked_buffer_data, locked_buffer_data_len, 0, 0);
     //     return ds_buffer;
     // }
-    return NULL;
+    // return NULL;
 }
 
 int S3StopSample(tS3_channel* chan) {

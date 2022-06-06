@@ -166,6 +166,7 @@ typedef struct tS3_sample {
     int channels;
     char* dataptr;
     void* freeptr;
+    void* data_source;  // added by DethRace (FIXME: use dataptr for storage + freeptr for freeing)
 } tS3_sample;
 
 typedef struct tS3_hardware_info {
