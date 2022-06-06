@@ -227,7 +227,7 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     // char* locked_buffer_data;   // [esp+CCh] [ebp-8h] BYREF
     size_t file_len; // [esp+D0h] [ebp-4h]
 
-    f = VFS_fopen(pFile_name, "r");
+    f = VFS_fopen(pFile_name, "rb");
     if (f == NULL) {
         gS3_last_error = eS3_error_readfile;
         return 0;
