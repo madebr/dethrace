@@ -11,8 +11,11 @@
 
 struct zipfs_handle {
     char path[512];
-    zip_t* zip;
+    zip_t* archive;
 };
+
+#define STATE_ZIPFS_HANDLE(STATE) ((struct zipfs_handle*)((STATE)->handle))
+#define VFILE_FILE(VFILE) ((zip_file_t*)((VFILE)->file))
 
 static char* ZIPFS_GetNextFileInDirectory(struct vfs_state* state, struct vfs_diriter_handle* diriter) {
     NOT_IMPLEMENTED();
@@ -25,7 +28,7 @@ struct vfs_diriter_handle* ZIPFS_OpenDir(struct vfs_state* state, char* path) {
 static int ZIPFS_access(struct vfs_state* state, const char* pathname, int mode) {
     zip_stat_t sb;
     int result;
-    result = zip_stat(STATE_TO_HANDLE(state)->zip, pathname, ZIP_FL_NOCASE | ZIP_FL_ENC_GUESS, &sb);
+    result = zip_stat(STATE_TO_HANDLE(state)->archive, pathname, ZIP_FL_NOCASE | ZIP_FL_ENC_GUESS, &sb);
     if (result != 0) {
         return -1;
     }
@@ -61,7 +64,14 @@ char* ZIPFS_fgets(struct vfs_state*, char* s, int size, VFILE* stream) {
 }
 
 static VFILE* ZIPFS_fopen(struct vfs_state* state, const char* path, const char* mode) {
-    NOT_IMPLEMENTED();
+    zip_file_t* file = zip_fopen(STATE_ZIPFS_HANDLE(state)->archive, path, ZIP_FL_NOCASE | ZIP_FL_ENC_GUESS);
+    if (file == NULL) {
+        return NULL;
+    }
+    VFILE* vfile = malloc(sizeof(VFILE));
+    vfile->state = state;
+    vfile->file = file;
+    return vfile;
 }
 
 static int ZIPFS_fputs(struct vfs_state* state, const char* s, VFILE* stream) {
@@ -120,8 +130,8 @@ struct vfs_state* ZIPFS_InitPath(const char* path) {
     // FIXME: splatxmas demo is in subfolder, so change the syntax to allow specifying a subpath in a zip
 
     int errorCode;
-    zip_t* zip = zip_open(path, ZIP_RDONLY, &errorCode);
-    if (zip == NULL) {
+    zip_t* archive = zip_open(path, ZIP_RDONLY, &errorCode);
+    if (archive == NULL) {
         zip_error_t error;
         zip_error_init_with_code(&error, errorCode);
         LOG_WARN("libzip failed to open %s (%s)", path, zip_error_strerror(&error));
@@ -131,7 +141,7 @@ struct vfs_state* ZIPFS_InitPath(const char* path) {
     newState->functions = &gZIPFS_Functions;
     struct zipfs_handle* handle = malloc(sizeof(struct zipfs_handle));
     strcpy(handle->path, path);
-    handle->zip = zip;
+    handle->archive = archive;
     newState->handle = handle;
     return newState;
 }

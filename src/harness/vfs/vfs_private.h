@@ -35,7 +35,7 @@ struct vfs_state {
 
 typedef struct VFILE {
     struct vfs_state *state;
-    void* handle;
+    void* file;
 } VFILE;
 
 typedef struct vfs_diriter {

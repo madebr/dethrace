@@ -3,7 +3,7 @@
 
 #include "harness/trace.h"
 
-#include "realfs.h"
+#include "stdiofs.h"
 #include "zipfs.h"
 
 #include <stddef.h>
@@ -46,7 +46,7 @@ int VFS_Init(const char* paths) {
             LOG_INFO("DethRace was built without zip support, ignoring %s", pathBuffer);
 #endif
         } else {
-            newVfs = REALFS_InitPath(pathBuffer);
+            newVfs = STDIOFS_InitPath(pathBuffer);
         }
         if (newVfs == NULL) {
             LOG_INFO("Failed to open %s", pathBuffer);

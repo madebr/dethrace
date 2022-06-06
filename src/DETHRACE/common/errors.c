@@ -216,6 +216,9 @@ void OpenDiagnostics() {
     LOG_TRACE("()");
 
     gDiagnostic_file = VFS_fopen("DIAGNOST.TXT", "w");
+    if (gDiagnostic_file == NULL) {
+        return;
+    }
 
     VFS_fputs("DIAGNOSTIC OUTPUT\n", gDiagnostic_file);
     // todo: generate a real date
@@ -228,6 +231,10 @@ void dr_dprintf(char* fmt_string, ...) {
     static tU32 first_time = 0;
     va_list args;
     tU32 the_time;
+
+    if (gDiagnostic_file == NULL) {
+        return;
+    }
 
     if (first_time == 0) {
         first_time = GetTotalTime();

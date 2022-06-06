@@ -56,8 +56,8 @@ if (DETHRACE_VFS)
     target_compile_definitions(harness PUBLIC DETHRACE_VFS)
     target_sources(harness PRIVATE
         vfs/vfs.c
-        vfs/realfs.c
-        vfs/realfs.h
+        vfs/stdiofs.c
+        vfs/stdiofs.h
         vfs/vfs_private.h
     )
 endif()
