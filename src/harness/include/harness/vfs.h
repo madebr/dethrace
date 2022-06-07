@@ -9,7 +9,7 @@
 typedef struct VFILE VFILE;
 typedef struct vfs_diriter vfs_diriter;
 
-int VFS_Init(const char* path);
+int VFS_Init(int argc, const char* argv[], const char* paths);
 
 int VFS_access(const char* path, int mode);
 
@@ -25,7 +25,10 @@ int VFS_fprintf(VFILE* stream, const char* format, ...);
 
 int VFS_vfprintf(VFILE *stream, const char *format, va_list ap);
 
-int VFS_fscanf(VFILE* stream, const char* format, ...);
+extern size_t vfs_scanf_marker_internal;
+#define VFS_fscanf(STREAM, FORMAT, ...) VFS_fscanf_internal((STREAM), (FORMAT), __VA_ARGS__, &vfs_scanf_marker_internal)
+
+int VFS_fscanf_internal(VFILE* stream, const char* format, ...);
 
 size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream);
 
@@ -61,7 +64,7 @@ char* VFS_GetNextFileInDirectory(vfs_diriter* diriter);
 #define vfs_diriter os_diriter
 
 // FIXME: implement this function
-int VFS_Init(const char* path);
+int VFS_Init(int argc, const char* argv[], const char* paths);
 
 #define VFS_access access
 

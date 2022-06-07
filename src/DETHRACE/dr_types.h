@@ -5,13 +5,14 @@
 #include "constants.h"
 #include "macros.h"
 #include "s3/s3.h"
+
+#include "harness/vfs.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-
-typedef struct VFILE VFILE;
 
 #ifdef _WIN32
 #include <windows.h>

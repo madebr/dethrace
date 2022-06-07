@@ -228,6 +228,8 @@ char* S3LoadSoundBankFile(char* pThe_path) {
         return buffer;
     }
     gS3_last_error = eS3_error_readfile;
+    S3MemFree(buffer);
+    VFS_fclose(fd);
     return 0;
 }
 

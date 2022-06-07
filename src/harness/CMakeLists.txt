@@ -56,19 +56,17 @@ if (DETHRACE_VFS)
     target_compile_definitions(harness PUBLIC DETHRACE_VFS)
     target_sources(harness PRIVATE
         vfs/vfs.c
-        vfs/stdiofs.c
-        vfs/stdiofs.h
-        vfs/vfs_private.h
     )
-endif()
-
-if (DETHRACE_VFS_ZIP)
-    target_compile_definitions(harness PRIVATE DETHRACE_VFS_ZIP)
-    target_sources(harness PRIVATE
-        vfs/zipfs.c
-        vfs/zipfs.h
-    )
-    target_link_Libraries(harness PRIVATE libzip::zip)
+    find_package(PhysFS REQUIRED)
+    if(TARGET PhysFS::PhysFS)
+        target_link_libraries(harness PRIVATE PhysFS::PhysFS)
+    elseif(TARGET PhysFS::PhysFS-static)
+        target_link_libraries(harness PRIVATE PhysFS::PhysFS-static)
+    elseif(DEFINED PHYSFS_LIBRARY AND DEFINED PHYSFS_INCLUDE_DIR)
+        target_link_libraries(harness PRIVATE ${PHYSFS_LIBRARY})
+        target_include_directories(harness PRIVATE ${PHYSFS_INCLUDE_DIR})
+    endif()
+    target_link_libraries(harness PRIVATE)
 endif()
 
 

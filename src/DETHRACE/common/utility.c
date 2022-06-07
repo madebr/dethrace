@@ -1296,13 +1296,13 @@ void EncodeFile(char* pThe_path) {
             count++;
         }
         if (count >= 2) {
-            VFS_fputc(0x0d, d);
-            VFS_fputc(0x0a, d);
+            VFS_fputc('\r', d);
+            VFS_fputc('\n', d);
         }
-        VFS_fputc(0x0d, d);
-        VFS_fputc(0x0a, d);
+        VFS_fputc('\r', d);
+        VFS_fputc('\n', d);
 
-        if (ch != -1) {
+        if (ch != EOF) {
             VFS_ungetc(ch, f);
         }
     }

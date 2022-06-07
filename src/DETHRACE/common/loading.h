@@ -4,7 +4,7 @@
 #include "brender/br_types.h"
 #include "dr_types.h"
 
-typedef struct VFILE VFILE;
+#include "harness/vfs.h"
 
 extern tHeadup_info gHeadup_image_info[32];
 extern char* gYour_car_names[2][6];
