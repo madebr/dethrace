@@ -256,32 +256,53 @@ int VFS_ungetc(int c, VFILE* stream) {
     return c;
 }
 
+#define MIN(X, Y)  (((X) <= (Y)) ? (X) : (Y))
+
 char* VFS_fgets(char* s, int size, VFILE* stream) {
-    int c;
     PHYSFS_uint64 count;
+    PHYSFS_uint64 left;
+    PHYSFS_sint64 location;
+    PHYSFS_sint64 actual;
+    PHYSFS_sint64 idx;
+    char buffer[128];
 
     if (size <= 0) {
         return NULL;
     }
 
     count = 0;
+    left = size - 1;
 
-    while (1) {
-        if (count + 1 >= (PHYSFS_uint64)size) {
-            break;
-        }
-        c = getc_VFILE(stream);
-        if (c == EOF) {
-            break;
-        } else if (c == '\n') {
-            s[count] = (char)c;
-            count++;
-            break;
-        } else {
-            s[count] = (char)c;
-            count++;
-        }
+    if (stream->ungetc_valid) {
+        s[count] = stream->ungetc_char;
+        stream->ungetc_valid = 0;
+        count += 1;
+        left -= 1;
     }
+    location = PHYSFS_tell(stream->file);
+
+    while (left > 0) {
+        PHYSFS_sint64 readNow = MIN(sizeof(buffer), size - count - 1);
+        actual = PHYSFS_readBytes(stream->file, buffer, readNow);
+        if (actual <= 0) {
+            break;
+        }
+        for (idx = 0; idx < actual; idx++) {
+            if (buffer[idx] == '\0') {
+                actual = idx;
+                left = 0;
+                break;
+            } else if (buffer[idx] == '\n') {
+                actual = idx + 1;
+                left = 0;
+                break;
+            }
+        }
+        memcpy(&s[count], buffer, actual);
+        count += actual;
+        location += actual;
+    }
+    PHYSFS_seek(stream->file, location);
     if (count <= 0) {
         return NULL;
     }
