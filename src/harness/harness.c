@@ -193,7 +193,11 @@ void Harness_Init(int* argc, char* argv[]) {
     }
 
     char* root_dir = getenv("DETHRACE_ROOT_DIR");
+#if defined(DETHRACE_VFS)
     VFS_Init(*argc, (const char**)argv, root_dir);
+#else
+    chdir(root_dir);
+#endif
     if (harness_game_info.mode == eGame_none) {
         Harness_DetectGameMode();
     }
