@@ -145,11 +145,18 @@ void setup_global_vars(int argc, char* argv[]) {
     strcpy(gDir_separator, "/");
 
     root_dir = getenv("DETHRACE_ROOT_DIR");
+#if defined(DETHRACE_VFS)
+    VFS_Init(argc, (const char**)argv, root_dir);
+#endif
     if (root_dir != NULL) {
         printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
+#if defined(DETHRACE_VFS)
+        strcpy(gApplication_path, "/");
+#else
         chdir(root_dir);
         strncpy(gApplication_path, root_dir, 256);
         strcat(gApplication_path, "/DATA");
+#endif
     } else {
         printf("WARN: DETHRACE_ROOT_DIR is not defined. Skipping tests which require it\n");
         strcpy(gApplication_path, "/");

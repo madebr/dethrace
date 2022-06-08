@@ -147,6 +147,7 @@ static VFILE* vfile_openRead(const char* path) {
     vfile->capacity = vfile->size;
     vfile->position = 0;
     vfile->type = VFILE_READ;
+    // FIXME: or use `PHYSFS_setBuffer`?
     vfile->buffer = malloc(vfile->size);
     PHYSFS_readBytes(f, vfile->buffer, vfile->size);
     PHYSFS_close(f);

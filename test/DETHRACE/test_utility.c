@@ -55,14 +55,18 @@ static void get_system_temp_folder(char *buffer, size_t bufferSize) {
 
 void test_utility_GetALineWithNoPossibleService() {
     char tmpPath[256];
+    char s[256];
+    VFILE* file;
+
     get_system_temp_folder(tmpPath, sizeof(tmpPath));
     strcat(tmpPath, "testfile");
-    FILE* file = fopen(tmpPath, "wt");
-    fprintf(file, "hello world\r\n  space_prefixed\r\n\r\n\ttab_prefixed\r\n$ignored_prefix\r\nlast_line");
-    fclose(file);
+    file = VFS_fopen(tmpPath, "wt");
+    TEST_ASSERT_NOT_NULL(file);
+    VFS_fprintf(file, "hello world\r\n  space_prefixed\r\n\r\n\ttab_prefixed\r\n$ignored_prefix\r\nlast_line");
+    VFS_fclose(file);
 
-    file = fopen(tmpPath, "rt");
-    char s[256];
+    file = VFS_fopen(tmpPath, "rt");
+    TEST_ASSERT_NOT_NULL(file);
 
     char* result = GetALineWithNoPossibleService(file, s);
     TEST_ASSERT_NOT_NULL(result);
@@ -83,7 +87,7 @@ void test_utility_GetALineWithNoPossibleService() {
     result = GetALineWithNoPossibleService(file, s);
     TEST_ASSERT_NULL(result);
 
-    fclose(file);
+    VFS_fclose(file);
 }
 
 void test_utility_PathCat() {
