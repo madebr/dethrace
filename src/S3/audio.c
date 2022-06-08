@@ -75,7 +75,7 @@ int S3Init(char* pPath, int pLow_memory_mode) {
     }
     gS3_opened_output_devices = 1;
     root_descriptor = S3MemAllocate(sizeof(tS3_descriptor), kMem_S3_sentinel);
-    if (!root_descriptor) {
+    if (root_descriptor == NULL) {
         return 3;
     }
     memset(root_descriptor, 0, sizeof(tS3_descriptor));

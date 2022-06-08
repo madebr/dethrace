@@ -9,10 +9,23 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_WIN32)
+#define strcasecmp _stricmp
+#endif
+
+typedef enum {
+    VFILE_READ,
+    VFILE_WRITE,
+    VFILE_APPEND,
+} VFILE_type;
+
 typedef struct VFILE {
     PHYSFS_File *file;
-    char ungetc_char;
-    char ungetc_valid;
+    uint64_t size;
+    uint64_t position;
+    uint64_t capacity;
+    char* buffer;
+    VFILE_type type;
 } VFILE;
 
 typedef struct vfs_diriter {
@@ -20,15 +33,7 @@ typedef struct vfs_diriter {
     size_t index;
 } vfs_diriter;
 
-static VFILE* create_VFILE(PHYSFS_File* file) {
-    if (file == NULL) {
-        return NULL;
-    }
-    VFILE* vfile = malloc(sizeof(VFILE));
-    vfile->file = file;
-    vfile->ungetc_valid = 0;
-    return vfile;
-}
+#define VFS_MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
 
 int VFS_Init(int argc, const char* argv[], const char* paths) {
     int result;
@@ -140,17 +145,17 @@ static int case_insensitive_search_callback(void* data, const char* origdir, con
     return PHYSFS_ENUM_OK;
 }
 
-static PHYSFS_File* case_insensitive_open(const char* path, PHYSFS_File* (*callback)(const char*)) {
-    PHYSFS_File* file;
+static VFILE* case_insensitive_open(const char* path, VFILE* (*callback)(const char*)) {
+    VFILE* vfile;
     vfs_physfs_case_insensitive_data data;
     char dir[256];
     const char* filename;
     const char* filename2;
 
     // First, let's try the 'easy' way
-    file = callback(path);
-    if (file != NULL) {
-        return file;
+    vfile = callback(path);
+    if (vfile != NULL) {
+        return vfile;
     }
 
     // Try the hard way by iterating the directory
@@ -174,49 +179,114 @@ static PHYSFS_File* case_insensitive_open(const char* path, PHYSFS_File* (*callb
     return NULL;
 }
 
+static VFILE* vfile_openRead(const char* path) {
+    PHYSFS_File* f;
+    VFILE* vfile;
+
+    f = PHYSFS_openRead(path);
+    if (f == NULL) {
+        return NULL;
+    }
+    vfile = malloc(sizeof(VFILE));
+    if (vfile == NULL) {
+        PHYSFS_close(f);
+        return NULL;
+    }
+    vfile->file = NULL;
+    vfile->size = PHYSFS_fileLength(f);
+    vfile->capacity = vfile->size;
+    vfile->position = 0;
+    vfile->type = VFILE_READ;
+    vfile->buffer = malloc(vfile->size);
+    PHYSFS_readBytes(f, vfile->buffer, vfile->size);
+    PHYSFS_close(f);
+    return vfile;
+}
+
+static VFILE* vfile_openWrite(const char* path) {
+    PHYSFS_File* f;
+    VFILE* vfile;
+
+    f = PHYSFS_openWrite(path);
+    if (f == NULL) {
+        return NULL;
+    }
+    vfile = malloc(sizeof(VFILE));
+    if (vfile == NULL) {
+        PHYSFS_close(f);
+        return NULL;
+    }
+    vfile->file = f;
+    vfile->size = 0;
+    vfile->capacity = 512;
+    vfile->position = 0;
+    vfile->type = VFILE_WRITE;
+    vfile->buffer = malloc(vfile->capacity);
+    return vfile;
+}
+
+static VFILE* vfile_openAppend(const char* path) {
+    NOT_IMPLEMENTED();
+}
 
 VFILE* VFS_fopen(const char* path, const char* mode) {
-    PHYSFS_File* file;
+    VFILE* vfile;
 
-    file = NULL;
     if (strchr(mode, 'r') != NULL) {
-        file = case_insensitive_open(path, PHYSFS_openRead);
+        vfile = case_insensitive_open(path, vfile_openRead);
     }
-    if (strchr(mode, 'w') != NULL) {
-        file = case_insensitive_open(path, PHYSFS_openWrite);
+    else if (strchr(mode, 'w') != NULL) {
+        vfile = case_insensitive_open(path, vfile_openWrite);
     }
-    if (strchr(mode, 'a') != NULL) {
-        file = case_insensitive_open(path, PHYSFS_openAppend);
+    else if (strchr(mode, 'a') != NULL) {
+        vfile = case_insensitive_open(path, vfile_openAppend);
     }
-    if (file == NULL) {
+    if (vfile == NULL) {
 //        LOG_WARN("Failed to open %s", path);
     }
-    return create_VFILE(file);
+    return vfile;
 }
 
 int VFS_fclose(VFILE* stream) {
     int result;
-    result = PHYSFS_close(stream->file);
+
+    free(stream->buffer);
+    if (stream->file != NULL) {
+        result = PHYSFS_close(stream->file);
+    }
     free(stream);
     return result != 0 ? 0 : EOF;
 }
 
 int VFS_fseek(VFILE* stream, long offset, int whence) {
     int result;
+    int64_t new_position;
+
+    if (stream->type != VFILE_READ) {
+        return -1;
+    }
     switch (whence) {
     case SEEK_SET:
-        result = PHYSFS_seek(stream->file, offset);
+        new_position = offset;
         break;
     case SEEK_CUR:
-        result = PHYSFS_seek(stream->file, PHYSFS_tell(stream->file) + offset);
+        new_position = stream->position + offset;
         break;
     case SEEK_END:
-        result = PHYSFS_seek(stream->file, PHYSFS_fileLength(stream->file) + offset);
+        new_position = stream->size;
         break;
     default:
         return -1;
     }
-    return result != 0 ? 0 : -1;
+    result = 0;
+    if (new_position < 0) {
+        new_position = 0;
+    } else if ((uint64_t)new_position > stream->size) {
+        new_position = stream->position;
+        result = -1;
+    }
+    stream->position = new_position;
+    return result;
 }
 
 int VFS_fprintf(VFILE* stream, const char* format, ...) {
@@ -230,59 +300,53 @@ int VFS_vfprintf(VFILE *stream, const char *format, va_list ap) {
 size_t vfs_scanf_marker_internal;
 
 int VFS_fscanf_internal(VFILE* stream, const char* format, ...) {
-    PHYSFS_sint64 location;
-    char buf[256];
     va_list ap;
     int nb;
 
-    location = PHYSFS_tell(stream->file);
-    PHYSFS_readBytes(stream->file, buf, sizeof(buf));
+    if (stream->type != VFILE_READ) {
+        return 0;
+    }
+    if (stream->position >= stream->size) {
+        return 0;
+    }
+
     va_start(ap, format);
-    nb = vsscanf(buf, format, ap);
+    nb = vsscanf(&stream->buffer[stream->position], format, ap);
     va_end(ap);
-    PHYSFS_seek(stream->file, location + vfs_scanf_marker_internal);
+
+    stream->position += vfs_scanf_marker_internal;
 
     return nb;
 }
 
 size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
-    size_t nb_items;
-    PHYSFS_sint64 location;
-    PHYSFS_sint64 actual;
+    size_t block_i;
+    int switcheroo;
 
-    if (size == 0 || nmemb == 0) {
+    if (stream->type != VFILE_READ) {
         return 0;
     }
 
-    nb_items = 0;
-    location = PHYSFS_tell(stream->file);
-
-    if (stream->ungetc_valid) {
-        ((char*)ptr)[0] = stream->ungetc_char;
-        actual = PHYSFS_readBytes(stream->file, &((char*)ptr)[1], size - 1);
-        if ((size_t)actual != size - 1) {
-            PHYSFS_seek(stream->file, location);
-            return nb_items;
-        }
-        ptr = &((char*)ptr)[size - 1];
-        location += size - 1;
-        nb_items += 1;
-        stream->ungetc_valid = 0;
-        nmemb--;
+    switcheroo = 0;
+    if (size == 1) {
+        size = nmemb;
+        nmemb = 1;
+        size = VFS_MIN(size, stream->size - stream->position);
+        switcheroo = 1;
     }
 
-    while (nmemb > 0) {
-        actual = PHYSFS_readBytes(stream->file, (char*)ptr, size);
-        if ((size_t)actual != size) {
-            PHYSFS_seek(stream->file, location);
-            return nb_items;
+    for (block_i = 0; block_i < nmemb; block_i++) {
+        if (stream->size - stream->position < size) {
+            return block_i;
         }
-        location += size;
-        nb_items += 1;
-        nmemb--;
-        ptr = &((char*)ptr)[size];
+        memcpy(ptr, &stream->buffer[stream->position], size);
+        stream->position += size;
+        ptr = ((char*)ptr) + size;
     }
-    return nb_items;
+    if (switcheroo) {
+        return size;
+    }
+    return block_i;
 }
 
 size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
@@ -291,82 +355,84 @@ size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
 
 int VFS_feof(VFILE* stream) {
 
-    return PHYSFS_eof(stream->file);
+    if (stream->type != VFILE_READ) {
+        return 0;
+    }
+    return stream->position >= stream->size;
 }
 
 long VFS_ftell(VFILE* stream) {
 
-    return PHYSFS_tell(stream->file);
+    if (stream->type != VFILE_READ) {
+        return -1;
+    }
+    return stream->position;
 }
 
 void VFS_rewind(VFILE* stream) {
 
-    PHYSFS_seek(stream->file, 0);
+    if (stream->type != VFILE_READ) {
+        return;
+    }
+    stream->position = 0;
 }
 
 int VFS_fgetc(VFILE* stream) {
-    char c;
-    PHYSFS_sint64 result;
+    int c;
 
-    if (stream->ungetc_valid) {
-        stream->ungetc_valid = 0;
-        return stream->ungetc_char;
+    if (stream->type != VFILE_READ) {
+        return EOF;
     }
-    result = PHYSFS_readBytes(stream->file, &c, 1);
-    if (result == 1) {
-        return c;
+    if (stream->position >= stream->size) {
+        return EOF;
     }
-    return EOF;
+
+    c = stream->buffer[stream->position];
+    stream->position++;
+    return c;
 }
 
 int VFS_ungetc(int c, VFILE* stream) {
 
-    if (stream->ungetc_valid) {
+    if (stream->type != VFILE_READ) {
         return EOF;
     }
-    stream->ungetc_char = c;
-    stream->ungetc_valid = 1;
+    if (stream->position <= 0) {
+        return EOF;
+    }
+    if (stream->size == 0) {
+        return EOF;
+    }
+
+    stream->position--;
+    stream->buffer[stream->position] = c;
     return c;
 }
 
 char* VFS_fgets(char* s, int size, VFILE* stream) {
-    PHYSFS_uint64 count;
-    PHYSFS_uint64 left;
-    PHYSFS_sint64 actual;
-    char c;
+    char* end;
+    uint64_t copy_size;
 
+    if (stream->type != VFILE_READ) {
+        return NULL;
+    }
+    if (stream->position >= stream->size) {
+        return NULL;
+    }
     if (size <= 0) {
         return NULL;
     }
-
-    count = 0;
-    left = size - 1;
-
-    if (stream->ungetc_valid) {
-        s[count] = stream->ungetc_char;
-        stream->ungetc_valid = 0;
-        count += 1;
-        left -= 1;
+    end = strpbrk(&stream->buffer[stream->position], "\n");
+    if (end == NULL) {
+        copy_size = stream->size - stream->position;
+    } else {
+        copy_size = end - &stream->buffer[stream->position] + 1;
     }
+    copy_size = VFS_MIN((size_t)size - 1, copy_size);
 
-    while (left > 0) {
-        actual = PHYSFS_readBytes(stream->file, &c, 1);
-        if (actual <= 0) {
-            break;
-        }
-        s[count] = c;
-        if (c == '\0') {
-            break;
-        } else if (c == '\n') {
-            count += actual;
-            break;
-        }
-        count += actual;
-    }
-    if (count <= 0) {
-        return NULL;
-    }
-    s[count] = '\0';
+    memcpy(s, &stream->buffer[stream->position], copy_size);
+    s[copy_size] = '\0';
+    stream->position += copy_size;
     return s;
 }
 
