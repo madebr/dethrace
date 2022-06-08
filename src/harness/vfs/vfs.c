@@ -336,8 +336,7 @@ char* VFS_fgets(char* s, int size, VFILE* stream) {
     PHYSFS_uint64 left;
     PHYSFS_sint64 location;
     PHYSFS_sint64 actual;
-    PHYSFS_sint64 idx;
-    char buffer[128];
+    char c;
 
     if (size <= 0) {
         return NULL;
@@ -355,23 +354,20 @@ char* VFS_fgets(char* s, int size, VFILE* stream) {
     location = PHYSFS_tell(stream->file);
 
     while (left > 0) {
-        PHYSFS_sint64 readNow = MIN(sizeof(buffer), size - count - 1);
-        actual = PHYSFS_readBytes(stream->file, buffer, readNow);
+        actual = PHYSFS_readBytes(stream->file, &c, 1);
         if (actual <= 0) {
             break;
         }
-        for (idx = 0; idx < actual; idx++) {
-            if (buffer[idx] == '\0') {
-                actual = idx;
-                left = 0;
-                break;
-            } else if (buffer[idx] == '\n') {
-                actual = idx + 1;
-                left = 0;
-                break;
-            }
+        if (c == '\0') {
+            actual = 0;
+            left = 0;
+            break;
+        } else if (c == '\n') {
+            actual = 1;
+            left = 0;
+            break;
         }
-        memcpy(&s[count], buffer, actual);
+        s[count] = c;
         count += actual;
         location += actual;
     }
