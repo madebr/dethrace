@@ -53,9 +53,9 @@ if(DETHRACE_VFS)
     target_include_directories(dethrace_physfs INTERFACE "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/lib>")
 endif()
 
-add_subdirectory(lib/libsmacker)
-add_subdirectory(lib/glad)
-add_subdirectory(lib/miniaudio)
+add_subdirectory(lib/libsmacker EXCLUDE_FROM_ALL)
+add_subdirectory(lib/glad EXCLUDE_FROM_ALL)
+add_subdirectory(lib/miniaudio EXCLUDE_FROM_ALL)
 add_subdirectory(lib/cglm EXCLUDE_FROM_ALL)
 
 add_subdirectory(src/harness)

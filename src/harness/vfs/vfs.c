@@ -17,6 +17,7 @@
 
 #if defined(_WIN32)
 #define strcasecmp _stricmp
+#define strdup _strdup
 #endif
 
 typedef enum {
@@ -184,7 +185,7 @@ VFILE* VFS_fopen(const char* path, const char* mode) {
     int found;
 
     path_modified = strdup(path);
-    found = PHYSFSEXT_locateCorrectCase(path_modified);
+    found = PHYSFSEXT_locateCorrectCase(path_modified) == 0;
     vfile = NULL;
     if (strchr(mode, 'r') != NULL) {
         if (found) {
