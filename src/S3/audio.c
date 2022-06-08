@@ -159,7 +159,7 @@ int S3LoadSoundbank(const char* pSoundbank_filename, int pLow_memory_mode) {
     char dir_name[256];              // [esp+124h] [ebp-100h] BYREF
 
     if (gS3_enabled) {
-        dir_name[0] = 0;
+        dir_name[0] = '\0';
         soundbank_filename[0] = 0;
         cur_dir = S3GetCurrentDir();
         strcpy(dir_name, cur_dir);
@@ -1111,7 +1111,7 @@ int S3StopOutletSound(tS3_outlet* pOutlet) {
 
 char* S3GetCurrentDir() {
 #if defined(DETHRACE_VFS)
-    strcpy(gS3_current_dir, ".");
+    strcpy(gS3_current_dir, "/");
 #else
     if (!gS3_have_current_dir) {
         if (getcwd(gS3_current_dir, 260) == NULL) {

@@ -152,7 +152,7 @@ void setup_global_vars(int argc, char* argv[]) {
         strcat(gApplication_path, "/DATA");
     } else {
         printf("WARN: DETHRACE_ROOT_DIR is not defined. Skipping tests which require it\n");
-        strcpy(gApplication_path, ".");
+        strcpy(gApplication_path, "/");
     }
 
     BrV1dbBeginWrapper_Float();

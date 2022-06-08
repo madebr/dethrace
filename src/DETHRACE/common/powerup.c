@@ -333,7 +333,7 @@ void LoadPowerups() {
             the_powerup->type = 0;
         } else {
             if (strcmp(the_powerup->message, "n/a") == 0) {
-                the_powerup->message[0] = 0;
+                the_powerup->message[0] = '\0';
             }
             GetAString(f, s);
             the_powerup->icon = LoadPixelmap(s);

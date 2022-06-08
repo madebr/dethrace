@@ -265,7 +265,7 @@ char* GetALineWithNoPossibleService(VFILE* pF, unsigned char* pS) {
                 break;
             }
         }
-        if (ch != -1) {
+        if (ch != EOF) {
             VFS_ungetc(ch, pF);
         }
     } while (!isalnum(s[0])

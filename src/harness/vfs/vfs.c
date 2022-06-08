@@ -30,21 +30,6 @@ static VFILE* create_VFILE(PHYSFS_File* file) {
     return vfile;
 }
 
-static int getc_VFILE(VFILE* stream) {
-    char c;
-    PHYSFS_sint64 result;
-
-    if (stream->ungetc_valid) {
-        stream->ungetc_valid = 0;
-        return stream->ungetc_char;
-    }
-    result = PHYSFS_readBytes(stream->file, &c, 1);
-    if (result == 1) {
-        return c;
-    }
-    return EOF;
-}
-
 int VFS_Init(int argc, const char* argv[], const char* paths) {
     int result;
 
@@ -55,8 +40,8 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
         return 1;
     }
     if (paths == NULL) {
-        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '.'");
-        paths = ".";
+        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '/'");
+        paths = "/";
     }
     const char* currentPath = paths;
     char pathBuffer[260];
@@ -132,20 +117,81 @@ int VFS_chdir(const char* path) {
     NOT_IMPLEMENTED();
 }
 
-VFILE* VFS_fopen(const char* path, const char* mode) {
-    if (strncmp(path, "./", 2) == 0) {
-        path += 2;
+typedef PHYSFS_EnumerateCallbackResult (*PHYSFS_EnumerateCallback)(void *data,
+    const char *origdir, const char *fname);
+PHYSFS_DECL int PHYSFS_enumerate(const char *dir, PHYSFS_EnumerateCallback c,
+    void *d);
+
+typedef struct {
+    const char* ref_filename;
+    int found;
+    char path[512];
+} vfs_physfs_case_insensitive_data;
+
+static int case_insensitive_search_callback(void* data, const char* origdir, const char* fname) {
+    vfs_physfs_case_insensitive_data* ci_data = data;
+    if (strcasecmp(fname, ci_data->ref_filename) == 0) {
+        strcpy(ci_data->path, origdir);
+        strcat(ci_data->path, PHYSFS_getDirSeparator());
+        strcat(ci_data->path, fname);
+        ci_data->found = 1;
+        return PHYSFS_ENUM_STOP;
     }
-    if (strchr(mode, 'r') != NULL) {
-        return create_VFILE(PHYSFS_openRead(path));
+    return PHYSFS_ENUM_OK;
+}
+
+static PHYSFS_File* case_insensitive_open(const char* path, PHYSFS_File* (*callback)(const char*)) {
+    PHYSFS_File* file;
+    vfs_physfs_case_insensitive_data data;
+    char dir[256];
+    const char* filename;
+    const char* filename2;
+
+    // First, let's try the 'easy' way
+    file = callback(path);
+    if (file != NULL) {
+        return file;
     }
-    if (strchr(mode, 'w') != NULL) {
-        return create_VFILE(PHYSFS_openWrite(path));
+
+    // Try the hard way by iterating the directory
+//    strcpy(dir, "/");
+    filename = path;
+    while (1) {
+        filename2 = strpbrk(filename, "/\\");
+        if (filename2 == NULL) {
+            break;
+        }
+        filename = filename2 + 1;
     }
-    if (strchr(mode, 'a') != NULL) {
-        return create_VFILE(PHYSFS_openAppend(mode));
+    strncpy(dir, path, filename - path);
+    dir[filename - path] = '\0';
+    data.ref_filename = filename;
+    data.found = 0;
+    PHYSFS_enumerate(dir, case_insensitive_search_callback, &data);
+    if (data.found) {
+        return callback(data.path);
     }
     return NULL;
+}
+
+
+VFILE* VFS_fopen(const char* path, const char* mode) {
+    PHYSFS_File* file;
+
+    file = NULL;
+    if (strchr(mode, 'r') != NULL) {
+        file = case_insensitive_open(path, PHYSFS_openRead);
+    }
+    if (strchr(mode, 'w') != NULL) {
+        file = case_insensitive_open(path, PHYSFS_openWrite);
+    }
+    if (strchr(mode, 'a') != NULL) {
+        file = case_insensitive_open(path, PHYSFS_openAppend);
+    }
+    if (file == NULL) {
+//        LOG_WARN("Failed to open %s", path);
+    }
+    return create_VFILE(file);
 }
 
 int VFS_fclose(VFILE* stream) {
@@ -206,17 +252,38 @@ int VFS_fscanf_internal(VFILE* stream, const char* format, ...) {
 size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     size_t nb_items;
     PHYSFS_sint64 location;
-    PHYSFS_sint64 actualRead;
+    PHYSFS_sint64 actual;
+
+    if (size == 0 || nmemb == 0) {
+        return 0;
+    }
 
     nb_items = 0;
-    while (nb_items < nmemb) {
-        location = PHYSFS_tell(stream->file);
-        actualRead = PHYSFS_readBytes(stream->file, ptr, size);
-        if ((size_t)actualRead != size) {
+    location = PHYSFS_tell(stream->file);
+
+    if (stream->ungetc_valid) {
+        ((char*)ptr)[0] = stream->ungetc_char;
+        actual = PHYSFS_readBytes(stream->file, &((char*)ptr)[1], size - 1);
+        if ((size_t)actual != size - 1) {
             PHYSFS_seek(stream->file, location);
-            break;
+            return nb_items;
         }
-        nb_items++;
+        ptr = &((char*)ptr)[size - 1];
+        location += size - 1;
+        nb_items += 1;
+        stream->ungetc_valid = 0;
+        nmemb--;
+    }
+
+    while (nmemb > 0) {
+        actual = PHYSFS_readBytes(stream->file, (char*)ptr, size);
+        if ((size_t)actual != size) {
+            PHYSFS_seek(stream->file, location);
+            return nb_items;
+        }
+        location += size;
+        nb_items += 1;
+        nmemb--;
         ptr = &((char*)ptr)[size];
     }
     return nb_items;
@@ -242,8 +309,18 @@ void VFS_rewind(VFILE* stream) {
 }
 
 int VFS_fgetc(VFILE* stream) {
+    char c;
+    PHYSFS_sint64 result;
 
-    return getc_VFILE(stream);
+    if (stream->ungetc_valid) {
+        stream->ungetc_valid = 0;
+        return stream->ungetc_char;
+    }
+    result = PHYSFS_readBytes(stream->file, &c, 1);
+    if (result == 1) {
+        return c;
+    }
+    return EOF;
 }
 
 int VFS_ungetc(int c, VFILE* stream) {
