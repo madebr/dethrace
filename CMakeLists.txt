@@ -17,7 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 include(CMakeDependentOption)
 
-find_package(PhysFS REQUIRED)
+find_package(PhysFS)
 
 option(DETHRACE_VFS "Enable Virtual File Systems" ON)
 cmake_dependent_option(DETHRACE_PHYSFS_VENDORED "Use a vendored physfs library" "NOT ${PhysFS_FOUND}" DETHRACE_VFS OFF)
