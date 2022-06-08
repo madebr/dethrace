@@ -57,7 +57,6 @@ if (DETHRACE_VFS)
     target_sources(harness PRIVATE
         vfs/vfs.c
     )
-    find_package(PhysFS REQUIRED)
     target_link_libraries(harness PRIVATE DethRace::PhysFS)
 endif()
 

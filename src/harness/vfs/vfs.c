@@ -2,6 +2,7 @@
 
 #include "harness/trace.h"
 
+#include <physfs/extras/ignorecase.h>
 #include <physfs.h>
 
 #if defined(_WIN32)
@@ -127,63 +128,6 @@ int VFS_chdir(const char* path) {
     NOT_IMPLEMENTED();
 }
 
-typedef PHYSFS_EnumerateCallbackResult (*PHYSFS_EnumerateCallback)(void *data,
-    const char *origdir, const char *fname);
-PHYSFS_DECL int PHYSFS_enumerate(const char *dir, PHYSFS_EnumerateCallback c,
-    void *d);
-
-typedef struct {
-    const char* ref_filename;
-    int found;
-    char path[512];
-} vfs_physfs_case_insensitive_data;
-
-static int case_insensitive_search_callback(void* data, const char* origdir, const char* fname) {
-    vfs_physfs_case_insensitive_data* ci_data = data;
-    if (strcasecmp(fname, ci_data->ref_filename) == 0) {
-        strcpy(ci_data->path, origdir);
-        strcat(ci_data->path, PHYSFS_getDirSeparator());
-        strcat(ci_data->path, fname);
-        ci_data->found = 1;
-        return PHYSFS_ENUM_STOP;
-    }
-    return PHYSFS_ENUM_OK;
-}
-
-static VFILE* case_insensitive_open(const char* path, VFILE* (*callback)(const char*)) {
-    VFILE* vfile;
-    vfs_physfs_case_insensitive_data data;
-    char dir[256];
-    const char* filename;
-    const char* filename2;
-
-    // First, let's try the 'easy' way
-    vfile = callback(path);
-    if (vfile != NULL) {
-        return vfile;
-    }
-
-    // Try the hard way by iterating the directory
-//    strcpy(dir, "/");
-    filename = path;
-    while (1) {
-        filename2 = strpbrk(filename, "/\\");
-        if (filename2 == NULL) {
-            break;
-        }
-        filename = filename2 + 1;
-    }
-    strncpy(dir, path, filename - path);
-    dir[filename - path] = '\0';
-    data.ref_filename = filename;
-    data.found = 0;
-    PHYSFS_enumerate(dir, case_insensitive_search_callback, &data);
-    if (data.found) {
-        return callback(data.path);
-    }
-    return NULL;
-}
-
 static VFILE* vfile_openRead(const char* path) {
     PHYSFS_File* f;
     VFILE* vfile;
@@ -236,20 +180,27 @@ static VFILE* vfile_openAppend(const char* path) {
 
 VFILE* VFS_fopen(const char* path, const char* mode) {
     VFILE* vfile;
+    char* path_modified;
+    int found;
 
+    path_modified = strdup(path);
+    found = PHYSFSEXT_locateCorrectCase(path_modified);
     vfile = NULL;
     if (strchr(mode, 'r') != NULL) {
-        vfile = case_insensitive_open(path, vfile_openRead);
+        if (found) {
+            vfile = vfile_openRead(path_modified);
+        }
     }
     else if (strchr(mode, 'w') != NULL) {
-        vfile = case_insensitive_open(path, vfile_openWrite);
+        vfile = vfile_openWrite(path_modified);
     }
     else if (strchr(mode, 'a') != NULL) {
-        vfile = case_insensitive_open(path, vfile_openAppend);
+        vfile = vfile_openAppend(path_modified);
     }
     if (vfile == NULL) {
 //        LOG_WARN("Failed to open %s", path);
     }
+    free(path_modified);
     return vfile;
 }
 
