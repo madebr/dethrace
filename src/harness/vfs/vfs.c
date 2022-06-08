@@ -237,6 +237,7 @@ static VFILE* vfile_openAppend(const char* path) {
 VFILE* VFS_fopen(const char* path, const char* mode) {
     VFILE* vfile;
 
+    vfile = NULL;
     if (strchr(mode, 'r') != NULL) {
         vfile = case_insensitive_open(path, vfile_openRead);
     }
@@ -255,12 +256,13 @@ VFILE* VFS_fopen(const char* path, const char* mode) {
 int VFS_fclose(VFILE* stream) {
     int result;
 
+    result = 0;
     free(stream->buffer);
     if (stream->file != NULL) {
-        result = PHYSFS_close(stream->file);
+        result = PHYSFS_close(stream->file) ? 0 : EOF;
     }
     free(stream);
-    return result != 0 ? 0 : EOF;
+    return result;
 }
 
 int VFS_fseek(VFILE* stream, long offset, int whence) {
