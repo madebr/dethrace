@@ -329,12 +329,9 @@ int VFS_ungetc(int c, VFILE* stream) {
     return c;
 }
 
-#define MIN(X, Y)  (((X) <= (Y)) ? (X) : (Y))
-
 char* VFS_fgets(char* s, int size, VFILE* stream) {
     PHYSFS_uint64 count;
     PHYSFS_uint64 left;
-    PHYSFS_sint64 location;
     PHYSFS_sint64 actual;
     char c;
 
@@ -351,27 +348,21 @@ char* VFS_fgets(char* s, int size, VFILE* stream) {
         count += 1;
         left -= 1;
     }
-    location = PHYSFS_tell(stream->file);
 
     while (left > 0) {
         actual = PHYSFS_readBytes(stream->file, &c, 1);
         if (actual <= 0) {
             break;
         }
+        s[count] = c;
         if (c == '\0') {
-            actual = 0;
-            left = 0;
             break;
         } else if (c == '\n') {
-            actual = 1;
-            left = 0;
+            count += actual;
             break;
         }
-        s[count] = c;
         count += actual;
-        location += actual;
     }
-    PHYSFS_seek(stream->file, location);
     if (count <= 0) {
         return NULL;
     }
