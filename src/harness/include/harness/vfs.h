@@ -26,7 +26,7 @@ int VFS_fprintf(VFILE* stream, const char* format, ...);
 int VFS_vfprintf(VFILE *stream, const char *format, va_list ap);
 
 extern size_t vfs_scanf_marker_internal;
-#define VFS_fscanf(STREAM, FORMAT, ...) VFS_fscanf_internal((STREAM), (FORMAT), __VA_ARGS__, &vfs_scanf_marker_internal)
+#define VFS_fscanf(STREAM, FORMAT, ...) VFS_fscanf_internal((STREAM), FORMAT "%n", __VA_ARGS__, &vfs_scanf_marker_internal)
 
 int VFS_fscanf_internal(VFILE* stream, const char* format, ...);
 

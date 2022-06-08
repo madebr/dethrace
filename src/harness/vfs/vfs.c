@@ -232,17 +232,13 @@ size_t vfs_scanf_marker_internal;
 int VFS_fscanf_internal(VFILE* stream, const char* format, ...) {
     PHYSFS_sint64 location;
     char buf[256];
-    char format_modified[256];
     va_list ap;
     int nb;
-
-    strcpy(format_modified, format);
-    strcat(format_modified, "%n");
 
     location = PHYSFS_tell(stream->file);
     PHYSFS_readBytes(stream->file, buf, sizeof(buf));
     va_start(ap, format);
-    nb = vsscanf(buf, format_modified, ap);
+    nb = vsscanf(buf, format, ap);
     va_end(ap);
     PHYSFS_seek(stream->file, location + vfs_scanf_marker_internal);
 
