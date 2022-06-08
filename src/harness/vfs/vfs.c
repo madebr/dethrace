@@ -3,7 +3,12 @@
 #include "harness/trace.h"
 
 #include <physfs.h>
+
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
 
 #include <stddef.h>
 #include <stdio.h>
@@ -69,7 +74,7 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
         result = PHYSFS_mount(pathBuffer, NULL, 1);
         if (result == 0) {
             PHYSFS_ErrorCode ec = PHYSFS_getLastErrorCode();
-            LOG_WARN("PHYSFS_mount(\"%s\", NULL, 1) failed with %d (%s)", ec, PHYSFS_getErrorByCode(ec));
+            LOG_WARN("PHYSFS_mount(\"%s\", NULL, 1) failed with %d (%s)", pathBuffer, ec, PHYSFS_getErrorByCode(ec));
             continue;
         }
         LOG_INFO("VFS search path: %s", pathBuffer);

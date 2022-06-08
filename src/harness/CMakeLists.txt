@@ -58,15 +58,7 @@ if (DETHRACE_VFS)
         vfs/vfs.c
     )
     find_package(PhysFS REQUIRED)
-    if(TARGET PhysFS::PhysFS)
-        target_link_libraries(harness PRIVATE PhysFS::PhysFS)
-    elseif(TARGET PhysFS::PhysFS-static)
-        target_link_libraries(harness PRIVATE PhysFS::PhysFS-static)
-    elseif(DEFINED PHYSFS_LIBRARY AND DEFINED PHYSFS_INCLUDE_DIR)
-        target_link_libraries(harness PRIVATE ${PHYSFS_LIBRARY})
-        target_include_directories(harness PRIVATE ${PHYSFS_INCLUDE_DIR})
-    endif()
-    target_link_libraries(harness PRIVATE)
+    target_link_libraries(harness PRIVATE DethRace::PhysFS)
 endif()
 
 

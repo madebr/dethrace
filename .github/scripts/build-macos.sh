@@ -2,7 +2,7 @@
 set -e
 
 # install deps
-brew install SDL2
+brew install physfs SDL2
 
 # build
 cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_TESTS=ON -B build
