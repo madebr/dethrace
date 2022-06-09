@@ -62,7 +62,7 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
     const char* currentPath = paths;
     char pathBuffer[260];
     while (currentPath != NULL) {
-        char* endPos = strchr(currentPath, ':');
+        char* endPos = strchr(currentPath, ';');
         size_t pathLen;
         if (endPos == NULL) {
             pathLen = strlen(currentPath);
@@ -115,9 +115,13 @@ vfs_diriter* VFS_OpenDir(char* path) {
 char* VFS_GetNextFileInDirectory(vfs_diriter* diriter) {
     char* result;
 
+    if (diriter == NULL) {
+        return NULL;
+    }
     result = diriter->list[diriter->index];
     diriter->index++;
     if (result == NULL) {
+        PHYSFS_freeList(diriter->list);
         free(diriter);
     }
     return result;
@@ -256,7 +260,7 @@ int VFS_fseek(VFILE* stream, long offset, int whence) {
     if (new_position < 0) {
         new_position = 0;
     } else if ((uint64_t)new_position > stream->size) {
-        new_position = stream->position + 1;
+        new_position = stream->size + 1;
         result = -1;
     }
     stream->position = new_position;
@@ -385,9 +389,9 @@ long VFS_ftell(VFILE* stream) {
         return -1;
     }
     if (stream->position >= stream->size) {
-        return stream->size;
+        return (long)stream->size;
     }
-    return stream->position;
+    return (long)stream->position;
 }
 
 void VFS_rewind(VFILE* stream) {
