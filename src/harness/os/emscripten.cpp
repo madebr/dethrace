@@ -1,6 +1,9 @@
 // Based on https://gist.github.com/jvranish/4441299
 
+extern "C" {
+
 #include "harness/os.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <dirent.h>
@@ -19,10 +22,25 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+}
 
-//FIXME: implement all calls!!
+#include <emscripten.h>
+
+extern "C" {
+
 
 DIR* directory_iterator;
+
+void OS_Init(void) {
+    setenv("DETHRACE_ROOT_DIR", "/carmdemo.zip", 1);
+//    EM_ASM(
+//        var file_selector = document.createElement('input');
+//        file_selector.setAttribute('type', 'file');
+//        file_selector.setAttribute('onchange', 'open_file(event)');
+//        file_selector.setAttribute('accept', '.7z,.zip'); // optional - limit accepted file types
+//        file_selector.click();
+//    );
+}
 
 uint32_t OS_GetTime() {
     struct timespec spec;
@@ -37,27 +55,37 @@ void OS_Sleep(int delay_ms) {
     nanosleep(&ts, &ts);
 }
 
-char* OS_GetFirstFileInDirectory(char* path) {
-    directory_iterator = opendir(path);
-    if (directory_iterator == NULL) {
-        return NULL;
+int OS_IsDirectory(const char* path) {
+    struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0) {
+        return 0;
     }
-    return OS_GetNextFileInDirectory();
+    return S_ISDIR(statbuf.st_mode);
 }
 
-char* OS_GetNextFileInDirectory(void) {
-    struct dirent* entry;
-
-    if (directory_iterator == NULL) {
+os_diriter* OS_OpenDir(char* path) {
+    DIR* diriter = opendir(path);
+    if (diriter == NULL) {
         return NULL;
     }
-    while ((entry = readdir(directory_iterator)) != NULL) {
+    return (os_diriter*)diriter;
+}
+
+char* OS_GetNextFileInDirectory(os_diriter* diriter) {
+    DIR* pDir;
+    struct dirent* entry;
+
+    pDir = (DIR*)diriter;
+    if (pDir == NULL) {
+        return NULL;
+    }
+    while ((entry = readdir(pDir)) != NULL) {
         if (entry->d_type == DT_REG) {
             return entry->d_name;
         }
     }
-    closedir(directory_iterator);
-    directory_iterator = NULL;
+    closedir(pDir);
     return NULL;
 }
 
@@ -95,4 +123,6 @@ FILE* OS_fopen(const char* pathname, const char* mode) {
         }
     }
     return NULL;
+}
+
 }

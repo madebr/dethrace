@@ -105,6 +105,8 @@ GLuint CreateShaderProgram(const char* vertex_file, const char* fragment_file, c
 }
 
 void LoadShaders() {
+    LOG_DEBUG("Supported GL shading language: %s\n", glGetString (GL_SHADING_LANGUAGE_VERSION));
+
     shader_program_2d = CreateShaderProgram("vertex_shader_2d.glsl", "fragment_shader_2d.glsl", vs_2d, fs_2d);
     glUseProgram(shader_program_2d);
     uniforms_2d.pixels = glGetUniformLocation(shader_program_2d, "pixels");

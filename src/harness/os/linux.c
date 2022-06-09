@@ -28,6 +28,9 @@ static char _program_name[1024];
 static void* stack_traces[MAX_STACK_FRAMES];
 #define TRACER_PID_STRING "TracerPid:"
 
+void OS_Init(void) {
+}
+
 uint32_t OS_GetTime() {
     struct timespec spec;
     clock_gettime(CLOCK_MONOTONIC, &spec);

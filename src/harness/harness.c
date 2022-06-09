@@ -194,6 +194,8 @@ void Harness_Init(int* argc, char* argv[]) {
     // install signal handler by default
     harness_game_config.install_signalhandler = 1;
 
+    OS_Init();
+
     Harness_ProcessCommandLine(argc, argv);
 
     if (harness_game_config.install_signalhandler) {

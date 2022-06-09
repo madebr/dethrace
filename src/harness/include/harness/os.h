@@ -29,6 +29,9 @@
 
 typedef struct os_diriter os_diriter;
 
+// Required: platform-specific initialization routine
+void OS_Init(void);
+
 // Required: return timestamp in milliseconds.
 uint32_t OS_GetTime(void);
 

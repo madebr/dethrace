@@ -88,6 +88,8 @@ elseif(EMSCRIPTEN)
     target_sources(harness PRIVATE
         os/emscripten.cpp
     )
+    target_compile_definitions(harness PUBLIC STDIO_NOCOLOR)
+    target_link_options(harness PUBLIC  SHELL:-s TOTAL_MEMORY=98631680 --embed-file "${CMAKE_BINARY_DIR}/carmdemo.zip@/carmdemo.zip")
 else()
     target_sources(harness PRIVATE
         os/linux.c
