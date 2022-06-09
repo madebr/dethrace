@@ -42,11 +42,11 @@ void OS_Sleep(int delay_ms) {
 }
 
 os_diriter* OS_OpenDir(char* path) {
-    DIR* pDir = opendir(path);
-    if (pDir == NULL) {
+    DIR* diriter = opendir(path);
+    if (diriter == NULL) {
         return NULL;
     }
-    return (os_diriter*)pDir;
+    return (os_diriter*)diriter;
 }
 
 char* OS_GetNextFileInDirectory(os_diriter* diriter) {
