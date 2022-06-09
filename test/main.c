@@ -15,6 +15,7 @@
 #include "CORE/PIXELMAP/pixelmap.h"
 #include "CORE/V1DB/actsupt.h"
 #include "CORE/V1DB/dbsetup.h"
+
 #include "common/errors.h"
 #include "common/newgame.h"
 #include "common/utility.h"
@@ -22,6 +23,7 @@
 #include "common/drmem.h"
 #include "common/globvars.h"
 #include "common/grafdata.h"
+
 #include "harness.h"
 #include "harness/config.h"
 #include "harness/os.h"
@@ -32,6 +34,7 @@
 
 extern int _unittest_do_not_exit;
 
+extern void test_vfs_suite();
 extern void test_assocarr_suite();
 extern void test_brprintf_suite();
 extern void test_bswap_suite();
@@ -79,6 +82,36 @@ void tearDown(void) {
 static const char* temp_folder;
 static char temp_folder_buffer[PATH_MAX + 1];
 
+static void create_temp_folder() {
+#ifdef _WIN32
+    DWORD attributes;
+    BOOL success;
+
+    attributes = GetFileAttributesA(temp_folder);
+    if ((attributes == INVALID_FILE_ATTRIBUTES) || ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)) {
+        LOG_TRACE("Temporary folder does not exist => creating");
+        success = CreateDirectoryA(temp_folder, NULL);
+        if (success == 0) {
+            fprintf(stderr, "CreateDirectoryA(\"%s\") failed.\n", temp_folder);
+            abort();
+        }
+    }
+#else
+    struct stat sb;
+    int res;
+
+    res = stat(temp_folder, &sb);
+    if (res == -1 || !S_ISDIR(sb.st_mode)) {
+        LOG_TRACE("Temporary folder does not exist => creating");
+        res = mkdir(temp_folder, 0770);
+        if (res == -1) {
+            fprintf(stderr, "mkdir(\"%s\") failed: %s\n", temp_folder, strerror(errno));
+            abort();
+        }
+    }
+#endif
+}
+
 static void setup_temp_folder() {
 #ifdef _WIN32
     DWORD res;
@@ -92,48 +125,53 @@ static void setup_temp_folder() {
     sprintf(temp_folder_buffer, "/tmp/dethrace_test_%d", getpid());
 #endif
     temp_folder = temp_folder_buffer;
+
+    create_temp_folder();
+#if defined(DETHRACE_VFS)
+    VFS_SetWriteDir(temp_folder);
+#endif
 }
 
 void TEST_ASSERT_EQUAL_FILE_CONTENTS_BINARY(const uint8_t* expected, char* filename, int len) {
-    FILE* f;
+    VFILE* f;
     long filesize;
     int res;
-    f = fopen(filename, "rb");
+    f = VFS_fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    res = fseek(f, 0, SEEK_END);
+    res = VFS_fseek(f, 0, SEEK_END);
     TEST_ASSERT_NOT_EQUAL(-1, res);
-    filesize = ftell(f);
+    filesize = VFS_ftell(f);
     TEST_ASSERT_NOT_EQUAL(-1, filesize);
     TEST_ASSERT_EQUAL(len, filesize);
-    fseek(f, 0, SEEK_SET);
+    VFS_fseek(f, 0, SEEK_SET);
     uint8_t* tmpBuffer = (uint8_t*)malloc(filesize);
-    res = fread(tmpBuffer, filesize, 1, f);
+    res = VFS_fread(tmpBuffer, filesize, 1, f);
     TEST_ASSERT_EQUAL_INT(1, res);
-    fclose(f);
+    VFS_fclose(f);
     TEST_ASSERT_EQUAL_MEMORY(expected, tmpBuffer, len);
     free(tmpBuffer);
 }
 
 void TEST_ASSERT_EQUAL_FILE_TEXT(const char* expected, char* filename) {
-    FILE* f;
+    VFILE* f;
     char* tmpBuffer;
     long filesize;
     int res;
     int len;
 
     len = strlen(expected);
-    f = fopen(filename, "rb");
+    f = VFS_fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    res = fseek(f, 0, SEEK_END);
+    res = VFS_fseek(f, 0, SEEK_END);
     TEST_ASSERT_NOT_EQUAL(-1, res);
-    filesize = ftell(f);
+    filesize = VFS_ftell(f);
     TEST_ASSERT_NOT_EQUAL(-1, filesize);
-    fseek(f, 0, SEEK_SET);
+    VFS_fseek(f, 0, SEEK_SET);
     tmpBuffer = (char*)malloc(filesize + 1);
     TEST_ASSERT_NOT_NULL(tmpBuffer);
-    res = fread(tmpBuffer, 1, filesize, f);
+    res = VFS_fread(tmpBuffer, 1, filesize, f);
     tmpBuffer[filesize] = '\0';
-    fclose(f);
+    VFS_fclose(f);
     TEST_ASSERT_EQUAL_STRING(expected, tmpBuffer);
     TEST_ASSERT_EQUAL_INT(filesize, res);
     TEST_ASSERT_EQUAL_INT(len, filesize);
@@ -150,17 +188,16 @@ void setup_global_vars(int argc, char* argv[]) {
 #endif
     if (root_dir != NULL) {
         printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
-#if defined(DETHRACE_VFS)
-        strcpy(gApplication_path, "/");
-#else
         chdir(root_dir);
         strncpy(gApplication_path, root_dir, 256);
         strcat(gApplication_path, "/DATA");
-#endif
     } else {
         printf("WARN: DETHRACE_ROOT_DIR is not defined. Skipping tests which require it\n");
         strcpy(gApplication_path, "/");
     }
+#if defined(DETHRACE_VFS)
+    strcpy(gApplication_path, "/DATA");
+#endif
 
     BrV1dbBeginWrapper_Float();
     CreateStainlessClasses();
@@ -176,9 +213,9 @@ void setup_global_vars(int argc, char* argv[]) {
 
     strcpy(gBasic_car_names[0], "BLKEAGLE.TXT");
 
-    OpenDiagnostics();
-
     setup_temp_folder();
+
+    OpenDiagnostics();
     printf("INFO: temp folder is \"%s\"\n", temp_folder);
 
     _unittest_do_not_exit = 1;
@@ -203,36 +240,21 @@ int has_data_directory() {
 
 void create_temp_file(char buffer[PATH_MAX + 1], const char* prefix) {
 #ifdef _WIN32
-    DWORD attributes;
     UINT res;
-    BOOL success;
 
-    attributes = GetFileAttributesA(temp_folder);
-    if ((attributes == INVALID_FILE_ATTRIBUTES) || ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)) {
-        LOG_TRACE("Temporary folder does not exist => creating");
-        success = CreateDirectoryA(temp_folder, NULL);
-        if (success == 0) {
-            abort();
-        }
-    }
     res = GetTempFileNameA(temp_folder, prefix, 0, buffer);
     if (res == 0) {
         abort();
     }
     strcat(buffer, prefix);
+#if defined(DETHRACE_VFS)
+    if (strncmp(buffer, temp_folder, strlen(temp_folder)) == 0) {
+        strcpy(buffer, &buffer[strlen(temp_folder)]);
+    }
+#endif
 #else
     int fdres;
-    struct stat sb;
-    int res;
 
-    res = stat(temp_folder, &sb);
-    if (res == -1 || !S_ISDIR(sb.st_mode)) {
-        res = mkdir(temp_folder, 0770);
-        if (res == -1) {
-            fprintf(stderr, "mmkdir(\"%s\") failed: %s\n", temp_folder, strerror(errno));
-            abort();
-        }
-    }
     strcpy(buffer, temp_folder);
     strcat(buffer, "/");
     strcat(buffer, prefix);
@@ -243,6 +265,11 @@ void create_temp_file(char buffer[PATH_MAX + 1], const char* prefix) {
         abort();
     }
     close(fdres);
+#if defined(DETHRACE_VFS)
+    if (strncmp(buffer, temp_folder, strlen(temp_folder)) == 0) {
+        strcpy(buffer, &buffer[strlen(temp_folder)]);
+    }
+#endif
 #endif
 }
 
@@ -257,6 +284,9 @@ int main(int argc, char** argv) {
     setup_global_vars(argc, argv);
 
     printf("Completed setup\n");
+
+    // harness
+    test_vfs_suite();
 
     // BRSRC13
     test_bswap_suite();

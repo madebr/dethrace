@@ -52,8 +52,8 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
         return 1;
     }
     if (paths == NULL) {
-        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '/'");
-        paths = "/";
+        paths = ".";
+        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '%s'", paths);
     }
     const char* currentPath = paths;
     char pathBuffer[260];
@@ -82,6 +82,16 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
         LOG_INFO("VFS search path: %s", pathBuffer);
     }
     return 0;
+}
+
+static const char* vfs_write_dir;
+
+void VFS_SetWriteDir(const char* path) {
+    if (vfs_write_dir != NULL) {
+        PHYSFS_unmount(vfs_write_dir);
+    }
+    PHYSFS_mount(path, "/", 1);
+    PHYSFS_setWriteDir(path);
 }
 
 vfs_diriter* VFS_OpenDir(char* path) {
@@ -169,10 +179,10 @@ static VFILE* vfile_openWrite(const char* path) {
     }
     vfile->file = f;
     vfile->size = 0;
-    vfile->capacity = 512;
+    vfile->capacity = 0;
     vfile->position = 0;
     vfile->type = VFILE_WRITE;
-    vfile->buffer = malloc(vfile->capacity);
+    vfile->buffer = NULL;
     return vfile;
 }
 
@@ -242,19 +252,39 @@ int VFS_fseek(VFILE* stream, long offset, int whence) {
     if (new_position < 0) {
         new_position = 0;
     } else if ((uint64_t)new_position > stream->size) {
-        new_position = stream->position;
+        new_position = stream->position + 1;
         result = -1;
     }
     stream->position = new_position;
     return result;
 }
 
-int VFS_fprintf(VFILE* stream, const char* format, ...) {
-    NOT_IMPLEMENTED();
+size_t vfs_fprintf_marker_internal;
+
+int VFS_fprintf_internal(VFILE* stream, const char* format, ...) {
+    va_list ap;
+    char hugebuffer[4096];
+    int nb;
+
+    va_start(ap, format);
+    nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
+    va_end(ap);
+
+    PHYSFS_writeBytes(stream->file, hugebuffer, vfs_fprintf_marker_internal);
+
+    return nb;
 }
 
 int VFS_vfprintf(VFILE *stream, const char *format, va_list ap) {
-    NOT_IMPLEMENTED();
+    char hugebuffer[4096];
+    int nb;
+
+    nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
+    hugebuffer[sizeof(hugebuffer)-1] = '\0';
+
+    PHYSFS_writeBytes(stream->file, hugebuffer, strlen(hugebuffer));
+
+    return nb;
 }
 
 size_t vfs_scanf_marker_internal;
@@ -291,12 +321,12 @@ size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     if (size == 1) {
         size = nmemb;
         nmemb = 1;
-        size = VFS_MIN(size, stream->size - stream->position);
         switcheroo = 1;
     }
 
     for (block_i = 0; block_i < nmemb; block_i++) {
         if (stream->size - stream->position < size) {
+            stream->position = stream->size + 1;
             return block_i;
         }
         memcpy(ptr, &stream->buffer[stream->position], size);
@@ -310,7 +340,31 @@ size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
 }
 
 size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
-    NOT_IMPLEMENTED();
+    size_t block_i;
+    int switcheroo;
+
+    if (stream->type == VFILE_APPEND) {
+        NOT_IMPLEMENTED();
+    }
+    if (stream->type != VFILE_WRITE) {
+        return 0;
+    }
+
+    switcheroo = 0;
+    if (size == 1) {
+        size = nmemb;
+        nmemb = 1;
+        switcheroo = 1;
+    }
+
+    for (block_i = 0; block_i < nmemb; block_i++) {
+        PHYSFS_writeBytes(stream->file, ptr, size);
+        ptr = ((char*)ptr) + size;
+    }
+    if (switcheroo) {
+        return size;
+    }
+    return block_i;
 }
 
 int VFS_feof(VFILE* stream) {
@@ -318,13 +372,16 @@ int VFS_feof(VFILE* stream) {
     if (stream->type != VFILE_READ) {
         return 0;
     }
-    return stream->position >= stream->size;
+    return stream->position > stream->size;
 }
 
 long VFS_ftell(VFILE* stream) {
 
     if (stream->type != VFILE_READ) {
         return -1;
+    }
+    if (stream->position >= stream->size) {
+        return stream->size;
     }
     return stream->position;
 }
@@ -344,6 +401,7 @@ int VFS_fgetc(VFILE* stream) {
         return EOF;
     }
     if (stream->position >= stream->size) {
+        stream->position = stream->size + 1;
         return EOF;
     }
 
@@ -377,6 +435,7 @@ char* VFS_fgets(char* s, int size, VFILE* stream) {
         return NULL;
     }
     if (stream->position >= stream->size) {
+        stream->position = stream->size + 1;
         return NULL;
     }
     if (size <= 0) {
@@ -397,11 +456,38 @@ char* VFS_fgets(char* s, int size, VFILE* stream) {
 }
 
 int VFS_fputc(int c, VFILE* stream) {
-    NOT_IMPLEMENTED();
+    char character;
+    PHYSFS_sint64 count;
+
+    if (stream->type == VFILE_APPEND) {
+        NOT_IMPLEMENTED();
+    }
+    if (stream->type != VFILE_WRITE) {
+        return 0;
+    }
+
+    character = c;
+    count = PHYSFS_writeBytes(stream->file, &character, 1);
+
+    return (int)count;
 }
 
 int VFS_fputs(const char* s, VFILE* stream) {
-    NOT_IMPLEMENTED();
+    PHYSFS_sint64 res;
+
+    if (stream->type == VFILE_APPEND) {
+        NOT_IMPLEMENTED();
+    }
+    if (stream->type != VFILE_WRITE) {
+        return EOF;
+    }
+
+    res = PHYSFS_writeBytes(stream->file, s, strlen(s));
+    if (res < 0) {
+        return EOF;
+    }
+    return (int)res;
+
 }
 
 int VFS_remove(const char* pathname) {

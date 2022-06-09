@@ -11,6 +11,8 @@ typedef struct vfs_diriter vfs_diriter;
 
 int VFS_Init(int argc, const char* argv[], const char* paths);
 
+void VFS_SetWriteDir(const char* path);
+
 int VFS_access(const char* path, int mode);
 
 int VFS_chdir(const char* path);
@@ -21,13 +23,14 @@ int VFS_fclose(VFILE* stream);
 
 int VFS_fseek(VFILE* stream, long offset, int whence);
 
-int VFS_fprintf(VFILE* stream, const char* format, ...);
+extern size_t vfs_fprintf_marker_internal;
+#define VFS_fprintf(STREAM, FORMAT, ...) VFS_fprintf_internal((STREAM), FORMAT "%n", ##__VA_ARGS__, &vfs_fprintf_marker_internal)
+int VFS_fprintf_internal(VFILE* stream, const char* format, ...);
 
 int VFS_vfprintf(VFILE *stream, const char *format, va_list ap);
 
 extern size_t vfs_scanf_marker_internal;
-#define VFS_fscanf(STREAM, FORMAT, ...) VFS_fscanf_internal((STREAM), FORMAT "%n", __VA_ARGS__, &vfs_scanf_marker_internal)
-
+#define VFS_fscanf(STREAM, FORMAT, ...) VFS_fscanf_internal((STREAM), FORMAT "%n", ##__VA_ARGS__, &vfs_scanf_marker_internal)
 int VFS_fscanf_internal(VFILE* stream, const char* format, ...);
 
 size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream);

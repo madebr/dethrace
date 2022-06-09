@@ -58,8 +58,7 @@ void test_utility_GetALineWithNoPossibleService() {
     char s[256];
     VFILE* file;
 
-    get_system_temp_folder(tmpPath, sizeof(tmpPath));
-    strcat(tmpPath, "testfile");
+    create_temp_file(tmpPath, "testfile");
     file = VFS_fopen(tmpPath, "wt");
     TEST_ASSERT_NOT_NULL(file);
     VFS_fprintf(file, "hello world\r\n  space_prefixed\r\n\r\n\ttab_prefixed\r\n$ignored_prefix\r\nlast_line");
