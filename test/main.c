@@ -34,41 +34,41 @@
 
 extern int _unittest_do_not_exit;
 
-extern void test_vfs_suite();
-extern void test_assocarr_suite();
-extern void test_brprintf_suite();
-extern void test_bswap_suite();
-extern void test_utility_suite();
-extern void test_loading_suite();
-extern void test_controls_suite();
-extern void test_input_suite();
-extern void test_errors_suite();
-extern void test_dossys_suite();
-extern void test_init_suite();
-extern void test_brlists_suite();
-extern void test_fwsetup_suite();
-extern void test_resource_suite();
-extern void test_actsupt_suite();
-extern void test_genclip_suite();
-extern void test_datafile_suite();
-extern void test_v1dbfile_suite();
-extern void test_register_suite();
-extern void test_scratch_suite();
-extern void test_token_suite();
-extern void test_pattern_suite();
-extern void test_pmfile_suite();
-extern void test_fixed_suite();
-extern void test_lexer_suite();
-extern void test_logwrite_suite();
-extern void test_matrix23_suite();
-extern void test_matrix34_suite();
-extern void test_matrix4_suite();
-extern void test_quat_suite();
-extern void test_graphics_suite();
-extern void test_regsupt_suite();
-extern void test_vector_suite();
-extern void test_powerup_suite();
-extern void test_flicplay_suite();
+extern void test_vfs_suite(void);
+extern void test_assocarr_suite(void);
+extern void test_brprintf_suite(void);
+extern void test_bswap_suite(void);
+extern void test_utility_suite(void);
+extern void test_loading_suite(void);
+extern void test_controls_suite(void);
+extern void test_input_suite(void);
+extern void test_errors_suite(void);
+extern void test_dossys_suite(void);
+extern void test_init_suite(void);
+extern void test_brlists_suite(void);
+extern void test_fwsetup_suite(void);
+extern void test_resource_suite(void);
+extern void test_actsupt_suite(void);
+extern void test_genclip_suite(void);
+extern void test_datafile_suite(void);
+extern void test_v1dbfile_suite(void);
+extern void test_register_suite(void);
+extern void test_scratch_suite(void);
+extern void test_token_suite(void);
+extern void test_pattern_suite(void);
+extern void test_pmfile_suite(void);
+extern void test_fixed_suite(void);
+extern void test_lexer_suite(void);
+extern void test_logwrite_suite(void);
+extern void test_matrix23_suite(void);
+extern void test_matrix34_suite(void);
+extern void test_matrix4_suite(void);
+extern void test_quat_suite(void);
+extern void test_graphics_suite(void);
+extern void test_regsupt_suite(void);
+extern void test_vector_suite(void);
+extern void test_powerup_suite(void);
+extern void test_flicplay_suite(void);
 
 char* root_dir;
 
@@ -136,6 +136,7 @@ void TEST_ASSERT_EQUAL_FILE_CONTENTS_BINARY(const uint8_t* expected, char* filen
     VFILE* f;
     long filesize;
     int res;
+
     f = VFS_fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
     res = VFS_fseek(f, 0, SEEK_END);
@@ -250,6 +251,9 @@ void create_temp_file(char buffer[PATH_MAX + 1], const char* prefix) {
 #if defined(DETHRACE_VFS)
     if (strncmp(buffer, temp_folder, strlen(temp_folder)) == 0) {
         strcpy(buffer, &buffer[strlen(temp_folder)]);
+    }
+    while (buffer[0] == '/' || buffer[0] == '\\') {
+        strcpy(buffer, &buffer[1]);
     }
 #endif
 #else

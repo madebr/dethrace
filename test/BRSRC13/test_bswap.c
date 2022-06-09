@@ -3,7 +3,7 @@
 
 #include <string.h>
 
-static void test_bswap_BrSwap32() {
+static void test_bswap_BrSwap32(void) {
     TEST_ASSERT_EQUAL_UINT32(0x00000001, BrSwap32(0x01000000));
     TEST_ASSERT_EQUAL_UINT32(0x12345678, BrSwap32(0x78563412));
     TEST_ASSERT_EQUAL_UINT32(0x01020304, BrSwap32(0x04030201));
@@ -11,7 +11,7 @@ static void test_bswap_BrSwap32() {
     TEST_ASSERT_EQUAL_UINT32(0x00100000, BrSwap32(0x00001000));
 }
 
-static void test_bswap_BrSwap16() {
+static void test_bswap_BrSwap16(void) {
     TEST_ASSERT_EQUAL_UINT16(0x1234, BrSwap16(0x3412));
     TEST_ASSERT_EQUAL_UINT16(0x0102, BrSwap16(0x0201));
     TEST_ASSERT_EQUAL_UINT16(0x1000, BrSwap16(0x0010));
@@ -42,7 +42,7 @@ static uint32_t float_long_representation(float f) {
     return u.l;
 }
 
-static void test_bswap_BrSwapFloat() {
+static void test_bswap_BrSwapFloat(void) {
     TEST_ASSERT_EQUAL_UINT32(0x3f800000, float_long_representation(1.f));
 
     TEST_ASSERT_EQUAL_UINT32(float_long_representation(swap_float(1.f)), float_long_representation(BrSwapFloat(1.f)));
@@ -54,7 +54,7 @@ static void test_bswap_BrSwapFloat() {
     TEST_ASSERT_EQUAL_UINT32(float_long_representation(swap_float(7.5515151f)), float_long_representation(BrSwapFloat(7.5515151f)));
 }
 
-static void test_bswap_BrSwapBlock_size1() {
+static void test_bswap_BrSwapBlock_size1(void) {
     char buffer[256];
     int i;
 
@@ -69,7 +69,7 @@ static void test_bswap_BrSwapBlock_size1() {
     }
 }
 
-static void test_bswap_BrSwapBlock_size2() {
+static void test_bswap_BrSwapBlock_size2(void) {
     char buffer[256];
     int i;
 
@@ -85,7 +85,7 @@ static void test_bswap_BrSwapBlock_size2() {
     }
 }
 
-static void test_bswap_BrSwapBlock_size3() {
+static void test_bswap_BrSwapBlock_size3(void) {
     char buffer[256];
     int i;
 
@@ -102,7 +102,7 @@ static void test_bswap_BrSwapBlock_size3() {
     }
 }
 
-static void test_bswap_BrSwapBlock_size4() {
+static void test_bswap_BrSwapBlock_size4(void) {
     char buffer[256];
     int i;
 
@@ -120,7 +120,7 @@ static void test_bswap_BrSwapBlock_size4() {
     }
 }
 
-static void test_bswap_BrSwapBlock_size5() {
+static void test_bswap_BrSwapBlock_size5(void) {
     char buffer[256];
     int i;
 
@@ -139,7 +139,7 @@ static void test_bswap_BrSwapBlock_size5() {
     }
 }
 
-static void test_bswap_BrSwapBlock_size6() {
+static void test_bswap_BrSwapBlock_size6(void) {
     char buffer[256];
     int i;
 
@@ -159,7 +159,9 @@ static void test_bswap_BrSwapBlock_size6() {
     }
 }
 
-void test_bswap_suite() {
+void test_bswap_suite(void) {
+    UnitySetTestFile(__FILE__);
+
     RUN_TEST(test_bswap_BrSwap32);
     RUN_TEST(test_bswap_BrSwap16);
     RUN_TEST(test_bswap_BrSwapFloat);
