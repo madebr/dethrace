@@ -85,6 +85,9 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
         }
         LOG_INFO("VFS search path: %s", pathBuffer);
     }
+#if defined(_WIN32)
+    _set_printf_count_output(1);
+#endif
     return 0;
 }
 
