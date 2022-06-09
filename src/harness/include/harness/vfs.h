@@ -2,6 +2,7 @@
 #define HARNESS_VFS_VFS_H
 
 #include <stdarg.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef DETHRACE_VFS
@@ -18,6 +19,10 @@ int VFS_access(const char* path, int mode);
 int VFS_chdir(const char* path);
 
 VFILE* VFS_fopen(const char* path, const char* mode);
+
+uint64_t VFS_filesize(const VFILE* stream);
+
+const char* VFS_internal_buffer(const VFILE* stream);
 
 int VFS_fclose(VFILE* stream);
 

@@ -421,6 +421,20 @@ int VFS_fgetc(VFILE* stream) {
     return c;
 }
 
+uint64_t VFS_filesize(const VFILE* stream) {
+    if (stream->type != VFILE_READ) {
+        abort();
+    }
+    return stream->size;
+}
+
+const char* VFS_internal_buffer(const VFILE* stream) {
+    if (stream->type != VFILE_READ) {
+        abort();
+    }
+    return stream->buffer;
+}
+
 int VFS_ungetc(int c, VFILE* stream) {
 
     if (stream->type != VFILE_READ) {
