@@ -31,6 +31,9 @@ uint32_t OS_GetTime(void);
 // Required: sleep for specified milliseconds
 void OS_Sleep(int ms);
 
+// Required: return true if path is a directory on the filesystem
+int OS_IsDirectory(const char* path);
+
 // Required: begin a directory iteration
 os_diriter* OS_OpenDir(char* path);
 

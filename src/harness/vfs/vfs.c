@@ -1,9 +1,10 @@
 #include "harness/vfs.h"
 
+#include "harness/os.h"
 #include "harness/trace.h"
 
-#include <physfs/extras/ignorecase.h>
 #include <physfs.h>
+#include <physfs/extras/ignorecase.h>
 
 #if defined(_WIN32)
 #include <io.h>
@@ -83,10 +84,15 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
             LOG_WARN("PHYSFS_mount(\"%s\", NULL, 1) failed with %d (%s)", pathBuffer, ec, PHYSFS_getErrorByCode(ec));
             continue;
         }
-        if (PHYSFS_getWriteDir() == NULL) {
-            VFS_SetWriteDir(pathBuffer);
-        }
         LOG_INFO("VFS search path: %s", pathBuffer);
+        if (PHYSFS_getWriteDir() == NULL) {
+            if (OS_IsDirectory(pathBuffer)) {
+                VFS_SetWriteDir(pathBuffer);
+                if (PHYSFS_getWriteDir() != NULL) {
+                    LOG_INFO("VFS write path: %s", pathBuffer);
+                }
+            }
+        }
     }
 #if defined(_WIN32)
     _set_printf_count_output(1);

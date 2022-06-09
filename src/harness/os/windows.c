@@ -49,6 +49,16 @@ void OS_Sleep(int delay_ms) {
     Sleep(delay_ms);
 }
 
+int OS_IsDirectory(const char* path) {
+    DWORD dwAttrib;
+
+    dwAttrib = GetFileAttributesA(path);
+    if (dwAttrib == INVALID_FILE_ATTRIBUTES) {
+        return 0;
+    }
+    return (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
+}
+
 os_diriter* OS_OpenDir(char* path) {
     char pathGlob[256];
     os_diriter* diriter;

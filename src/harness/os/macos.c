@@ -37,6 +37,15 @@ void OS_Sleep(int delay_ms) {
     nanosleep(&ts, &ts);
 }
 
+int OS_IsDirectory(const char* path) {
+    struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0) {
+        return 0;
+    }
+    return S_ISDIR(statbuf.st_mode);
+}
+
 os_diriter* OS_OpenDir(char* path) {
     DIR* diriter = opendir(path);
     if (diriter == NULL) {
