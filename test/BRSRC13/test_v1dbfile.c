@@ -502,7 +502,7 @@ char *text_material_lone =
     "*INDEX_FOG_REF    1" HOST_NL
     "  name \"test_table_3\"" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_material_lone() {
+static void test_v1dbfile_save_load_material_lone(void) {
     br_material *material_ref;
     br_material* materials_read[2];
     char tmpfilename_binary[PATH_MAX+1];
@@ -703,7 +703,7 @@ char *text_material_many =
     "*INDEX_FOG_REF    1" HOST_NL
     "  name \"test_table_3\"" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_material_many() {
+static void test_v1dbfile_save_load_material_many(void) {
 #define MATERIAL_MANY_NB 4
 #define MATERIAL_MANY_READ_CAPACITY (MATERIAL_MANY_NB*5)
     br_material *materials_ref[MATERIAL_MANY_NB];
@@ -844,7 +844,7 @@ char *text_model_lone =
     "    uint_16   6                                        # smoothing" HOST_NL
     "    uint_8    2                                        # flags" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_model_lone() {
+static void test_v1dbfile_save_load_model_lone(void) {
     br_model *model_ref;
     br_model* models_read[2];
     char tmpfilename_binary[PATH_MAX+1];
@@ -1168,7 +1168,7 @@ char *text_model_many =
     "    uint_16   9                                        # smoothing" HOST_NL
     "    uint_8    3                                        # flags" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_model_many() {
+static void test_v1dbfile_save_load_model_many(void) {
 #define MODEL_MANY_NB 4
 #define MODEL_MANY_READ_CAPACITY (MATERIAL_MANY_NB*5)
     br_model *models_ref[MODEL_MANY_NB];
@@ -1239,7 +1239,7 @@ static char *text_actor_none_unity_lone =
     "    enum_8    BR_RSTYLE_DEFAULT                        # render_style" HOST_NL
     "    asciz     \"test_actor_none_transform_unity\"        # identifier" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_unity_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_unity_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1313,7 +1313,7 @@ static char *text_actor_none_matrix34_lone =
     "    vector3   10,11,12                                 # t.mat.m[3]" HOST_NL
     "*ACTOR_TRANSFORM  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_matrix34_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_matrix34_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1387,7 +1387,7 @@ static char *text_actor_none_matrix34lp_lone =
     "    vector3   10,11,12                                 # t.mat.m[3]" HOST_NL
     "*ACTOR_TRANSFORM  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_matrix34lp_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_matrix34lp_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1460,7 +1460,7 @@ static char *text_actor_none_quat_lone =
     "    vector3   2,3,4                                    # t.quat.t" HOST_NL
     "*ACTOR_TRANSFORM  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_quat_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_quat_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1531,7 +1531,7 @@ static char *text_actor_none_lookup_lone =
     "    vector3   7,8,9                                    # t.look_up.t" HOST_NL
     "*ACTOR_TRANSFORM  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_lookup_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_lookup_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1603,7 +1603,7 @@ static char *text_actor_none_euler_lone =
     "    vector3   3,6,9                                    # t.euler.t" HOST_NL
     "*ACTOR_TRANSFORM  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_none_transform_euler_lone() {
+static void test_v1dbfile_save_load_actor_none_transform_euler_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1670,7 +1670,7 @@ static char *text_actor_model_lone =
     "*ACTOR_MODEL      1" HOST_NL
     "  name \"test_model_0\"" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_model_lone() {
+static void test_v1dbfile_save_load_actor_model_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1744,7 +1744,7 @@ static char *text_actor_light_lone =
     "    asciz     NULL                                     # identifier" HOST_NL
     "*ACTOR_LIGHT      0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_light_lone() {
+static void test_v1dbfile_save_load_actor_light_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1815,7 +1815,7 @@ static char *text_actor_camera_lone =
     "    asciz     NULL                                     # identifier" HOST_NL
     "*ACTOR_CAMERA     0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_camera_lone() {
+static void test_v1dbfile_save_load_actor_camera_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1883,7 +1883,7 @@ static char *text_actor_bounds_lone =
     "    vector3   7.75,2.25,2.0625                         # max" HOST_NL
     "*ACTOR_BOUNDS     0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_bounds_lone() {
+static void test_v1dbfile_save_load_actor_bounds_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -1950,7 +1950,7 @@ static char *text_actor_clipplane_lone =
     "    vector4   1,1.25,1.5,1.75                          # eqn" HOST_NL
     "*ACTOR_CLIP_PLANE 0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_clipplane_lone() {
+static void test_v1dbfile_save_load_actor_clipplane_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     char name[128];
@@ -2026,7 +2026,7 @@ static char *text_actor_tree_lone =
     "    asciz     \"child2\"                                 # identifier" HOST_NL
     "*ACTOR_ADD_CHILD  0" HOST_NL
     "*END              0" HOST_NL;
-static void test_v1dbfile_save_load_actor_tree_lone() {
+static void test_v1dbfile_save_load_actor_tree_lone(void) {
     br_actor* actor_ref;
     br_actor* actors_read[2];
     br_actor* child;
@@ -2072,7 +2072,7 @@ static void test_v1dbfile_save_load_actor_tree_lone() {
     BrResFree(actors_read[1]);
 }
 
-void test_v1dbfile_BrModelLoad() {
+static void test_v1dbfile_BrModelLoad(void) {
     REQUIRES_DATA_DIRECTORY();
 
     br_model* m;
@@ -2092,7 +2092,7 @@ void test_v1dbfile_BrModelLoad() {
     BrModelFree(m);
 }
 
-void test_v1dbfile_BrActorLoad() {
+static void test_v1dbfile_BrActorLoad(void) {
     REQUIRES_DATA_DIRECTORY();
 
     br_actor* a;
@@ -2103,7 +2103,7 @@ void test_v1dbfile_BrActorLoad() {
     BrActorFree(a);
 }
 
-void test_v1dbfile_BrMaterialLoad() {
+static void test_v1dbfile_BrMaterialLoad(void) {
     REQUIRES_DATA_DIRECTORY();
 
     br_material* m;
@@ -2126,7 +2126,7 @@ void test_v1dbfile_BrMaterialLoad() {
     TEST_ASSERT_EQUAL_PTR(pm, m->colour_map);
 }
 
-void test_v1dbfile_suite() {
+void test_v1dbfile_suite(void) {
     UnitySetTestFile(__FILE__);
     RUN_TEST(test_v1dbfile_save_load_material_lone);
     RUN_TEST(test_v1dbfile_save_load_material_many);

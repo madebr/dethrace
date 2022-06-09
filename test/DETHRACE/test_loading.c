@@ -11,7 +11,7 @@
 #include "common/utility.h"
 #include "common/world.h"
 
-void test_loading_GetCDPathFromPathsTxtFile() {
+void test_loading_GetCDPathFromPathsTxtFile(void) {
     REQUIRES_DATA_DIRECTORY();
     int result;
     tPath_name cd_path;
@@ -21,7 +21,7 @@ void test_loading_GetCDPathFromPathsTxtFile() {
     TEST_ASSERT_EQUAL_STRING(".\\DATA\\MINICD", cd_path);
 }
 
-void test_loading_OldDRfopen() {
+void test_loading_OldDRfopen(void) {
     REQUIRES_DATA_DIRECTORY();
     VFILE* f;
 
@@ -32,7 +32,7 @@ void test_loading_OldDRfopen() {
     TEST_ASSERT_NOT_NULL(f);
 }
 
-void test_loading_LoadGeneralParameters() {
+void test_loading_LoadGeneralParameters(void) {
     REQUIRES_DATA_DIRECTORY();
 
     LoadGeneralParameters();
@@ -49,7 +49,7 @@ void test_loading_LoadGeneralParameters() {
     TEST_ASSERT_EQUAL_INT(1, gDefault_gravity);
 }
 
-void test_loading_brfont() {
+void test_loading_brfont(void) {
     REQUIRES_DATA_DIRECTORY();
     br_font* font;
 
@@ -61,7 +61,7 @@ void test_loading_brfont() {
     TEST_ASSERT_EQUAL_INT(3, font->width[32]);
 }
 
-void test_loading_opponents() {
+void test_loading_opponents(void) {
     REQUIRES_DATA_DIRECTORY();
     tOpponent* o;
 
@@ -83,7 +83,7 @@ void test_loading_opponents() {
     TEST_ASSERT_EQUAL_STRING("TOP SPEED: 150MPH", o->text_chunks[0].text[0]);
 }
 
-void test_loading_memread() {
+void test_loading_memread(void) {
     int32_t int_array[] = { 1, 2, 3, 4 };
     char* data = (char*)int_array;
     TEST_ASSERT_EQUAL_INT(1, MemReadU32(&data));
@@ -114,7 +114,7 @@ void test_loading_memread() {
     TEST_ASSERT_EQUAL_INT(-4, MemReadS8(&data));
 }
 
-void test_loading_ConvertPixToStripMap() {
+void test_loading_ConvertPixToStripMap(void) {
     REQUIRES_DATA_DIRECTORY();
     br_pixelmap* pm;
     tS8* strip_data;
@@ -142,7 +142,7 @@ void test_loading_ConvertPixToStripMap() {
     }
 }
 
-void test_loading_LoadCar() {
+void test_loading_LoadCar(void) {
     REQUIRES_DATA_DIRECTORY();
     tCar_spec car_spec;
     tBrender_storage storage;
@@ -218,7 +218,7 @@ void test_loading_LoadCar() {
     // }
 }
 
-void test_loading_LoadOpponentCar() {
+void test_loading_LoadOpponentCar(void) {
     REQUIRES_DATA_DIRECTORY();
     tCar_spec car_spec;
     tBrender_storage storage;
@@ -230,7 +230,7 @@ void test_loading_LoadOpponentCar() {
     }
 }
 
-void test_loading_suite() {
+void test_loading_suite(void) {
     UnitySetTestFile(__FILE__);
     RUN_TEST(test_loading_GetCDPathFromPathsTxtFile);
     RUN_TEST(test_loading_OldDRfopen);
