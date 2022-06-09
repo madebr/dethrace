@@ -20,6 +20,12 @@
 #define strdup _strdup
 #endif
 
+#ifndef W_OK
+#define W_OK 2
+#endif
+
+#define VFS_MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
+
 typedef enum {
     VFILE_READ,
     VFILE_WRITE,
@@ -39,8 +45,6 @@ typedef struct vfs_diriter {
     char** list;
     size_t index;
 } vfs_diriter;
-
-#define VFS_MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
 
 int VFS_Init(int argc, const char* argv[], const char* paths) {
     int result;
