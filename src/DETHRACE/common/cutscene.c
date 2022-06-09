@@ -91,7 +91,10 @@ void PlaySmackerFile(char* pSmack_name) {
         dr_dprintf("Trying to open smack file '%s'", the_path);
 #if defined(DETHRACE_VFS)
         file = VFS_fopen(the_path, "rb");
-        s = smk_open_memory(VFS_internal_buffer(file), VFS_filesize(file));
+        s = NULL;
+        if (file != NULL) {
+            s = smk_open_memory(VFS_internal_buffer(file), VFS_filesize(file));
+        }
 #else
         s = smk_open_file(the_path, SMK_MODE_MEMORY);
 #endif

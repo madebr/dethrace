@@ -83,6 +83,9 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
             LOG_WARN("PHYSFS_mount(\"%s\", NULL, 1) failed with %d (%s)", pathBuffer, ec, PHYSFS_getErrorByCode(ec));
             continue;
         }
+        if (PHYSFS_getWriteDir() == NULL) {
+            VFS_SetWriteDir(pathBuffer);
+        }
         LOG_INFO("VFS search path: %s", pathBuffer);
     }
 #if defined(_WIN32)
@@ -91,12 +94,7 @@ int VFS_Init(int argc, const char* argv[], const char* paths) {
     return 0;
 }
 
-static const char* vfs_write_dir;
-
 void VFS_SetWriteDir(const char* path) {
-    if (vfs_write_dir != NULL) {
-        PHYSFS_unmount(vfs_write_dir);
-    }
     PHYSFS_mount(path, "/", 1);
     PHYSFS_setWriteDir(path);
 }
