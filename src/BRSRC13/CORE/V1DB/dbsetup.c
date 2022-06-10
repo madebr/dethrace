@@ -15,9 +15,10 @@
 #include "CORE/V1DB/prepmesh.h"
 #include "CORE/V1DB/preptab.h"
 #include "CORE/V1DB/regsupt.h"
+
 #include "harness/hooks.h"
 #include "harness/trace.h"
-#include <stdio.h>
+
 #include <string.h>
 
 br_resource_class v1db_resourceClasses[14] = {

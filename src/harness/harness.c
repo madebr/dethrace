@@ -1,13 +1,15 @@
 #include "harness.h"
+
 #include "brender_emu/renderer_impl.h"
-#include "include/harness/config.h"
-#include "include/harness/os.h"
 #include "io_platforms/io_platform.h"
 #include "renderers/null.h"
 #include "sound/sound.h"
 
+#include "harness/config.h"
+#include "harness/os.h"
+#include "harness/stdio_vfs.h"
+
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -87,15 +89,15 @@ int Harness_ProcessCommandLine(int* argc, char* argv[]);
 #endif
 
 static void Harness_DetectGameMode() {
-    if (VFS_access(DETECT_PREFIX "DATA/RACES/CASTLE.TXT", F_OK) != -1) {
+    if (access(DETECT_PREFIX "DATA/RACES/CASTLE.TXT", F_OK) != -1) {
         // All splatpack edition have the castle track
-        if (VFS_access(DETECT_PREFIX "DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
+        if (access(DETECT_PREFIX "DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
             // Only the full splat release has the castle2 track
             harness_game_info.defines.INTRO_SMK_FILE = "SPLINTRO.SMK";
             harness_game_info.defines.GERMAN_LOADSCRN = "LOADSCRN.PIX";
             harness_game_info.mode = eGame_splatpack;
             LOG_INFO("\"%s\"", "Splat Pack");
-        } else if (VFS_access(DETECT_PREFIX "DATA/RACES/TINSEL.TXT", F_OK) != -1) {
+        } else if (access(DETECT_PREFIX "DATA/RACES/TINSEL.TXT", F_OK) != -1) {
             // Only the the splat x-mas demo has the tinsel track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "";
@@ -108,9 +110,9 @@ static void Harness_DetectGameMode() {
             harness_game_info.mode = eGame_splatpack_demo;
             LOG_INFO("\"%s\"", "Splat Pack demo");
         }
-    } else if (VFS_access(DETECT_PREFIX "DATA/RACES/CITYB3.TXT", F_OK) != -1) {
+    } else if (access(DETECT_PREFIX "DATA/RACES/CITYB3.TXT", F_OK) != -1) {
         // All non-splatpack edition have the cityb3 track
-        if (VFS_access(DETECT_PREFIX "DATA/RACES/CITYA1.TXT", F_OK) == -1) {
+        if (access(DETECT_PREFIX "DATA/RACES/CITYA1.TXT", F_OK) == -1) {
             // The demo does not have the citya1 track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "COWLESS.PIX";
@@ -121,7 +123,7 @@ static void Harness_DetectGameMode() {
         }
     } else {
     carmageddon:
-        if (VFS_access(DETECT_PREFIX "DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
+        if (access(DETECT_PREFIX "DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
             harness_game_info.defines.INTRO_SMK_FILE = "Mix_intr.smk";
         } else {
             harness_game_info.defines.INTRO_SMK_FILE = "MIX_INTR.SMK";
@@ -132,18 +134,18 @@ static void Harness_DetectGameMode() {
     }
 
     harness_game_info.localization = eGameLocalization_none;
-    if (VFS_access("DATA/TRNSLATE.TXT", F_OK) != -1) {
-        VFILE* f = VFS_fopen("DATA/TRNSLATE.TXT", "rb");
-        VFS_fseek(f, 0, SEEK_END);
-        int filesize = VFS_ftell(f);
-        VFS_fseek(f, 0, SEEK_SET);
+    if (access("DATA/TRNSLATE.TXT", F_OK) != -1) {
+        FILE* f = fopen("DATA/TRNSLATE.TXT", "rb");
+        fseek(f, 0, SEEK_END);
+        int filesize = ftell(f);
+        fseek(f, 0, SEEK_SET);
         char* buffer = malloc(filesize + 1);
-        int nb = VFS_fread(buffer, 1, filesize, f);
+        int nb = fread(buffer, 1, filesize, f);
         if (nb != filesize) {
             LOG_PANIC("Unable to read DATA/TRNSLATE.TXT");
         }
         buffer[filesize] = '\0';
-        VFS_fclose(f);
+        fclose(f);
         if (strstr(buffer, "NEUES SPIEL") != NULL) {
             harness_game_info.localization = eGameLocalization_german;
             LOG_INFO("Language: \"%s\"", "German");

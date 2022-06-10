@@ -2,9 +2,12 @@
 #include "harness/trace.h"
 
 #include <ctype.h>
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef dethrace_stdio_vfs_aliased
+#error "stdio functions aliased to VFS functions"
+#endif
 
 // Global variables
 // DOSPICK has "$Id: stdlib.c 2.4 1996/12/06 21:18:39 sam Exp $" for this. Do we want to implement these?

@@ -28,7 +28,7 @@ br_scalar gCut_delay_3;
 br_scalar gCut_delay_4;
 br_scalar gYon_multiplier;
 tSave_game* gPre_race_saved_game;
-VFILE* gDiagnostic_file;
+FILE* gDiagnostic_file;
 br_vector3 gDisabled_vector;
 tU32 gI_am_cheating;
 char gNet_player_name[32];

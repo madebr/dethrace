@@ -9,7 +9,7 @@
 #include "sound.h"
 #include "utility.h"
 
-#include "harness/vfs.h"
+#include "harness/stdio_vfs.h"
 
 #include <stdlib.h>
 
@@ -19,7 +19,7 @@ int gLast_demo;
 void DoDemo() {
     tS32 start_time;
     tS32 frame_time;
-    VFILE* f;
+    FILE* f;
     tPath_name the_path;
     int i;
     int count;
@@ -41,7 +41,7 @@ void DoDemo() {
     for (i = 0; i <= gLast_demo; i++) {
         GetALineAndDontArgue(f, s);
     }
-    VFS_fclose(f);
+    fclose(f);
     PathCat(the_path, gApplication_path, s);
     f = DRfopen(the_path, "rb");
     if (f == NULL) {
@@ -57,7 +57,7 @@ void DoDemo() {
         SoundService();
         start_time = PDGetTotalTime();
         frame_time = ReadS32(f);
-        VFS_fread(gBack_screen->pixels, gBack_screen->height * gBack_screen->width, 1, f);
+        fread(gBack_screen->pixels, gBack_screen->height * gBack_screen->width, 1, f);
         PDScreenBufferSwap(0);
         while (frame_time > PDGetTotalTime() - start_time && !AnyKeyDown() && !EitherMouseButtonDown()) {
             // FIXME: sleep? SoundService?
@@ -65,14 +65,14 @@ void DoDemo() {
         if (!S3SoundStillPlaying(song_tag)) {
             song_tag = S3StartSound(gEffects_outlet, 10000);
         }
-        if (AnyKeyDown() || EitherMouseButtonDown() || VFS_feof(f)) {
+        if (AnyKeyDown() || EitherMouseButtonDown() || feof(f)) {
             break;
         }
     }
     S3StopSound(song_tag);
     S3StopAllOutletSounds(gEffects_outlet);
     S3StopAllOutletSounds();
-    VFS_fclose(f);
+    fclose(f);
     FadePaletteDown();
     WaitForNoKeys();
 }

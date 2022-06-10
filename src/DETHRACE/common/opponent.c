@@ -12,8 +12,8 @@
 #include "pd/sys.h"
 #include "utility.h"
 
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdlib.h>
 
@@ -851,7 +851,7 @@ void LoadCopCars() {
 }
 
 // IDA: void __usercall LoadInOppoPaths(FILE *pF@<EAX>)
-void LoadInOppoPaths(VFILE* pF) {
+void LoadInOppoPaths(FILE* pF) {
     char s[256];
     char* res;
     int data_errors;
@@ -1894,7 +1894,7 @@ void ShowOppoPaths() {
 void WriteOutOppoPaths() {
     char the_path[256];
     char str[13];
-    VFILE* f;
+    FILE* f;
     int i;
     LOG_TRACE("()");
 
@@ -1910,26 +1910,26 @@ void WriteOutOppoPaths() {
             if (f == NULL) {
                 break;
             }
-            VFS_fclose(f);
+            fclose(f);
         }
         strcpy(gOppo_path_filename, the_path);
         gMade_path_filename = 1;
     }
     f = DRfopen(gOppo_path_filename, "wt");
-    VFS_fprintf(f, "%s\n", "START OF OPPONENT PATHS");
-    VFS_fprintf(f, "\n%-3d                             // Number of path nodes\n",
+    fprintf(f, "%s\n", "START OF OPPONENT PATHS");
+    fprintf(f, "\n%-3d                             // Number of path nodes\n",
         gProgram_state.AI_vehicles.number_of_path_nodes);
     for (i = 0; i < gProgram_state.AI_vehicles.number_of_path_nodes; i++) {
-        VFS_fprintf(f, "%9.3f,%9.3f,%9.3f   // Node #%d\n",
+        fprintf(f, "%9.3f,%9.3f,%9.3f   // Node #%d\n",
             gProgram_state.AI_vehicles.path_nodes[i].p.v[0],
             gProgram_state.AI_vehicles.path_nodes[i].p.v[1],
             gProgram_state.AI_vehicles.path_nodes[i].p.v[2],
             i);
     }
-    VFS_fprintf(f, "\n%-3d                                           // Number of path sections\n",
+    fprintf(f, "\n%-3d                                           // Number of path sections\n",
         gProgram_state.AI_vehicles.number_of_path_sections);
     for (i = 0; i < gProgram_state.AI_vehicles.number_of_path_sections; i++) {
-        VFS_fprintf(f, "%4d,%4d,%4d,%4d,%4d,%4d,%7.1f,%5d   // Section #%d\n",
+        fprintf(f, "%4d,%4d,%4d,%4d,%4d,%4d,%7.1f,%5d   // Section #%d\n",
             gProgram_state.AI_vehicles.path_sections[i].node_indices[0],
             gProgram_state.AI_vehicles.path_sections[i].node_indices[1],
             gProgram_state.AI_vehicles.path_sections[i].min_speed[0],
@@ -1940,17 +1940,17 @@ void WriteOutOppoPaths() {
             gProgram_state.AI_vehicles.path_sections[i].one_way ? (gProgram_state.AI_vehicles.path_sections[i].type + 1000) : gProgram_state.AI_vehicles.path_sections[i].type,
             i);
     }
-    VFS_fprintf(f, "\n%-2d                                                            // Number of cop start points\n",
+    fprintf(f, "\n%-2d                                                            // Number of cop start points\n",
         gProgram_state.AI_vehicles.number_of_cops);
     for (i = 0; i < gProgram_state.AI_vehicles.number_of_cops; i++) {
-        VFS_fprintf(f, "%9.3f,%9.3f,%9.3f,%9.3f,%9.3f,%9.3f   // Cop start point #%d\n",
+        fprintf(f, "%9.3f,%9.3f,%9.3f,%9.3f,%9.3f,%9.3f   // Cop start point #%d\n",
             gProgram_state.AI_vehicles.cop_start_points[i].v[0],
             gProgram_state.AI_vehicles.cop_start_points[i].v[1],
             gProgram_state.AI_vehicles.cop_start_points[i].v[2],
             0.f, 0.f, 0.f, i);
     }
-    VFS_fprintf(f, "END OF OPPONENT PATHS");
-    VFS_fclose(f);
+    fprintf(f, "END OF OPPONENT PATHS");
+    fclose(f);
 }
 
 // IDA: int __cdecl NewNodeOKHere()

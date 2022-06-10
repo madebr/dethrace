@@ -1,9 +1,9 @@
 #include "3d.h"
+
 #include "audio.h"
-#include "resource.h"
 #include "s3sound.h"
+
 #include <math.h>
-#include <stdio.h>
 #include <string.h>
 
 tS3_vector3 gS3_listener_position_old;

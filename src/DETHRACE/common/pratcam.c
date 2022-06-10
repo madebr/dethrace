@@ -1,4 +1,5 @@
 #include "pratcam.h"
+
 #include "displays.h"
 #include "errors.h"
 #include "flicplay.h"
@@ -11,8 +12,8 @@
 #include "brender/brender.h"
 #include "pd/sys.h"
 
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdlib.h>
 
@@ -72,8 +73,8 @@ void TogglePratcam() {
 
 // IDA: void __usercall LoadPratcam(char *pFolder_name@<EAX>)
 void LoadPratcam(char* pFolder_name) {
-    VFILE* f;
-    VFILE* g;
+    FILE* f;
+    FILE* g;
     tPath_name the_path;
     int i;
     int j;
@@ -117,8 +118,8 @@ void LoadPratcam(char* pFolder_name) {
         if (gPratcam_flics[i].data == NULL) {
             FatalError(31);
         }
-        VFS_fread(gPratcam_flics[i].data, 1, gPratcam_flics[i].data_length, g);
-        VFS_fclose(g);
+        fread(gPratcam_flics[i].data, 1, gPratcam_flics[i].data_length, g);
+        fclose(g);
     }
     GetALineAndDontArgue(f, s);
     if (strcmp(s, "END") != 0) {
@@ -176,7 +177,7 @@ void LoadPratcam(char* pFolder_name) {
     if (strcmp(s, "END") != 0) {
         FatalError(34);
     }
-    VFS_fclose(f);
+    fclose(f);
 }
 
 // IDA: void __cdecl NextPratcamChunk()

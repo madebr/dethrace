@@ -32,8 +32,8 @@
 #include "world.h"
 
 #include "harness/os.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <limits.h>
 #include <math.h>
@@ -2618,7 +2618,7 @@ void LoadFont(int pFont_ID) {
     tPath_name the_path;
     int i;
     int number_of_chars;
-    VFILE* f;
+    FILE* f;
     tU32 the_size;
     LOG_TRACE("(%d)", pFont_ID);
 
@@ -2655,7 +2655,7 @@ void LoadFont(int pFont_ID) {
                 gFonts[pFont_ID].width_table[i] = the_size;
             }
         }
-        VFS_fclose(f);
+        fclose(f);
         gFonts[pFont_ID].file_read_once = 1;
     }
 }

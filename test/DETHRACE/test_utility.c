@@ -1,7 +1,9 @@
 #include "tests.h"
 
-#include "common/loading.h"
 #include "common/utility.h"
+
+#include "harness/stdio_vfs.h"
+
 #include <string.h>
 
 void test_utility_EncodeLinex(void) {
@@ -56,15 +58,15 @@ static void get_system_temp_folder(char *buffer, size_t bufferSize) {
 void test_utility_GetALineWithNoPossibleService(void) {
     char tmpPath[256];
     char s[256];
-    VFILE* file;
+    FILE* file;
 
     create_temp_file(tmpPath, "testfile");
-    file = VFS_fopen(tmpPath, "wt");
+    file = fopen(tmpPath, "wt");
     TEST_ASSERT_NOT_NULL(file);
-    VFS_fprintf(file, "hello world\r\n  space_prefixed\r\n\r\n\ttab_prefixed\r\n$ignored_prefix\r\nlast_line");
-    VFS_fclose(file);
+    fprintf(file, "hello world\r\n  space_prefixed\r\n\r\n\ttab_prefixed\r\n$ignored_prefix\r\nlast_line");
+    fclose(file);
 
-    file = VFS_fopen(tmpPath, "rt");
+    file = fopen(tmpPath, "rt");
     TEST_ASSERT_NOT_NULL(file);
 
     char* result = GetALineWithNoPossibleService(file, s);
@@ -86,7 +88,7 @@ void test_utility_GetALineWithNoPossibleService(void) {
     result = GetALineWithNoPossibleService(file, s);
     TEST_ASSERT_NULL(result);
 
-    VFS_fclose(file);
+    fclose(file);
 }
 
 void test_utility_PathCat(void) {

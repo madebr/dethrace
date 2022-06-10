@@ -3,7 +3,6 @@
 
 #include "brender/br_types.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 void Harness_ForceNullRenderer();
 

@@ -1,11 +1,16 @@
+#include "harness/os.h"
+
 // Based on https://gist.github.com/jvranish/4441299
 
 // this has to be first
 #include <windows.h>
 
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions")
+#endif
+
 #include <imagehlp.h>
 
-#include "harness/os.h"
 #include <assert.h>
 #include <direct.h>
 #include <errno.h>

@@ -6,6 +6,10 @@
 #include <physfs.h>
 #include <physfs/extras/ignorecase.h>
 
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions"
+#endif
+
 #if defined(_WIN32)
 #include <io.h>
 #else
@@ -25,6 +29,7 @@
 #define W_OK 2
 #endif
 
+#define VFILE_MAGIC 0xbabd3da705220cb
 #define VFS_MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
 
 typedef enum {
@@ -34,6 +39,7 @@ typedef enum {
 } VFILE_type;
 
 typedef struct VFILE {
+    uint64_t magic;
     PHYSFS_File *file;
     uint64_t size;
     uint64_t position;
@@ -42,10 +48,30 @@ typedef struct VFILE {
     VFILE_type type;
 } VFILE;
 
+#define VFS_DIRITER_MAGIC 0xca5c2851dad132f8
+
 typedef struct vfs_diriter {
+    uint64_t magic;
     char** list;
     size_t index;
 } vfs_diriter;
+
+static VFILE* cast_vfile(FILE* file) {
+    if (((VFILE*)file)->magic != VFILE_MAGIC) {
+        abort();
+    }
+    return (VFILE*)file;
+}
+
+static vfs_diriter * cast_diriter(os_diriter* diriter) {
+    if (diriter == NULL) {
+        abort();
+    }
+    if (((VFILE*)diriter)->magic != VFS_DIRITER_MAGIC) {
+        abort();
+    }
+    return (vfs_diriter*)diriter;
+}
 
 int VFS_Init(int argc, const char* argv[], const char* paths) {
     int result;
@@ -105,7 +131,7 @@ void VFS_SetWriteDir(const char* path) {
     PHYSFS_setWriteDir(path);
 }
 
-vfs_diriter* VFS_OpenDir(char* path) {
+os_diriter* VFS_OpenDir(char* path) {
     char** list;
     vfs_diriter* diriter;
 
@@ -114,22 +140,22 @@ vfs_diriter* VFS_OpenDir(char* path) {
         return NULL;
     }
     diriter = malloc(sizeof(vfs_diriter));
+    diriter->magic = VFS_DIRITER_MAGIC;
     diriter->list = list;
     diriter->index = 0;
-    return diriter;
+    return (os_diriter*)diriter;
 }
 
-char* VFS_GetNextFileInDirectory(vfs_diriter* diriter) {
+char* VFS_GetNextFileInDirectory(os_diriter* diriter) {
     char* result;
+    vfs_diriter* vfs_diriter;
 
-    if (diriter == NULL) {
-        return NULL;
-    }
-    result = diriter->list[diriter->index];
-    diriter->index++;
+    vfs_diriter = cast_diriter(diriter);
+    result = vfs_diriter->list[vfs_diriter->index];
+    vfs_diriter->index++;
     if (result == NULL) {
-        PHYSFS_freeList(diriter->list);
-        free(diriter);
+        PHYSFS_freeList(vfs_diriter->list);
+        free(vfs_diriter);
     }
     return result;
 }
@@ -167,6 +193,7 @@ static VFILE* vfile_openRead(const char* path) {
         PHYSFS_close(f);
         return NULL;
     }
+    vfile->magic = VFILE_MAGIC;
     vfile->file = NULL;
     vfile->size = PHYSFS_fileLength(f);
     vfile->capacity = vfile->size;
@@ -192,6 +219,7 @@ static VFILE* vfile_openWrite(const char* path) {
         PHYSFS_close(f);
         return NULL;
     }
+    vfile->magic = VFILE_MAGIC;
     vfile->file = f;
     vfile->size = 0;
     vfile->capacity = 0;
@@ -205,7 +233,7 @@ static VFILE* vfile_openAppend(const char* path) {
     NOT_IMPLEMENTED();
 }
 
-VFILE* VFS_fopen(const char* path, const char* mode) {
+FILE* VFS_fopen(const char* path, const char* mode) {
     VFILE* vfile;
     char* path_modified;
     int found;
@@ -228,26 +256,30 @@ VFILE* VFS_fopen(const char* path, const char* mode) {
 //        LOG_WARN("Failed to open %s", path);
     }
     free(path_modified);
-    return vfile;
+    return (FILE*)vfile;
 }
 
-int VFS_fclose(VFILE* stream) {
+int VFS_fclose(FILE* stream) {
     int result;
+    VFILE* vfile;
 
+    vfile = cast_vfile(stream);
     result = 0;
-    free(stream->buffer);
-    if (stream->file != NULL) {
-        result = PHYSFS_close(stream->file) ? 0 : EOF;
+    free(vfile->buffer);
+    if (vfile->file != NULL) {
+        result = PHYSFS_close(vfile->file) ? 0 : EOF;
     }
     free(stream);
     return result;
 }
 
-int VFS_fseek(VFILE* stream, long offset, int whence) {
+int VFS_fseek(FILE* stream, long offset, int whence) {
     int result;
     int64_t new_position;
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return -1;
     }
     switch (whence) {
@@ -255,10 +287,10 @@ int VFS_fseek(VFILE* stream, long offset, int whence) {
         new_position = offset;
         break;
     case SEEK_CUR:
-        new_position = stream->position + offset;
+        new_position = vfile->position + offset;
         break;
     case SEEK_END:
-        new_position = stream->size;
+        new_position = vfile->size;
         break;
     default:
         return -1;
@@ -266,69 +298,78 @@ int VFS_fseek(VFILE* stream, long offset, int whence) {
     result = 0;
     if (new_position < 0) {
         new_position = 0;
-    } else if ((uint64_t)new_position > stream->size) {
-        new_position = stream->size + 1;
+    } else if ((uint64_t)new_position > vfile->size) {
+        new_position = vfile->size + 1;
         result = -1;
     }
-    stream->position = new_position;
+    vfile->position = new_position;
     return result;
 }
 
 size_t vfs_fprintf_marker_internal;
 
-int VFS_fprintf_internal(VFILE* stream, const char* format, ...) {
+int VFS_fprintf_internal(FILE* stream, const char* format, ...) {
     va_list ap;
     char hugebuffer[4096];
     int nb;
+    VFILE* vfile;
 
+    vfile = cast_vfile(stream);
     va_start(ap, format);
     nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
     va_end(ap);
 
-    PHYSFS_writeBytes(stream->file, hugebuffer, vfs_fprintf_marker_internal);
+    PHYSFS_writeBytes(vfile->file, hugebuffer, vfs_fprintf_marker_internal);
 
     return nb;
 }
 
-int VFS_vfprintf(VFILE *stream, const char *format, va_list ap) {
+int VFS_vfprintf(FILE *stream, const char *format, va_list ap) {
     char hugebuffer[4096];
     int nb;
+    VFILE* vfile;
+
+    vfile = cast_vfile(stream);
 
     nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
     hugebuffer[sizeof(hugebuffer)-1] = '\0';
 
-    PHYSFS_writeBytes(stream->file, hugebuffer, strlen(hugebuffer));
+    PHYSFS_writeBytes(vfile->file, hugebuffer, strlen(hugebuffer));
 
     return nb;
 }
 
 size_t vfs_scanf_marker_internal;
 
-int VFS_fscanf_internal(VFILE* stream, const char* format, ...) {
+int VFS_fscanf_internal(FILE* stream, const char* format, ...) {
     va_list ap;
     int nb;
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return 0;
     }
-    if (stream->position >= stream->size) {
+    if (vfile->position >= vfile->size) {
         return 0;
     }
 
     va_start(ap, format);
-    nb = vsscanf(&stream->buffer[stream->position], format, ap);
+    nb = vsscanf(&vfile->buffer[vfile->position], format, ap);
     va_end(ap);
 
-    stream->position += vfs_scanf_marker_internal;
+    vfile->position += vfs_scanf_marker_internal;
 
     return nb;
 }
 
-size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
+size_t VFS_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
     size_t block_i;
     int switcheroo;
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return 0;
     }
 
@@ -340,12 +381,12 @@ size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     }
 
     for (block_i = 0; block_i < nmemb; block_i++) {
-        if (stream->size - stream->position < size) {
-            stream->position = stream->size + 1;
+        if (vfile->size - vfile->position < size) {
+            vfile->position = vfile->size + 1;
             return block_i;
         }
-        memcpy(ptr, &stream->buffer[stream->position], size);
-        stream->position += size;
+        memcpy(ptr, &vfile->buffer[vfile->position], size);
+        vfile->position += size;
         ptr = ((char*)ptr) + size;
     }
     if (switcheroo) {
@@ -354,14 +395,16 @@ size_t VFS_fread(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     return block_i;
 }
 
-size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
+size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, FILE* stream) {
     size_t block_i;
     int switcheroo;
+    VFILE* vfile;
 
-    if (stream->type == VFILE_APPEND) {
+    vfile = cast_vfile(stream);
+    if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }
-    if (stream->type != VFILE_WRITE) {
+    if (vfile->type != VFILE_WRITE) {
         return 0;
     }
 
@@ -373,7 +416,7 @@ size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     }
 
     for (block_i = 0; block_i < nmemb; block_i++) {
-        PHYSFS_writeBytes(stream->file, ptr, size);
+        PHYSFS_writeBytes(vfile->file, ptr, size);
         ptr = ((char*)ptr) + size;
     }
     if (switcheroo) {
@@ -382,136 +425,158 @@ size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, VFILE* stream) {
     return block_i;
 }
 
-int VFS_feof(VFILE* stream) {
+int VFS_feof(FILE* stream) {
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return 0;
     }
-    return stream->position > stream->size;
+    return vfile->position > vfile->size;
 }
 
-long VFS_ftell(VFILE* stream) {
+long VFS_ftell(FILE* stream) {
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return -1;
     }
-    if (stream->position >= stream->size) {
-        return (long)stream->size;
+    if (vfile->position >= vfile->size) {
+        return (long)vfile->size;
     }
-    return (long)stream->position;
+    return (long)vfile->position;
 }
 
-void VFS_rewind(VFILE* stream) {
+void VFS_rewind(FILE* stream) {
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return;
     }
-    stream->position = 0;
+    vfile->position = 0;
 }
 
-int VFS_fgetc(VFILE* stream) {
+int VFS_fgetc(FILE* stream) {
     int c;
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return EOF;
     }
-    if (stream->position >= stream->size) {
-        stream->position = stream->size + 1;
+    if (vfile->position >= vfile->size) {
+        vfile->position = vfile->size + 1;
         return EOF;
     }
 
-    c = stream->buffer[stream->position];
-    stream->position++;
+    c = vfile->buffer[vfile->position];
+    vfile->position++;
     return c;
 }
 
-uint64_t VFS_filesize(const VFILE* stream) {
-    if (stream->type != VFILE_READ) {
-        abort();
+uint64_t VFS_filesize(FILE* stream) {
+    VFILE* vfile;
+
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
+        NOT_IMPLEMENTED();
     }
-    return stream->size;
+    return vfile->size;
 }
 
-const char* VFS_internal_buffer(const VFILE* stream) {
-    if (stream->type != VFILE_READ) {
-        abort();
+char* VFS_internal_buffer(FILE* stream) {
+    VFILE* vfile;
+
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
+        NOT_IMPLEMENTED();
     }
-    return stream->buffer;
+    return vfile->buffer;
 }
 
-int VFS_ungetc(int c, VFILE* stream) {
+int VFS_ungetc(int c, FILE* stream) {
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return EOF;
     }
-    if (stream->position <= 0) {
+    if (vfile->position <= 0) {
         return EOF;
     }
-    if (stream->size == 0) {
+    if (vfile->size == 0) {
         return EOF;
     }
 
-    stream->position--;
-    stream->buffer[stream->position] = c;
+    vfile->position--;
+    vfile->buffer[vfile->position] = c;
     return c;
 }
 
-char* VFS_fgets(char* s, int size, VFILE* stream) {
+char* VFS_fgets(char* s, int size, FILE* stream) {
     char* end;
     uint64_t copy_size;
+    VFILE* vfile;
 
-    if (stream->type != VFILE_READ) {
+    vfile = cast_vfile(stream);
+    if (vfile->type != VFILE_READ) {
         return NULL;
     }
-    if (stream->position >= stream->size) {
-        stream->position = stream->size + 1;
+    if (vfile->position >= vfile->size) {
+        vfile->position = vfile->size + 1;
         return NULL;
     }
     if (size <= 0) {
         return NULL;
     }
-    end = strpbrk(&stream->buffer[stream->position], "\n");
+    end = strpbrk(&vfile->buffer[vfile->position], "\n");
     if (end == NULL) {
-        copy_size = stream->size - stream->position;
+        copy_size = vfile->size - vfile->position;
     } else {
-        copy_size = end - &stream->buffer[stream->position] + 1;
+        copy_size = end - &vfile->buffer[vfile->position] + 1;
     }
     copy_size = VFS_MIN((size_t)size - 1, copy_size);
 
-    memcpy(s, &stream->buffer[stream->position], copy_size);
+    memcpy(s, &vfile->buffer[vfile->position], copy_size);
     s[copy_size] = '\0';
-    stream->position += copy_size;
+    vfile->position += copy_size;
     return s;
 }
 
-int VFS_fputc(int c, VFILE* stream) {
+int VFS_fputc(int c, FILE* stream) {
     char character;
     PHYSFS_sint64 count;
+    VFILE* vfile;
 
-    if (stream->type == VFILE_APPEND) {
+    vfile = cast_vfile(stream);
+    if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }
-    if (stream->type != VFILE_WRITE) {
+    if (vfile->type != VFILE_WRITE) {
         return 0;
     }
 
     character = c;
-    count = PHYSFS_writeBytes(stream->file, &character, 1);
+    count = PHYSFS_writeBytes(vfile->file, &character, 1);
 
     return (int)count;
 }
 
-int VFS_fputs(const char* s, VFILE* stream) {
+int VFS_fputs(const char* s, FILE* stream) {
     PHYSFS_sint64 res;
+    VFILE* vfile;
 
-    if (stream->type == VFILE_APPEND) {
+    vfile = cast_vfile(stream);
+    if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }
-    if (stream->type != VFILE_WRITE) {
+    if (vfile->type != VFILE_WRITE) {
         return EOF;
     }
 
-    res = PHYSFS_writeBytes(stream->file, s, strlen(s));
+    res = PHYSFS_writeBytes(vfile->file, s, strlen(s));
     if (res < 0) {
         return EOF;
     }

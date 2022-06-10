@@ -3,8 +3,6 @@
 
 #include "brender/br_types.h"
 
-#include <stdio.h>
-
 void Harness_Init(int* argc, char* argv[]);
 
 // Hooks are called from original game code.

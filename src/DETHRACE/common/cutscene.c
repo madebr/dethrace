@@ -1,4 +1,5 @@
 #include "cutscene.h"
+
 #include "drmem.h"
 #include "errors.h"
 #include "flicplay.h"
@@ -14,8 +15,8 @@
 
 #include "harness/config.h"
 #include "harness/os.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdio.h>
 #include <time.h>
@@ -77,7 +78,7 @@ void PlaySmackerFile(char* pSmack_name) {
     double usf;
     struct timespec ts;
 #ifdef DETHRACE_VFS
-    VFILE* file;
+    FILE* file;
 #endif
 
     if (!gSound_override && !gCut_scene_override) {
@@ -90,7 +91,7 @@ void PlaySmackerFile(char* pSmack_name) {
 
         dr_dprintf("Trying to open smack file '%s'", the_path);
 #if defined(DETHRACE_VFS)
-        file = VFS_fopen(the_path, "rb");
+        file = fopen(the_path, "rb");
         s = NULL;
         if (file != NULL) {
             s = smk_open_memory(VFS_internal_buffer(file), VFS_filesize(file));
@@ -150,7 +151,7 @@ void PlaySmackerFile(char* pSmack_name) {
 
             smk_close(s);
 #if defined(DETHRACE_VFS)
-            VFS_fclose(file);
+            fclose(file);
 #endif
 
             FadePaletteDown();

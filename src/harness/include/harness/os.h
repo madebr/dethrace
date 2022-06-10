@@ -23,6 +23,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef dethrace_stdio_vfs_aliased
+#error "stdio functions aliased to VFS functions"
+#endif
+
 typedef struct os_diriter os_diriter;
 
 // Required: return timestamp in milliseconds.

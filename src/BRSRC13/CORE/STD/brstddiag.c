@@ -1,9 +1,12 @@
 #include "brstddiag.h"
-#include "CORE/FW/brbegin.h"
 
 #include "harness/trace.h"
 
 #include <stdio.h>
+
+#ifdef dethrace_stdio_vfs_aliased
+#error "stdio functions aliased to VFS functions"
+#endif
 
 br_diaghandler BrStdioDiagHandler = {
     "Stdio DiagHandler",

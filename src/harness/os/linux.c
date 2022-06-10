@@ -2,6 +2,10 @@
 
 #include "harness/os.h"
 
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions")
+#endif
+
 #include <ctype.h>
 #include <dirent.h>
 #include <err.h>

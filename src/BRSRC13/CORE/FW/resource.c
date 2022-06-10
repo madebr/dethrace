@@ -6,8 +6,10 @@
 #include "CORE/FW/mem.h"
 #include "CORE/FW/scratch.h"
 #include "CORE/STD/brstdlib.h"
+
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include <stdio.h>
+
 #include <stdlib.h>
 
 #define RES_ALIGN 4

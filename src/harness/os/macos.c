@@ -1,6 +1,11 @@
 // Based on https://gist.github.com/jvranish/4441299
 
 #include "harness/os.h"
+
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions")
+#endif
+
 #include <assert.h>
 #include <dirent.h>
 #include <err.h>

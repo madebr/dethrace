@@ -1,9 +1,8 @@
 #include "memmgmt.h"
+
 #include "harness/trace.h"
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 host_regs regs;
 

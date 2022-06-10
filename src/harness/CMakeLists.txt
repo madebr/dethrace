@@ -36,7 +36,7 @@ target_sources(harness PRIVATE
     include/harness/trace.h
     include/harness/config.h
     include/harness/os.h
-    include/harness/vfs.h
+    include/harness/stdio_vfs.h
 
     cameras/debug_camera.c
     cameras/debug_camera.h
@@ -55,6 +55,7 @@ target_sources(harness PRIVATE
 if (DETHRACE_VFS)
     target_compile_definitions(harness PUBLIC DETHRACE_VFS)
     target_sources(harness PRIVATE
+        include/harness/vfs.h
         vfs/vfs.c
     )
     target_link_libraries(harness PRIVATE DethRace::PhysFS)
@@ -79,9 +80,9 @@ if(WIN32)
         os/windows.c
     )
 elseif(APPLE)
-target_sources(harness PRIVATE
-    os/macos.c
-)
+    target_sources(harness PRIVATE
+        os/macos.c
+    )
 else()
     target_sources(harness PRIVATE
         os/linux.c

@@ -5,9 +5,11 @@
 #include "common/globvars.h"
 #include "pd/sys.h"
 
+#include "harness/vfs.h"
+
 static void test_vfs_getc_eof(void) {
     char buffer[PATH_MAX + 1];
-    VFILE* f;
+    FILE* f;
     int nb;
     int c;
 
@@ -61,7 +63,7 @@ static void test_vfs_getc_eof(void) {
 static void test_vfs_gets_eof(void) {
     char buffer[PATH_MAX + 1];
     char sbuf[32];
-    VFILE* f;
+    FILE* f;
     int nb;
     char* s;
 

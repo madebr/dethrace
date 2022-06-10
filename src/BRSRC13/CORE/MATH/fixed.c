@@ -1,4 +1,5 @@
 #include "fixed.h"
+
 #include "harness/trace.h"
 
 #include <assert.h>
@@ -553,7 +554,7 @@ uint16_t _BrISqrt32(uint32_t a) {
     }
     return est;
 }
-#include <stdio.h>
+
 br_uint_32 _BrISqrt64(uint64_t a) {
     // Shifting nth root algorithm
     uint64_t err;
@@ -647,7 +648,6 @@ br_uint_32 _BrFastRSqrt64(uint64_t v) {
         }
         exp = (31-exp) & 0xfe;
         v = (v << exp) >> 56;
-        fflush(stdout);
         v = fast_rsqrt_table[v-0x40];
         return (br_uint_32)(v >> ((30 - exp) >> 1));
     }

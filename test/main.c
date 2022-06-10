@@ -1,9 +1,6 @@
-#include "harness/hooks.h"
-#include "harness/os.h"
 #include "tests.h"
-#include <assert.h>
+
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -26,7 +23,9 @@
 
 #include "harness.h"
 #include "harness/config.h"
+#include "harness/hooks.h"
 #include "harness/os.h"
+#include "harness/stdio_vfs.h"
 
 #define debug(format_, ...) fprintf(stderr, format_, __VA_ARGS__)
 
@@ -34,7 +33,9 @@
 
 extern int _unittest_do_not_exit;
 
+#if defined(DETHRACE_VFS)
 extern void test_vfs_suite(void);
+#endif
 extern void test_assocarr_suite(void);
 extern void test_brprintf_suite(void);
 extern void test_bswap_suite(void);
@@ -133,46 +134,46 @@ static void setup_temp_folder() {
 }
 
 void TEST_ASSERT_EQUAL_FILE_CONTENTS_BINARY(const uint8_t* expected, char* filename, int len) {
-    VFILE* f;
+    FILE* f;
     long filesize;
     int res;
 
-    f = VFS_fopen(filename, "rb");
+    f = fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    res = VFS_fseek(f, 0, SEEK_END);
+    res = fseek(f, 0, SEEK_END);
     TEST_ASSERT_NOT_EQUAL(-1, res);
-    filesize = VFS_ftell(f);
+    filesize = ftell(f);
     TEST_ASSERT_NOT_EQUAL(-1, filesize);
     TEST_ASSERT_EQUAL(len, filesize);
-    VFS_fseek(f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_SET);
     uint8_t* tmpBuffer = (uint8_t*)malloc(filesize);
-    res = VFS_fread(tmpBuffer, filesize, 1, f);
+    res = fread(tmpBuffer, filesize, 1, f);
     TEST_ASSERT_EQUAL_INT(1, res);
-    VFS_fclose(f);
+    fclose(f);
     TEST_ASSERT_EQUAL_MEMORY(expected, tmpBuffer, len);
     free(tmpBuffer);
 }
 
 void TEST_ASSERT_EQUAL_FILE_TEXT(const char* expected, char* filename) {
-    VFILE* f;
+    FILE* f;
     char* tmpBuffer;
     long filesize;
     int res;
     int len;
 
     len = strlen(expected);
-    f = VFS_fopen(filename, "rb");
+    f = fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
-    res = VFS_fseek(f, 0, SEEK_END);
+    res = fseek(f, 0, SEEK_END);
     TEST_ASSERT_NOT_EQUAL(-1, res);
-    filesize = VFS_ftell(f);
+    filesize = ftell(f);
     TEST_ASSERT_NOT_EQUAL(-1, filesize);
-    VFS_fseek(f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_SET);
     tmpBuffer = (char*)malloc(filesize + 1);
     TEST_ASSERT_NOT_NULL(tmpBuffer);
-    res = VFS_fread(tmpBuffer, 1, filesize, f);
+    res = fread(tmpBuffer, 1, filesize, f);
     tmpBuffer[filesize] = '\0';
-    VFS_fclose(f);
+    fclose(f);
     TEST_ASSERT_EQUAL_STRING(expected, tmpBuffer);
     TEST_ASSERT_EQUAL_INT(filesize, res);
     TEST_ASSERT_EQUAL_INT(len, filesize);
@@ -189,7 +190,9 @@ void setup_global_vars(int argc, char* argv[]) {
 #endif
     if (root_dir != NULL) {
         printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
+#if !defined(DETHRACE_VFS)
         chdir(root_dir);
+#endif
         strncpy(gApplication_path, root_dir, 256);
         strcat(gApplication_path, "/DATA");
     } else {
@@ -290,7 +293,9 @@ int main(int argc, char** argv) {
     printf("Completed setup\n");
 
     // harness
+#if defined(DETHRACE_VFS)
     test_vfs_suite();
+#endif
 
     // BRSRC13
     test_bswap_suite();

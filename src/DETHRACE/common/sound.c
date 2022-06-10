@@ -10,8 +10,8 @@
 #include "s3/s3.h"
 #include "utility.h"
 
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -51,13 +51,13 @@ void UsePathFileToDetermineIfFullInstallation() {
     char line2[MAX_PATH_LENGTH];
     char line3[MAX_PATH_LENGTH];
     char path_file[MAX_PATH_LENGTH];
-    VFILE* fp;
+    FILE* fp;
 
     strcpy(path_file, gApplication_path);
     strcat(path_file, gDir_separator);
     strcat(path_file, "PATHS.TXT");
     if (PDCheckDriveExists(path_file) != 0) {
-        fp = VFS_fopen(path_file, "rt");
+        fp = fopen(path_file, "rt");
         if (fp != NULL) {
             line1[0] = 0;
             line2[0] = 0;
@@ -65,7 +65,7 @@ void UsePathFileToDetermineIfFullInstallation() {
             GetALineWithNoPossibleService(fp, (unsigned char*)line1);
             GetALineWithNoPossibleService(fp, (unsigned char*)line2);
             GetALineWithNoPossibleService(fp, (unsigned char*)line3);
-            VFS_fclose(fp);
+            fclose(fp);
             if (strcmp(line3, "Full") == 0) {
                 gCD_fully_installed = 1;
             }

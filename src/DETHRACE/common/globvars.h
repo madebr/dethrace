@@ -31,7 +31,7 @@ extern br_scalar gCut_delay_3;
 extern br_scalar gCut_delay_4;
 extern br_scalar gYon_multiplier;
 extern tSave_game* gPre_race_saved_game;
-extern VFILE* gDiagnostic_file;
+extern FILE* gDiagnostic_file;
 extern br_vector3 gDisabled_vector;
 extern tU32 gI_am_cheating;
 extern char gNet_player_name[32];

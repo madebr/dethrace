@@ -20,10 +20,9 @@
 #include "sound.h"
 #include "utility.h"
 
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 tGot_proc* gGot_procs[34] = {
@@ -303,7 +302,7 @@ int GotPowerup(tCar_spec* pCar, int pIndex) {
 
 // IDA: void __cdecl LoadPowerups()
 void LoadPowerups() {
-    VFILE* f;
+    FILE* f;
     tPath_name the_path;
     char s[256];
     int i;
@@ -372,7 +371,7 @@ void LoadPowerups() {
         the_powerup->prat_cam_event = GetAnInt(f);
         the_powerup->net_type = GetAnInt(f);
     }
-    VFS_fclose(f);
+    fclose(f);
 }
 
 // IDA: void __cdecl InitPowerups()

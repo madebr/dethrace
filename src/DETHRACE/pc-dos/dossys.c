@@ -5,7 +5,6 @@
 #include "grafdata.h"
 #include "graphics.h"
 #include "input.h"
-#include "loadsave.h"
 #include "main.h"
 #include "pd/sys.h"
 #include "sound.h"
@@ -14,11 +13,9 @@
 #include "harness/config.h"
 #include "harness/hooks.h"
 #include "harness/os.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
-#include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -266,7 +263,7 @@ void PDFatalError(char* pThe_str) {
     dr_dprintf("FATAL ERROR: %s", pThe_str);
 
     _unittest_last_fatal_error = pThe_str;
-    fprintf(stderr, "FATAL ERROR: %s\n", pThe_str);
+//    fprintf(stderr, "FATAL ERROR: %s\n", pThe_str);
 
     // wait for keypress
 
@@ -284,7 +281,7 @@ void PDNonFatalError(char* pThe_str) {
 // IDA: void __cdecl PDInitialiseSystem()
 void PDInitialiseSystem() {
     tPath_name the_path;
-    VFILE* f;
+    FILE* f;
     int len;
 
     KeyBegin();
@@ -296,17 +293,17 @@ void PDInitialiseSystem() {
     // Demo's do not ship with KEYBOARD.COK file
     if (harness_game_info.defines.ascii_table == NULL) {
         PathCat(the_path, gApplication_path, "KEYBOARD.COK");
-        f = VFS_fopen(the_path, "rb");
+        f = fopen(the_path, "rb");
         if (f == NULL) {
             PDFatalError("This .exe must have KEYBOARD.COK in the DATA folder.");
         }
 
-        VFS_fseek(f, 0, SEEK_END);
-        len = VFS_ftell(f);
-        VFS_rewind(f);
-        VFS_fread(gASCII_table, len / 2, 1, f);
-        VFS_fread(gASCII_shift_table, len / 2, 1, f);
-        VFS_fclose(f);
+        fseek(f, 0, SEEK_END);
+        len = ftell(f);
+        rewind(f);
+        fread(gASCII_table, len / 2, 1, f);
+        fread(gASCII_shift_table, len / 2, 1, f);
+        fclose(f);
     } else {
         memcpy(gASCII_table, harness_game_info.defines.ascii_table, sizeof(gASCII_table));
         memcpy(gASCII_shift_table, harness_game_info.defines.ascii_shift_table, sizeof(gASCII_shift_table));
@@ -494,15 +491,15 @@ void PDBuildAppPath(char* pThe_path) {
 void PDForEveryFile(char* pThe_path, void (*pAction_routine)(char*)) {
     char find_path[256];
     char found_path[256];
-    vfs_diriter* diriter;
+    os_diriter* diriter;
     char* found;
 
-    diriter = VFS_OpenDir(pThe_path);
-    found = VFS_GetNextFileInDirectory(diriter);
+    diriter = OS_OpenDir(pThe_path);
+    found = OS_GetNextFileInDirectory(diriter);
     while (found != NULL) {
         PathCat(found_path, pThe_path, found);
         pAction_routine(found_path);
-        found = VFS_GetNextFileInDirectory(diriter);
+        found = OS_GetNextFileInDirectory(diriter);
     }
 }
 

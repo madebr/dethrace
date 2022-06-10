@@ -23,7 +23,7 @@ void test_loading_GetCDPathFromPathsTxtFile(void) {
 
 void test_loading_OldDRfopen(void) {
     REQUIRES_DATA_DIRECTORY();
-    VFILE* f;
+    FILE* f;
 
     f = OldDRfopen("DATA/i-dont-exist", "rt");
     TEST_ASSERT_NULL(f);

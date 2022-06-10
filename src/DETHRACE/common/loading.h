@@ -4,8 +4,6 @@
 #include "brender/br_types.h"
 #include "dr_types.h"
 
-#include "harness/vfs.h"
-
 extern tHeadup_info gHeadup_image_info[32];
 extern char* gYour_car_names[2][6];
 extern char* gDrivable_car_names[6];
@@ -29,31 +27,31 @@ extern int gDemo_opponents[5];
 extern int gDemo_power;
 extern int gDemo_offensive;
 
-tU32 ReadU32(VFILE* pF);
+tU32 ReadU32(FILE* pF);
 
-tU16 ReadU16(VFILE* pF);
+tU16 ReadU16(FILE* pF);
 
-tU8 ReadU8(VFILE* pF);
+tU8 ReadU8(FILE* pF);
 
-tS32 ReadS32(VFILE* pF);
+tS32 ReadS32(FILE* pF);
 
-tS16 ReadS16(VFILE* pF);
+tS16 ReadS16(FILE* pF);
 
-tS8 ReadS8(VFILE* pF);
+tS8 ReadS8(FILE* pF);
 
-void WriteU32L(VFILE* pF, tU32 pNumber);
+void WriteU32L(FILE* pF, tU32 pNumber);
 
-void WriteU16L(VFILE* pF, tU16 pNumber);
+void WriteU16L(FILE* pF, tU16 pNumber);
 
-void WriteU8L(VFILE* pF, tU8 pNumber);
+void WriteU8L(FILE* pF, tU8 pNumber);
 
-void WriteS32L(VFILE* pF, tS32 pNumber);
+void WriteS32L(FILE* pF, tS32 pNumber);
 
-void WriteS16L(VFILE* pF, tS16 pNumber);
+void WriteS16L(FILE* pF, tS16 pNumber);
 
-void WriteS8L(VFILE* pF, tS8 pNumber);
+void WriteS8L(FILE* pF, tS8 pNumber);
 
-void SkipBytes(VFILE* pF, int pBytes_to_skip);
+void SkipBytes(FILE* pF, int pBytes_to_skip);
 
 tU32 MemReadU32(char** pPtr);
 
@@ -127,21 +125,21 @@ void DisposeCar(tCar_spec* pCar_spec, int pOwner);
 
 void AdjustCarCoordinates(tCar_spec* pCar);
 
-void LoadSpeedo(VFILE* pF, int pIndex, tCar_spec* pCar_spec);
+void LoadSpeedo(FILE* pF, int pIndex, tCar_spec* pCar_spec);
 
-void LoadTacho(VFILE* pF, int pIndex, tCar_spec* pCar_spec);
+void LoadTacho(FILE* pF, int pIndex, tCar_spec* pCar_spec);
 
-void LoadHeadups(VFILE* pF, int pIndex, tCar_spec* pCar_spec);
+void LoadHeadups(FILE* pF, int pIndex, tCar_spec* pCar_spec);
 
-void ReadNonCarMechanicsData(VFILE* pF, tNon_car_spec* non_car);
+void ReadNonCarMechanicsData(FILE* pF, tNon_car_spec* non_car);
 
-void ReadMechanicsData(VFILE* pF, tCar_spec* c);
+void ReadMechanicsData(FILE* pF, tCar_spec* c);
 
-void LoadGear(VFILE* pF, int pIndex, tCar_spec* pCar_spec);
+void LoadGear(FILE* pF, int pIndex, tCar_spec* pCar_spec);
 
 void AddRefOffset(int* pRef_holder);
 
-void GetDamageProgram(VFILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location);
+void GetDamageProgram(FILE* pF, tCar_spec* pCar_spec, tImpact_location pImpact_location);
 
 intptr_t LinkModel(br_actor* pActor, tModel_pool* pModel_pool);
 
@@ -149,7 +147,7 @@ void FreeUpBonnetModels(br_model** pModel_array, int pModel_count);
 
 void LinkModelsToActor(br_actor* pActor, br_model** pModel_array, int pModel_count);
 
-void ReadShrapnelMaterials(VFILE* pF, tCollision_info* pCar_spec);
+void ReadShrapnelMaterials(FILE* pF, tCollision_info* pCar_spec);
 
 void CloneCar(tCar_spec** pOutput_car, tCar_spec* pInput_car);
 
@@ -167,9 +165,9 @@ void LoadHeadupImages();
 
 void DisposeHeadupImages();
 
-VFILE* OpenRaceFile();
+FILE* OpenRaceFile();
 
-void SkipRestOfRace(VFILE* pF);
+void SkipRestOfRace(FILE* pF);
 
 void LoadRaces(tRace_list_spec* pRace_list, int* pCount, int pRace_type_index);
 
@@ -201,43 +199,43 @@ br_pixelmap* LoadChromeFont();
 
 void DisposeChromeFont(br_pixelmap* pThe_font);
 
-int GetALineAndInterpretCommand(VFILE* pF, char** pString_list, int pCount);
+int GetALineAndInterpretCommand(FILE* pF, char** pString_list, int pCount);
 
-int GetAnInt(VFILE* pF);
+int GetAnInt(FILE* pF);
 
-float GetAFloat(VFILE* pF);
+float GetAFloat(FILE* pF);
 
-float GetAFloatPercent(VFILE* pF);
+float GetAFloatPercent(FILE* pF);
 
-void GetPairOfFloats(VFILE* pF, float* pF1, float* pF2);
+void GetPairOfFloats(FILE* pF, float* pF1, float* pF2);
 
-void GetThreeFloats(VFILE* pF, float* pF1, float* pF2, float* pF3);
+void GetThreeFloats(FILE* pF, float* pF1, float* pF2, float* pF3);
 
-void GetPairOfInts(VFILE* pF, int* pF1, int* pF2);
+void GetPairOfInts(FILE* pF, int* pF1, int* pF2);
 
-void GetThreeInts(VFILE* pF, int* pF1, int* pF2, int* pF3);
+void GetThreeInts(FILE* pF, int* pF1, int* pF2, int* pF3);
 
-void GetThreeIntsAndAString(VFILE* pF, int* pF1, int* pF2, int* pF3, char* pS);
+void GetThreeIntsAndAString(FILE* pF, int* pF1, int* pF2, int* pF3, char* pS);
 
-void GetFourInts(VFILE* pF, int* pF1, int* pF2, int* pF3, int* pF4);
+void GetFourInts(FILE* pF, int* pF1, int* pF2, int* pF3, int* pF4);
 
-br_scalar GetAScalar(VFILE* pF);
+br_scalar GetAScalar(FILE* pF);
 
-void GetPairOfScalars(VFILE* pF, br_scalar* pS1, br_scalar* pS2);
+void GetPairOfScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2);
 
-void GetThreeScalars(VFILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3);
+void GetThreeScalars(FILE* pF, br_scalar* pS1, br_scalar* pS2, br_scalar* pS3);
 
-void GetFourScalars(VFILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4);
+void GetFourScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4);
 
-void GetFiveScalars(VFILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4, br_scalar* pF5);
+void GetFiveScalars(FILE* pF, br_scalar* pF1, br_scalar* pF2, br_scalar* pF3, br_scalar* pF4, br_scalar* pF5);
 
-void GetNScalars(VFILE* pF, int pNumber, br_scalar* pScalars);
+void GetNScalars(FILE* pF, int pNumber, br_scalar* pScalars);
 
-void GetPairOfFloatPercents(VFILE* pF, float* pF1, float* pF2);
+void GetPairOfFloatPercents(FILE* pF, float* pF1, float* pF2);
 
-void GetThreeFloatPercents(VFILE* pF, float* pF1, float* pF2, float* pF3);
+void GetThreeFloatPercents(FILE* pF, float* pF1, float* pF2, float* pF3);
 
-void GetAString(VFILE* pF, char* pString);
+void GetAString(FILE* pF, char* pString);
 
 void AboutToLoadFirstCar();
 
@@ -249,13 +247,13 @@ void LoadMiscStrings();
 
 void FillInRaceInfo(tRace_info* pThe_race);
 
-VFILE* OldDRfopen(char* pFilename, char* pMode);
+FILE* OldDRfopen(char* pFilename, char* pMode);
 
 void AllowOpenToFail();
 
 void DoNotAllowOpenToFail();
 
-VFILE* DRfopen(char* pFilename, char* pMode);
+FILE* DRfopen(char* pFilename, char* pMode);
 
 int GetCDPathFromPathsTxtFile(char* pPath_name);
 
@@ -265,9 +263,9 @@ int OriginalCarmaCDinDrive();
 
 int CarmaCDinDriveOrFullGameInstalled();
 
-void ReadNetworkSettings(VFILE* pF, tNet_game_options* pOptions);
+void ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions);
 
-int PrintNetOptions(VFILE* pF, int pIndex);
+int PrintNetOptions(FILE* pF, int pIndex);
 
 int SaveOptions();
 

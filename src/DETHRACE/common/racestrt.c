@@ -21,8 +21,8 @@
 #include "world.h"
 
 #include "harness/config.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdlib.h>
 
@@ -1113,7 +1113,7 @@ void SelectRaceDraw(int pCurrent_choice, int pCurrent_mode) {
         // cheat code: "IWANTTOFIDDLE"
 
         char s[128];
-        VFILE* f;
+        FILE* f;
         int i;
 
         // Jeff
@@ -1122,24 +1122,24 @@ void SelectRaceDraw(int pCurrent_choice, int pCurrent_mode) {
         PathCat(s, gApplication_path, "ACTORS");
         PathCat(s, s, "PROG.ACT");
         PDFileUnlock(s);
-        f = VFS_fopen(s, "wb");
+        f = fopen(s, "wb");
         if (f != NULL) {
             DRS3StartSound(gEffects_outlet, 9000);
             if (gDecode_thing) {
                 for (i = 0; i < strlen(gDecode_string); i++) {
                     gDecode_string[i] -= 50;
                 }
-                VFS_fputs(gDecode_string, f);
+                fputs(gDecode_string, f);
                 for (i = 0; i < strlen(gDecode_string); i++) {
                     gDecode_string[i] += 50;
                 }
             } else {
                 for (i = 0; i < 20; i++) {
-                    VFS_fputs("*************", f);
+                    fputs("*************", f);
                 }
             }
             gDecode_thing ^= 0x40u;
-            VFS_fclose(f);
+            fclose(f);
             EncodeAllFilesInDirectory("");
             EncodeAllFilesInDirectory("CARS");
             EncodeAllFilesInDirectory("NONCARS");
@@ -1622,7 +1622,7 @@ void ChallengeStart() {
     int j;
     int line_count;
     int dare_index;
-    VFILE* f;
+    FILE* f;
     tPath_name the_path;
     char s[256];
     LOG_TRACE("()");
@@ -1672,7 +1672,7 @@ void ChallengeStart() {
         GetALineAndDontArgue(f, s);
         TransBrPixelmapText(the_map, 0, 2 * (i + 1) * gBig_font->glyph_y, 0x86u, gBig_font, (signed char*)s);
     }
-    VFS_fclose(f);
+    fclose(f);
     BrPixelmapLine(the_map, 0, gBig_font->glyph_y + 2, the_map->width, gBig_font->glyph_y + 2, 45);
     TellyInImage(the_map, gCurrent_graf_data->dare_text_left, gCurrent_graf_data->dare_mugshot_top);
     BrPixelmapFree(the_map);

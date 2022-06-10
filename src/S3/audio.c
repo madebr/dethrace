@@ -7,18 +7,16 @@
 #include "s3music.h"
 #include "s3sound.h"
 
-#include "harness/os.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <ctype.h>
-#include <errno.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <SDL.h>
+#if !defined(DETHRACE_VFS)
+#include <unistd.h>
+#endif
 
 extern int
 PDGetTotalTime();
@@ -191,11 +189,11 @@ char* S3LoadSoundBankFile(char* pThe_path) {
     char* buffer;
     // struct _stat stat_result;
 
-    VFILE* fd;
+    FILE* fd;
     size_t file_size;
 
     // fd = _open(pThe_path, 0x8000);
-    fd = VFS_fopen(pThe_path, "rb");
+    fd = fopen(pThe_path, "rb");
     if (fd == NULL) {
         gS3_last_error = eS3_error_readfile;
         return 0;
@@ -206,30 +204,30 @@ char* S3LoadSoundBankFile(char* pThe_path) {
     //     return 0;
     // }
 
-    if (VFS_fseek(fd, 0, SEEK_END) != 0) {
+    if (fseek(fd, 0, SEEK_END) != 0) {
         gS3_last_error = eS3_error_readfile;
         return 0;
     }
-    file_size = VFS_ftell(fd);
-    VFS_fseek(fd, 0, SEEK_SET);
+    file_size = ftell(fd);
+    fseek(fd, 0, SEEK_SET);
 
     buffer = S3MemAllocate(file_size + 1, kMem_S3_sample);
     if (buffer == NULL) {
-        VFS_fclose(fd);
+        fclose(fd);
         gS3_last_error = eS3_error_memory;
         return 0;
     }
     buffer[file_size] = 0;
-    bytes_read = VFS_fread(buffer, 1, file_size, fd);
+    bytes_read = fread(buffer, 1, file_size, fd);
     if (bytes_read == file_size) {
         gS3_soundbank_buffer = buffer;
         gS3_soundbank_buffer_len = file_size;
-        VFS_fclose(fd);
+        fclose(fd);
         return buffer;
     }
     gS3_last_error = eS3_error_readfile;
     S3MemFree(buffer);
-    VFS_fclose(fd);
+    fclose(fd);
     return 0;
 }
 

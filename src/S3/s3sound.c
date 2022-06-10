@@ -4,10 +4,8 @@
 
 #include "miniaudio/miniaudio.h"
 
-#include "harness/vfs.h"
-#include "harness/trace.h"
+#include "harness/stdio_vfs.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -145,7 +143,7 @@ int S3ReadWavHeader(char* buf, tWAVEFORMATEX_** pWav_format, char** data_ptr, in
 }
 
 void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
-    VFILE* f;           // [esp+Ch] [ebp-C8h]
+    FILE* f;           // [esp+Ch] [ebp-C8h]
     size_t bytes_read; // [esp+14h] [ebp-C0h] BYREF
     //  unsigned int locked_buffer_data_len; // [esp+18h] [ebp-BCh] BYREF
     //   struct _OFSTRUCT ReOpenBuff;         // [esp+1Ch] [ebp-B8h] BYREF
@@ -161,23 +159,23 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     ma_format format;  // Added by DethRace
     ma_uint64 nbFrames;  // Added by DethRace
 
-    f = VFS_fopen(pFile_name, "rb");
+    f = fopen(pFile_name, "rb");
     if (f == NULL) {
         gS3_last_error = eS3_error_readfile;
         return 0;
     }
-    VFS_fseek(f, 0, SEEK_END);
-    file_len = (size_t)VFS_ftell(f);
-    VFS_fseek(f, 0, SEEK_SET);
+    fseek(f, 0, SEEK_END);
+    file_len = (size_t)ftell(f);
+    fseek(f, 0, SEEK_SET);
 
     buf = S3MemAllocate(file_len, kMem_S3_Windows_95_load_WAV_file);
     if (buf == NULL) {
-        VFS_fclose(f);
+        fclose(f);
         gS3_last_error = eS3_error_memory;
         return 0;
     }
-    bytes_read = VFS_fread(buf, file_len, 1, f);
-    VFS_fclose(f);
+    bytes_read = fread(buf, file_len, 1, f);
+    fclose(f);
 
     data_size = 0;
     wav_format = 0;

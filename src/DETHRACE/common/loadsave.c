@@ -19,8 +19,8 @@
 #include <brender/brender.h>
 
 #include "harness/config.h"
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include "harness/vfs.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -87,7 +87,7 @@ tU32 CalcLSChecksum(tSave_game* pSaved_game) {
 void LoadSavedGames() {
     tPath_name the_path;
     int i;
-    VFILE* f;
+    FILE* f;
     tU32 the_size;
     LOG_TRACE("()");
 
@@ -108,7 +108,7 @@ void LoadSavedGames() {
         the_size = GetFileLength(f);
         if (the_size == sizeof(tSave_game)) {
             gSaved_games[i] = BrMemCalloc(1, sizeof(tSave_game), kMem_saved_game);
-            VFS_fread(gSaved_games[i], 1, the_size, f);
+            fread(gSaved_games[i], 1, the_size, f);
             CorrectLoadByteOrdering(i);
             if (CalcLSChecksum(gSaved_games[i]) != gSaved_games[i]->checksum || gSaved_games[i]->version != SAVEGAME_VERSION) {
                 BrMemFree(gSaved_games[i]);
@@ -117,7 +117,7 @@ void LoadSavedGames() {
         } else {
             gSaved_games[i] = NULL;
         }
-        VFS_fclose(f);
+        fclose(f);
     }
 }
 
@@ -533,7 +533,7 @@ void CorrectSaveByteOrdering(int pIndex) {
 // IDA: void __usercall SaveTheGame(int pSlot_number@<EAX>)
 void SaveTheGame(int pSlot_number) {
     tPath_name the_path;
-    VFILE* f;
+    FILE* f;
     LOG_TRACE("(%d)", pSlot_number);
 
     gSaved_games[pSlot_number]->checksum = CalcLSChecksum(gSaved_games[pSlot_number]);
@@ -544,8 +544,8 @@ void SaveTheGame(int pSlot_number) {
     f = DRfopen(the_path, "wb");
     if (f != NULL) {
         CorrectSaveByteOrdering(pSlot_number);
-        VFS_fwrite(gSaved_games[pSlot_number], 1, sizeof(tSave_game), f);
-        VFS_fclose(f);
+        fwrite(gSaved_games[pSlot_number], 1, sizeof(tSave_game), f);
+        fclose(f);
         CorrectLoadByteOrdering(pSlot_number);
     }
 }

@@ -33,7 +33,6 @@ else()
 endif()
 
 target_sources(dethrace_test PRIVATE
-    harness/test_vfs.c
     BRSRC13/test_assocarr.c
     BRSRC13/test_actsupt.c
     BRSRC13/test_brlists.c
@@ -76,3 +75,9 @@ target_sources(dethrace_test PRIVATE
     main.c
     tests.h
 )
+
+if(DETHRACE_VFS)
+    target_sources(dethrace_test PRIVATE
+        harness/test_vfs.c
+    )
+endif()

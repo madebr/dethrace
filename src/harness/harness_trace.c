@@ -1,9 +1,7 @@
 #include "harness/trace.h"
 
 #include <stdarg.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <sys/types.h>
 
 int harness_debug_level = 4;
 
