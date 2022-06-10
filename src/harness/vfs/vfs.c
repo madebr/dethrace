@@ -56,11 +56,17 @@ typedef struct vfs_diriter {
     size_t index;
 } vfs_diriter;
 
-static VFILE* cast_vfile(FILE* file) {
-    if (((VFILE*)file)->magic != VFILE_MAGIC) {
+static VFILE* cast_vfile(FILE* stream, int fatal) {
+    if (stream == NULL) {
         abort();
     }
-    return (VFILE*)file;
+    if (((VFILE*)stream)->magic != VFILE_MAGIC) {
+        if (fatal) {
+            abort();
+        }
+        return NULL;
+    }
+    return (VFILE*)stream;
 }
 
 static vfs_diriter * cast_diriter(os_diriter* diriter) {
@@ -263,7 +269,7 @@ int VFS_fclose(FILE* stream) {
     int result;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     result = 0;
     free(vfile->buffer);
     if (vfile->file != NULL) {
@@ -278,7 +284,7 @@ int VFS_fseek(FILE* stream, long offset, int whence) {
     int64_t new_position;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return -1;
     }
@@ -314,7 +320,15 @@ int VFS_fprintf_internal(FILE* stream, const char* format, ...) {
     int nb;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 0);
+    // workaround for fprintf in `PDFatalError`
+    if (vfile == NULL) {
+        va_start(ap, format);
+        nb = vfprintf(stream, format, ap);
+        va_end(ap);
+        return nb;
+    }
+
     va_start(ap, format);
     nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
     va_end(ap);
@@ -329,7 +343,7 @@ int VFS_vfprintf(FILE *stream, const char *format, va_list ap) {
     int nb;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
 
     nb = vsnprintf(hugebuffer, sizeof(hugebuffer), format, ap);
     hugebuffer[sizeof(hugebuffer)-1] = '\0';
@@ -346,7 +360,7 @@ int VFS_fscanf_internal(FILE* stream, const char* format, ...) {
     int nb;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return 0;
     }
@@ -368,7 +382,7 @@ size_t VFS_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
     int switcheroo;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return 0;
     }
@@ -400,7 +414,7 @@ size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, FILE* stream) {
     int switcheroo;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }
@@ -428,7 +442,7 @@ size_t VFS_fwrite(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 int VFS_feof(FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return 0;
     }
@@ -438,7 +452,7 @@ int VFS_feof(FILE* stream) {
 long VFS_ftell(FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return -1;
     }
@@ -451,7 +465,7 @@ long VFS_ftell(FILE* stream) {
 void VFS_rewind(FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return;
     }
@@ -462,7 +476,7 @@ int VFS_fgetc(FILE* stream) {
     int c;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return EOF;
     }
@@ -479,7 +493,7 @@ int VFS_fgetc(FILE* stream) {
 uint64_t VFS_filesize(FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         NOT_IMPLEMENTED();
     }
@@ -489,7 +503,7 @@ uint64_t VFS_filesize(FILE* stream) {
 char* VFS_internal_buffer(FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         NOT_IMPLEMENTED();
     }
@@ -499,7 +513,7 @@ char* VFS_internal_buffer(FILE* stream) {
 int VFS_ungetc(int c, FILE* stream) {
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return EOF;
     }
@@ -520,7 +534,7 @@ char* VFS_fgets(char* s, int size, FILE* stream) {
     uint64_t copy_size;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type != VFILE_READ) {
         return NULL;
     }
@@ -550,7 +564,7 @@ int VFS_fputc(int c, FILE* stream) {
     PHYSFS_sint64 count;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }
@@ -568,7 +582,7 @@ int VFS_fputs(const char* s, FILE* stream) {
     PHYSFS_sint64 res;
     VFILE* vfile;
 
-    vfile = cast_vfile(stream);
+    vfile = cast_vfile(stream, 1);
     if (vfile->type == VFILE_APPEND) {
         NOT_IMPLEMENTED();
     }

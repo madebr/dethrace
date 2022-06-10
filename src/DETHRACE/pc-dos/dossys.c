@@ -263,7 +263,7 @@ void PDFatalError(char* pThe_str) {
     dr_dprintf("FATAL ERROR: %s", pThe_str);
 
     _unittest_last_fatal_error = pThe_str;
-//    fprintf(stderr, "FATAL ERROR: %s\n", pThe_str);
+    fprintf(stderr, "FATAL ERROR: %s\n", pThe_str);
 
     // wait for keypress
 
