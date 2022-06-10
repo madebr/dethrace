@@ -1,14 +1,13 @@
-#include <stdio.h>
+#include "actsupt.h"
 
 #include "CORE/FW/brlists.h"
-#include "CORE/FW/fwsetup.h"
 #include "CORE/FW/pattern.h"
 #include "CORE/FW/resource.h"
 #include "CORE/MATH/matrix34.h"
 #include "CORE/MATH/transfrm.h"
 #include "CORE/V1DB/dbsetup.h"
 #include "CORE/V1DB/enables.h"
-#include "actsupt.h"
+
 #include "harness/trace.h"
 
 // IDA: br_uint_32 __cdecl BrActorEnum(br_actor *parent, br_actor_enum_cbfn *callback, void *arg)

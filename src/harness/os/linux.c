@@ -1,23 +1,24 @@
 // Based on https://gist.github.com/jvranish/4441299
 
 #include "harness/os.h"
-#include <assert.h>
+
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions")
+#endif
+
 #include <ctype.h>
 #include <dirent.h>
 #include <err.h>
-#include <errno.h>
 #include <execinfo.h>
 #include <fcntl.h>
 #include <libgen.h>
 #include <limits.h>
 #include <signal.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -26,7 +27,6 @@ static char _program_name[1024];
 #define MAX_STACK_FRAMES 64
 static void* stack_traces[MAX_STACK_FRAMES];
 #define TRACER_PID_STRING "TracerPid:"
-DIR* directory_iterator;
 
 uint32_t OS_GetTime() {
     struct timespec spec;
@@ -41,27 +41,37 @@ void OS_Sleep(int delay_ms) {
     nanosleep(&ts, &ts);
 }
 
-char* OS_GetFirstFileInDirectory(char* path) {
-    directory_iterator = opendir(path);
-    if (directory_iterator == NULL) {
-        return NULL;
+int OS_IsDirectory(const char* path) {
+    struct stat statbuf;
+
+    if (stat(path, &statbuf) != 0) {
+        return 0;
     }
-    return OS_GetNextFileInDirectory();
+    return S_ISDIR(statbuf.st_mode);
 }
 
-char* OS_GetNextFileInDirectory(void) {
-    struct dirent* entry;
-
-    if (directory_iterator == NULL) {
+os_diriter* OS_OpenDir(char* path) {
+    DIR* diriter = opendir(path);
+    if (diriter == NULL) {
         return NULL;
     }
-    while ((entry = readdir(directory_iterator)) != NULL) {
+    return (os_diriter*)diriter;
+}
+
+char* OS_GetNextFileInDirectory(os_diriter* diriter) {
+    DIR* pDir;
+    struct dirent* entry;
+
+    pDir = (DIR*)diriter;
+    if (pDir == NULL) {
+        return NULL;
+    }
+    while ((entry = readdir(pDir)) != NULL) {
         if (entry->d_type == DT_REG) {
             return entry->d_name;
         }
     }
-    closedir(directory_iterator);
-    directory_iterator = NULL;
+    closedir(pDir);
     return NULL;
 }
 

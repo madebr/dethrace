@@ -1,9 +1,5 @@
 #include "loading.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "brender/brender.h"
 #include "brucetrk.h"
 #include "car.h"
@@ -20,9 +16,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/hooks.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "newgame.h"
@@ -34,7 +27,13 @@
 #include "spark.h"
 #include "utility.h"
 #include "world.h"
-#include <errno.h>
+
+#include "harness/config.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 #define HITHER_MULTIPLIER 2.0f
 #define AMBIENT_MULTIPLIER 0.01f
@@ -680,7 +679,7 @@ void LoadKeyMapping() {
     PathCat(the_path, gApplication_path, "KEYMAP_X.TXT");
     the_path[strlen(the_path) - 5] = '0' + gKey_map_index;
     f = DRfopen(the_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(9);
     }
 
@@ -1934,7 +1933,7 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
         PathCat(the_path, gApplication_path, gGraf_specs[gGraf_spec_index].data_dir_name);
         PathCat(the_path, the_path, "HEADUP.TXT");
         h = DRfopen(the_path, "rt");
-        if (!h) {
+        if (h == NULL) {
             FatalError(102);
         }
         PossibleService();
@@ -1944,7 +1943,7 @@ void LoadCar(char* pCar_name, tDriver pDriver, tCar_spec* pCar_spec, int pOwner,
         fclose(h);
         PathCat(the_path, gApplication_path, "PARTSHOP.TXT");
         h = DRfopen(the_path, "rt");
-        if (!h) {
+        if (h == NULL) {
             FatalError(103);
         }
         for (i = 0; i < COUNT_OF(pCar_spec->power_ups); ++i) {
@@ -3077,7 +3076,7 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
 
     LOG_TRACE("(\"%s\", \"%s\")", pFilename, pMode);
 
-    fp = Harness_Hook_fopen(pFilename, pMode);
+    fp = fopen(pFilename, pMode);
 
     if (fp != NULL) {
 
@@ -3129,7 +3128,7 @@ FILE* OldDRfopen(char* pFilename, char* pMode) {
             return NULL;
         }
         test1 = fopen(path_file, "rt");
-        if (!test1) {
+        if (test1 == NULL) {
             source_exists = 0;
             LOG_WARN("PATHS.TXT couldnt be opened");
             return NULL;
@@ -3255,7 +3254,7 @@ int TestForOriginalCarmaCDinDrive() {
     }
 
     paths_txt_fp = fopen(paths_txt, "rt");
-    if (!paths_txt_fp) {
+    if (paths_txt_fp == NULL) {
         return 0;
     }
     paths_txt_first_char = fgetc(paths_txt_fp);
@@ -3308,7 +3307,7 @@ int CarmaCDinDriveOrFullGameInstalled() {
 }
 
 // IDA: void __usercall ReadNetworkSettings(FILE *pF@<EAX>, tNet_game_options *pOptions@<EDX>)
-void ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions) {
+void  ReadNetworkSettings(FILE* pF, tNet_game_options* pOptions) {
     LOG_TRACE("(%p, %p)", pF, pOptions);
 
     pOptions->enable_text_messages = GetAnInt(pF);

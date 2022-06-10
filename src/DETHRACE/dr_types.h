@@ -5,6 +5,7 @@
 #include "constants.h"
 #include "macros.h"
 #include "s3/s3.h"
+
 #include <assert.h>
 #include <stdarg.h>
 #include <stddef.h>
@@ -2761,7 +2762,7 @@ typedef _SOS_CAPABILITIES* PSOSCAPABILITIES;
 typedef struct _SOS_HARDWARE* PSOSHARDWARE;
 typedef struct _tag_sos_driver _SOS_DIGI_DRIVER;
 typedef _SOS_DIGI_DRIVER* PSOSDIGIDRIVER;
-typedef struct _SOS_DRV_FILEHEADER* PSOSDRVFILEHEADER;
+typedef struct _SOS_DRV_FILEHEADER* PSOSDRFILEHEADER;
 typedef struct _SOS_DRV_DRIVERHEADER* PSOSDRVDRIVERHEADER;
 typedef struct _tag_sos_system _SOS_SYSTEM;
 typedef _SOS_SYSTEM* PSOSSYSTEM;

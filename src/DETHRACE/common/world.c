@@ -12,7 +12,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "loading.h"
 #include "opponent.h"
 #include "pd/sys.h"
@@ -22,6 +21,9 @@
 #include "spark.h"
 #include "trig.h"
 #include "utility.h"
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
 
 #include <string.h>
 
@@ -2281,7 +2283,7 @@ void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_inf
     PathCat(the_path, gApplication_path, "RACES");
     PathCat(the_path, the_path, pFile_name);
     f = DRfopen(the_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(50);
     }
     GetALineAndDontArgue(f, s);

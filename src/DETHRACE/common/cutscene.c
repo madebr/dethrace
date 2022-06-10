@@ -1,20 +1,24 @@
 #include "cutscene.h"
+
 #include "drmem.h"
 #include "errors.h"
 #include "flicplay.h"
 #include "globvars.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/os.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "pd/sys.h"
 #include "smacker.h"
 #include "sound.h"
 #include "utility.h"
-#include <stdlib.h>
+
+#include "harness/config.h"
+#include "harness/os.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
+#include <stdio.h>
 #include <time.h>
 
 tS32 gLast_demo_end_anim = -90000;
@@ -73,6 +77,9 @@ void PlaySmackerFile(char* pSmack_name) {
     unsigned char r, g, b;
     double usf;
     struct timespec ts;
+#ifdef DETHRACE_VFS
+    FILE* file;
+#endif
 
     if (!gSound_override && !gCut_scene_override) {
         StopMusic();
@@ -83,7 +90,15 @@ void PlaySmackerFile(char* pSmack_name) {
         PathCat(the_path, the_path, pSmack_name);
 
         dr_dprintf("Trying to open smack file '%s'", the_path);
+#if defined(DETHRACE_VFS)
+        file = fopen(the_path, "rb");
+        s = NULL;
+        if (file != NULL) {
+            s = smk_open_memory(VFS_internal_buffer(file), VFS_filesize(file));
+        }
+#else
         s = smk_open_file(the_path, SMK_MODE_MEMORY);
+#endif
         if (s == NULL) {
             dr_dprintf("Unable to open smack file - attempt to load smack from CD...");
             if (GetCDPathFromPathsTxtFile(the_path)) {
@@ -135,6 +150,9 @@ void PlaySmackerFile(char* pSmack_name) {
             } while (smk_next(s) == SMK_MORE);
 
             smk_close(s);
+#if defined(DETHRACE_VFS)
+            fclose(file);
+#endif
 
             FadePaletteDown();
             ClearEntireScreen();

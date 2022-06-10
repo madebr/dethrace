@@ -6,8 +6,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "intrface.h"
@@ -17,7 +15,13 @@
 #include "structur.h"
 #include "utility.h"
 #include "world.h"
+
 #include <brender/brender.h>
+
+#include "harness/config.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdlib.h>
 #include <string.h>
 

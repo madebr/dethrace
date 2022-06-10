@@ -4,18 +4,18 @@
 #include "globvars.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/hooks.h"
-#include "harness/os.h"
-#include "harness/trace.h"
 #include "input.h"
-#include "loadsave.h"
 #include "main.h"
 #include "pd/sys.h"
 #include "sound.h"
 #include "utility.h"
-#include <errno.h>
-#include <stdio.h>
+
+#include "harness/config.h"
+#include "harness/hooks.h"
+#include "harness/os.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -491,12 +491,15 @@ void PDBuildAppPath(char* pThe_path) {
 void PDForEveryFile(char* pThe_path, void (*pAction_routine)(char*)) {
     char find_path[256];
     char found_path[256];
+    os_diriter* diriter;
+    char* found;
 
-    char* found = OS_GetFirstFileInDirectory(pThe_path);
+    diriter = OS_OpenDir(pThe_path);
+    found = OS_GetNextFileInDirectory(diriter);
     while (found != NULL) {
         PathCat(found_path, pThe_path, found);
         pAction_routine(found_path);
-        found = OS_GetNextFileInDirectory();
+        found = OS_GetNextFileInDirectory(diriter);
     }
 }
 

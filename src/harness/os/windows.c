@@ -1,11 +1,16 @@
+#include "harness/os.h"
+
 // Based on https://gist.github.com/jvranish/4441299
 
 // this has to be first
 #include <windows.h>
 
+#if defined(dethrace_stdio_vfs_aliased)
+#error "stdio functions aliased to vfs functions")
+#endif
+
 #include <imagehlp.h>
 
-#include "harness/os.h"
 #include <assert.h>
 #include <direct.h>
 #include <errno.h>
@@ -28,8 +33,11 @@ static char _program_name[1024];
 LARGE_INTEGER qpc_start_time, EndingTime, ElapsedMicroseconds;
 LARGE_INTEGER qpc_ticks_per_sec;
 
-HANDLE directory_handle = NULL;
-char last_found_file[260];
+typedef struct os_diriter {
+    HANDLE hFind;
+    WIN32_FIND_DATA find_data;
+    char current_path[260];
+} os_diriter;
 
 uint32_t OS_GetTime() {
     LARGE_INTEGER now;
@@ -46,34 +54,50 @@ void OS_Sleep(int delay_ms) {
     Sleep(delay_ms);
 }
 
-char* OS_GetFirstFileInDirectory(char* path) {
-    char with_extension[256];
-    WIN32_FIND_DATA find_data;
-    HANDLE hFind = NULL;
+int OS_IsDirectory(const char* path) {
+    DWORD dwAttrib;
 
-    strcpy(with_extension, path);
-    strcat(with_extension, "\\*.???");
-    directory_handle = FindFirstFile(with_extension, &find_data);
-    if (directory_handle == INVALID_HANDLE_VALUE) {
-        return NULL;
+    dwAttrib = GetFileAttributesA(path);
+    if (dwAttrib == INVALID_FILE_ATTRIBUTES) {
+        return 0;
     }
-    strcpy(last_found_file, find_data.cFileName);
-    return last_found_file;
+    return (dwAttrib & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY;
 }
 
-// Required: continue directory iteration. If no more files, return NULL
-char* OS_GetNextFileInDirectory(void) {
-    WIN32_FIND_DATA find_data;
-    if (directory_handle == NULL) {
+os_diriter* OS_OpenDir(char* path) {
+    char pathGlob[256];
+    os_diriter* diriter;
+
+    strcpy(pathGlob, path);
+    strcat(pathGlob, "\\*.???");
+    diriter = malloc(sizeof(os_diriter));
+    if (diriter == NULL) {
         return NULL;
     }
-
-    while (FindNextFile(directory_handle, &find_data)) {
-        strcpy(last_found_file, find_data.cFileName);
-        return last_found_file;
+    diriter->hFind = FindFirstFile(pathGlob, &diriter->find_data);
+    if (diriter->hFind == INVALID_HANDLE_VALUE) {
+        free(diriter);
+        return NULL;
     }
-    FindClose(directory_handle);
-    return NULL;
+    return diriter;
+}
+
+char* OS_GetNextFileInDirectory(os_diriter* diriter) {
+
+    if (diriter == NULL) {
+        return NULL;
+    }
+    if (diriter->hFind == INVALID_HANDLE_VALUE) {
+        free(diriter);
+        return NULL;
+    }
+    strcpy(diriter->current_path, diriter->find_data.cFileName);
+
+    if (!FindNextFile(diriter->hFind, &diriter->find_data)) {
+        FindClose(diriter->hFind);
+        diriter->hFind = INVALID_HANDLE_VALUE;
+    }
+    return diriter->current_path;
 }
 
 void OS_Basename(char* path, char* base) {

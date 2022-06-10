@@ -90,7 +90,11 @@ void GameMain(int pArgc, char** pArgv) {
     tPath_name CD_dir;
 
     PDSetFileVariables();
+#if defined(DETHRACE_VFS)
+    gApplication_path[0] = '\0';
+#else
     PDBuildAppPath(gApplication_path);
+#endif
     OpenDiagnostics();
 
     strcat(gApplication_path, "DATA");

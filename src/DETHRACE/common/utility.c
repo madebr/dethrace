@@ -1,5 +1,4 @@
 #include "utility.h"
-#include <stdlib.h>
 
 #include "brender/brender.h"
 #include "constants.h"
@@ -7,8 +6,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "loadsave.h"
@@ -18,8 +15,13 @@
 #include "sound.h"
 #include "world.h"
 
+#include "harness/config.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Added >>
@@ -117,7 +119,7 @@ void EncodeLine(char* pS) {
         strcat(the_path, "GENERAL.TXT");
 
         test = fopen(the_path, "rt");
-        if (test) {
+        if (test != NULL) {
             fgets(s, 256, test);
             if (s[0] != '@') {
                 gEncryption_method = 2;
@@ -263,7 +265,7 @@ char* GetALineWithNoPossibleService(FILE* pF, unsigned char* pS) {
                 break;
             }
         }
-        if (ch != -1) {
+        if (ch != EOF) {
             ungetc(ch, pF);
         }
     } while (!isalnum(s[0])
@@ -1248,7 +1250,7 @@ void EncodeFile(char* pThe_path) {
     strcat(new_file, "ENC");
 
     f = fopen(pThe_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(0x6b, new_file);
     }
 
@@ -1261,7 +1263,7 @@ void EncodeFile(char* pThe_path) {
     }
 
     d = fopen(new_file, "wb");
-    if (!d) {
+    if (d == NULL) {
         FatalError(0x6b, new_file);
     }
 
@@ -1294,13 +1296,13 @@ void EncodeFile(char* pThe_path) {
             count++;
         }
         if (count >= 2) {
-            fputc(0x0d, d);
-            fputc(0x0a, d);
+            fputc('\r', d);
+            fputc('\n', d);
         }
-        fputc(0x0d, d);
-        fputc(0x0a, d);
+        fputc('\r', d);
+        fputc('\n', d);
 
-        if (ch != -1) {
+        if (ch != EOF) {
             ungetc(ch, f);
         }
     }

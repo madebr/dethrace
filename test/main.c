@@ -1,9 +1,6 @@
-#include "harness/hooks.h"
-#include "harness/os.h"
 #include "tests.h"
-#include <assert.h>
+
 #include <errno.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -15,6 +12,7 @@
 #include "CORE/PIXELMAP/pixelmap.h"
 #include "CORE/V1DB/actsupt.h"
 #include "CORE/V1DB/dbsetup.h"
+
 #include "common/errors.h"
 #include "common/newgame.h"
 #include "common/utility.h"
@@ -22,9 +20,12 @@
 #include "common/drmem.h"
 #include "common/globvars.h"
 #include "common/grafdata.h"
+
 #include "harness.h"
 #include "harness/config.h"
+#include "harness/hooks.h"
 #include "harness/os.h"
+#include "harness/stdio_vfs.h"
 
 #define debug(format_, ...) fprintf(stderr, format_, __VA_ARGS__)
 
@@ -32,40 +33,43 @@
 
 extern int _unittest_do_not_exit;
 
-extern void test_assocarr_suite();
-extern void test_brprintf_suite();
-extern void test_bswap_suite();
-extern void test_utility_suite();
-extern void test_loading_suite();
-extern void test_controls_suite();
-extern void test_input_suite();
-extern void test_errors_suite();
-extern void test_dossys_suite();
-extern void test_init_suite();
-extern void test_brlists_suite();
-extern void test_fwsetup_suite();
-extern void test_resource_suite();
-extern void test_actsupt_suite();
-extern void test_genclip_suite();
-extern void test_datafile_suite();
-extern void test_v1dbfile_suite();
-extern void test_register_suite();
-extern void test_scratch_suite();
-extern void test_token_suite();
-extern void test_pattern_suite();
-extern void test_pmfile_suite();
-extern void test_fixed_suite();
-extern void test_lexer_suite();
-extern void test_logwrite_suite();
-extern void test_matrix23_suite();
-extern void test_matrix34_suite();
-extern void test_matrix4_suite();
-extern void test_quat_suite();
-extern void test_graphics_suite();
-extern void test_regsupt_suite();
-extern void test_vector_suite();
-extern void test_powerup_suite();
-extern void test_flicplay_suite();
+#if defined(DETHRACE_VFS)
+extern void test_vfs_suite(void);
+#endif
+extern void test_assocarr_suite(void);
+extern void test_brprintf_suite(void);
+extern void test_bswap_suite(void);
+extern void test_utility_suite(void);
+extern void test_loading_suite(void);
+extern void test_controls_suite(void);
+extern void test_input_suite(void);
+extern void test_errors_suite(void);
+extern void test_dossys_suite(void);
+extern void test_init_suite(void);
+extern void test_brlists_suite(void);
+extern void test_fwsetup_suite(void);
+extern void test_resource_suite(void);
+extern void test_actsupt_suite(void);
+extern void test_genclip_suite(void);
+extern void test_datafile_suite(void);
+extern void test_v1dbfile_suite(void);
+extern void test_register_suite(void);
+extern void test_scratch_suite(void);
+extern void test_token_suite(void);
+extern void test_pattern_suite(void);
+extern void test_pmfile_suite(void);
+extern void test_fixed_suite(void);
+extern void test_lexer_suite(void);
+extern void test_logwrite_suite(void);
+extern void test_matrix23_suite(void);
+extern void test_matrix34_suite(void);
+extern void test_matrix4_suite(void);
+extern void test_quat_suite(void);
+extern void test_graphics_suite(void);
+extern void test_regsupt_suite(void);
+extern void test_vector_suite(void);
+extern void test_powerup_suite(void);
+extern void test_flicplay_suite(void);
 
 char* root_dir;
 
@@ -78,6 +82,36 @@ void tearDown(void) {
 
 static const char* temp_folder;
 static char temp_folder_buffer[PATH_MAX + 1];
+
+static void create_temp_folder() {
+#ifdef _WIN32
+    DWORD attributes;
+    BOOL success;
+
+    attributes = GetFileAttributesA(temp_folder);
+    if ((attributes == INVALID_FILE_ATTRIBUTES) || ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)) {
+        LOG_TRACE("Temporary folder does not exist => creating");
+        success = CreateDirectoryA(temp_folder, NULL);
+        if (success == 0) {
+            fprintf(stderr, "CreateDirectoryA(\"%s\") failed.\n", temp_folder);
+            abort();
+        }
+    }
+#else
+    struct stat sb;
+    int res;
+
+    res = stat(temp_folder, &sb);
+    if (res == -1 || !S_ISDIR(sb.st_mode)) {
+        LOG_TRACE("Temporary folder does not exist => creating");
+        res = mkdir(temp_folder, 0770);
+        if (res == -1) {
+            fprintf(stderr, "mkdir(\"%s\") failed: %s\n", temp_folder, strerror(errno));
+            abort();
+        }
+    }
+#endif
+}
 
 static void setup_temp_folder() {
 #ifdef _WIN32
@@ -92,12 +126,18 @@ static void setup_temp_folder() {
     sprintf(temp_folder_buffer, "/tmp/dethrace_test_%d", getpid());
 #endif
     temp_folder = temp_folder_buffer;
+
+    create_temp_folder();
+#if defined(DETHRACE_VFS)
+    VFS_SetWriteDir(temp_folder);
+#endif
 }
 
 void TEST_ASSERT_EQUAL_FILE_CONTENTS_BINARY(const uint8_t* expected, char* filename, int len) {
     FILE* f;
     long filesize;
     int res;
+
     f = fopen(filename, "rb");
     TEST_ASSERT_NOT_NULL(f);
     res = fseek(f, 0, SEEK_END);
@@ -145,15 +185,23 @@ void setup_global_vars(int argc, char* argv[]) {
     strcpy(gDir_separator, "/");
 
     root_dir = getenv("DETHRACE_ROOT_DIR");
+#if defined(DETHRACE_VFS)
+    VFS_Init(argc, (const char**)argv, root_dir);
+#endif
     if (root_dir != NULL) {
         printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
+#if !defined(DETHRACE_VFS)
         chdir(root_dir);
+#endif
         strncpy(gApplication_path, root_dir, 256);
         strcat(gApplication_path, "/DATA");
     } else {
         printf("WARN: DETHRACE_ROOT_DIR is not defined. Skipping tests which require it\n");
-        strcpy(gApplication_path, ".");
+        strcpy(gApplication_path, "/");
     }
+#if defined(DETHRACE_VFS)
+    strcpy(gApplication_path, "/DATA");
+#endif
 
     BrV1dbBeginWrapper_Float();
     CreateStainlessClasses();
@@ -169,9 +217,9 @@ void setup_global_vars(int argc, char* argv[]) {
 
     strcpy(gBasic_car_names[0], "BLKEAGLE.TXT");
 
-    OpenDiagnostics();
-
     setup_temp_folder();
+
+    OpenDiagnostics();
     printf("INFO: temp folder is \"%s\"\n", temp_folder);
 
     _unittest_do_not_exit = 1;
@@ -196,36 +244,24 @@ int has_data_directory() {
 
 void create_temp_file(char buffer[PATH_MAX + 1], const char* prefix) {
 #ifdef _WIN32
-    DWORD attributes;
     UINT res;
-    BOOL success;
 
-    attributes = GetFileAttributesA(temp_folder);
-    if ((attributes == INVALID_FILE_ATTRIBUTES) || ((attributes & FILE_ATTRIBUTE_DIRECTORY) == 0)) {
-        LOG_TRACE("Temporary folder does not exist => creating");
-        success = CreateDirectoryA(temp_folder, NULL);
-        if (success == 0) {
-            abort();
-        }
-    }
     res = GetTempFileNameA(temp_folder, prefix, 0, buffer);
     if (res == 0) {
         abort();
     }
     strcat(buffer, prefix);
+#if defined(DETHRACE_VFS)
+    if (strncmp(buffer, temp_folder, strlen(temp_folder)) == 0) {
+        strcpy(buffer, &buffer[strlen(temp_folder)]);
+    }
+    while (buffer[0] == '/' || buffer[0] == '\\') {
+        strcpy(buffer, &buffer[1]);
+    }
+#endif
 #else
     int fdres;
-    struct stat sb;
-    int res;
 
-    res = stat(temp_folder, &sb);
-    if (res == -1 || !S_ISDIR(sb.st_mode)) {
-        res = mkdir(temp_folder, 0770);
-        if (res == -1) {
-            fprintf(stderr, "mmkdir(\"%s\") failed: %s\n", temp_folder, strerror(errno));
-            abort();
-        }
-    }
     strcpy(buffer, temp_folder);
     strcat(buffer, "/");
     strcat(buffer, prefix);
@@ -236,6 +272,11 @@ void create_temp_file(char buffer[PATH_MAX + 1], const char* prefix) {
         abort();
     }
     close(fdres);
+#if defined(DETHRACE_VFS)
+    if (strncmp(buffer, temp_folder, strlen(temp_folder)) == 0) {
+        strcpy(buffer, &buffer[strlen(temp_folder)]);
+    }
+#endif
 #endif
 }
 
@@ -250,6 +291,11 @@ int main(int argc, char** argv) {
     setup_global_vars(argc, argv);
 
     printf("Completed setup\n");
+
+    // harness
+#if defined(DETHRACE_VFS)
+    test_vfs_suite();
+#endif
 
     // BRSRC13
     test_bswap_suite();

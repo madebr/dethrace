@@ -1,8 +1,11 @@
 #include "s3sound.h"
 #include "audio.h"
-#include "miniaudio/miniaudio.h"
 #include "resource.h"
-#include <stdio.h>
+
+#include "miniaudio/miniaudio.h"
+
+#include "harness/stdio_vfs.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,7 +59,7 @@ int S3LoadSample(tS3_sound_id id) {
         return 0;
     }
     descriptor = S3GetDescriptorByID(id);
-    if (!descriptor) {
+    if (descriptor == NULL) {
         return eS3_error_bad_id;
     }
     if (descriptor->type != eS3_ST_sample) {
@@ -68,14 +71,14 @@ int S3LoadSample(tS3_sound_id id) {
     filename[0] = 0;
     strcpy(filename, descriptor->filename);
     sample = S3MemAllocate(sizeof(tS3_sample), kMem_S3_sound_header);
-    if (!sample) {
+    if (sample == NULL) {
         return eS3_error_memory;
     }
 
     memset(sample, 0, sizeof(tS3_sample));
     descriptor->sound_buffer = S3LoadWavFile(filename, sample);
 
-    if (!descriptor->sound_buffer) {
+    if (descriptor->sound_buffer == NULL) {
         S3MemFree(sample);
         return gS3_last_error;
     }
@@ -92,13 +95,13 @@ int S3ReadWavHeader(char* buf, tWAVEFORMATEX_** pWav_format, char** data_ptr, in
     // char* chunk_name;       // [esp+20h] [ebp-4h]
     char* chunk_ptr;
 
-    if (pWav_format) {
+    if (pWav_format != NULL) {
         *pWav_format = 0;
     }
-    if (data_ptr) {
+    if (data_ptr != NULL) {
         *data_ptr = 0;
     }
-    if (pData_size) {
+    if (pData_size != NULL) {
         *pData_size = 0;
     }
     chunk_ptr = buf + 12;
@@ -153,7 +156,10 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     // char* locked_buffer_data;   // [esp+CCh] [ebp-8h] BYREF
     size_t file_len; // [esp+D0h] [ebp-4h]
 
-    f = fopen(pFile_name, "r");
+    ma_format format;  // Added by DethRace
+    ma_uint64 nbFrames;  // Added by DethRace
+
+    f = fopen(pFile_name, "rb");
     if (f == NULL) {
         gS3_last_error = eS3_error_readfile;
         return 0;
@@ -175,23 +181,63 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     wav_format = 0;
     data_ptr = 0;
     if (S3ReadWavHeader(buf, &wav_format, &data_ptr, &data_size) == 0) {
+        S3MemFree(buf);
         gS3_last_error = eS3_error_readfile;
         dr_dprintf("ERROR: .WAV file '%s' is crap", pFile_name);
         return 0;
     }
     pSample->freeptr = 0;
-    pSample->dataptr = 0;
+    pSample->dataptr = buf;
     pSample->size = data_size;
     pSample->rate = wav_format->nSamplesPerSec;
     pSample->resolution = wav_format->nAvgBytesPerSec;
     pSample->channels = wav_format->nChannels;
 
+    switch (wav_format->wBitsPerSample) {
+    case 8:
+        format = ma_format_u8;
+        nbFrames = data_size / wav_format->nChannels;
+        break;
+    case 16:
+        format = ma_format_s16;
+        nbFrames = data_size / 2 / wav_format->nChannels;
+        break;
+    case 24:
+        format = ma_format_s24;
+        nbFrames = data_size / 3 / wav_format->nChannels;
+        break;
+    case 32:
+        format = ma_format_s32;
+        nbFrames = data_size / 4 / wav_format->nChannels;
+        break;
+    default:
+        format = ma_format_unknown;
+        nbFrames = data_size * 8 / wav_format->wBitsPerSample / wav_format->nChannels;
+        break;
+    }
+    ma_audio_buffer_config bufferConfig = ma_audio_buffer_config_init(
+        format,
+        wav_format->nChannels,
+        nbFrames,
+        data_ptr,
+        NULL);
+    bufferConfig.sampleRate = wav_format->nSamplesPerSec;
+
+    pSample->audio_buffer = malloc(sizeof(ma_audio_buffer));
+    if (ma_audio_buffer_init(&bufferConfig, pSample->audio_buffer) != MA_SUCCESS) {
+        gS3_last_error = eS3_error_memory;
+        S3MemFree(buf);
+        return NULL;
+    }
     ma_sound* sound = malloc(sizeof(ma_sound));
-    // TOOD: load from memory - we've already read the file data
-    if (ma_sound_init_from_file(&engine, pFile_name, MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, NULL, NULL, sound) != MA_SUCCESS) {
+
+    if (ma_sound_init_from_data_source(&engine, pSample->audio_buffer, MA_SOUND_FLAG_DECODE | MA_SOUND_FLAG_NO_SPATIALIZATION, NULL, sound) != MA_SUCCESS) {
+        gS3_last_error = eS3_error_memory;
+        free(sound);
+        free(pSample->audio_buffer);
+        S3MemFree(buf);
         return NULL; // Failed to load sound.
     }
-    S3MemFree(buf);
     return sound;
 
     // S3MemFree(buf);
@@ -219,7 +265,7 @@ void* S3LoadWavFile(char* pFile_name, tS3_sample* pSample) {
     //     ds_buffer->lpVtbl->Unlock(ds_buffer, locked_buffer_data, locked_buffer_data_len, 0, 0);
     //     return ds_buffer;
     // }
-    return NULL;
+    // return NULL;
 }
 
 int S3StopSample(tS3_channel* chan) {

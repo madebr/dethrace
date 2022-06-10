@@ -9,7 +9,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "netgame.h"
@@ -20,7 +19,10 @@
 #include "pratcam.h"
 #include "sound.h"
 #include "utility.h"
-#include <stdlib.h>
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <string.h>
 
 tGot_proc* gGot_procs[34] = {
@@ -330,7 +332,7 @@ void LoadPowerups() {
             the_powerup->type = 0;
         } else {
             if (strcmp(the_powerup->message, "n/a") == 0) {
-                the_powerup->message[0] = 0;
+                the_powerup->message[0] = '\0';
             }
             GetAString(f, s);
             the_powerup->icon = LoadPixelmap(s);

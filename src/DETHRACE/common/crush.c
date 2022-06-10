@@ -1,5 +1,4 @@
 #include "crush.h"
-#include "brender/brender.h"
 #include "car.h"
 #include "displays.h"
 #include "globvars.h"
@@ -17,6 +16,11 @@
 #include "spark.h"
 #include "utility.h"
 #include "world.h"
+
+#include "brender/brender.h"
+
+#include "harness/stdio_vfs.h"
+
 #include <stdlib.h>
 
 float gWobble_spam_y[8] = { 0.0f, -0.15f, 0.4f, 0.15f, -0.4f, 0.25f, 0.0f, -0.25f };

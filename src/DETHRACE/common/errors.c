@@ -2,14 +2,14 @@
 #include "cutscene.h"
 #include "globvars.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "network.h"
 #include "pd/sys.h"
 #include "utility.h"
 
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 char* gError_messages[126] = {
@@ -214,6 +214,9 @@ void OpenDiagnostics() {
     LOG_TRACE("()");
 
     gDiagnostic_file = fopen("DIAGNOST.TXT", "w");
+    if (gDiagnostic_file == NULL) {
+        return;
+    }
 
     fputs("DIAGNOSTIC OUTPUT\n", gDiagnostic_file);
     // todo: generate a real date
@@ -226,6 +229,10 @@ void dr_dprintf(char* fmt_string, ...) {
     static tU32 first_time = 0;
     va_list args;
     tU32 the_time;
+
+    if (gDiagnostic_file == NULL) {
+        return;
+    }
 
     if (first_time == 0) {
         first_time = GetTotalTime();

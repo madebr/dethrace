@@ -8,6 +8,9 @@
 #include "s3/s3.h"
 #include "sound.h"
 #include "utility.h"
+
+#include "harness/stdio_vfs.h"
+
 #include <stdlib.h>
 
 int gLast_demo;

@@ -1,4 +1,5 @@
 #include "pratcam.h"
+
 #include "displays.h"
 #include "errors.h"
 #include "flicplay.h"
@@ -10,7 +11,10 @@
 #include "utility.h"
 #include "brender/brender.h"
 #include "pd/sys.h"
+
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
+
 #include <stdlib.h>
 
 tS3_sound_tag gWhirr_noise;

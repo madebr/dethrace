@@ -43,6 +43,12 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
 
 tS3_descriptor* S3AllocateDescriptor();
 tS3_descriptor* S3GetDescriptorByID(tS3_sound_id id);
+#ifdef S3_FIX_BUGS
+void S3RemoveDescriptor(tS3_descriptor*);
+#define S3_REMOVE_DESCRIPTOR(D) S3RemoveDescriptor(D)
+#else
+#define S3_REMOVE_DESCRIPTOR(D)
+#endif
 
 char* S3GetCurrentDir();
 

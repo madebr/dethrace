@@ -10,7 +10,7 @@ target_include_directories(dethrace_obj
         pd
 )
 
-target_link_libraries(dethrace_obj PUBLIC SDL2::SDL2 smacker harness brender s3 cglm)
+target_link_libraries(dethrace_obj PUBLIC SDL2::SDL2 smacker harness brender s3)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(dethrace_obj PRIVATE
@@ -41,7 +41,7 @@ else()
         /wd4996
     )
 endif()
-if(BRENDER_FIX_BUGS)
+if(DETHRACE_FIX_BUGS)
     target_compile_definitions(dethrace_obj PRIVATE DETHRACE_FIX_BUGS)
 endif()
 

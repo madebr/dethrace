@@ -1,13 +1,15 @@
 #include "harness.h"
+
 #include "brender_emu/renderer_impl.h"
-#include "include/harness/config.h"
-#include "include/harness/os.h"
 #include "io_platforms/io_platform.h"
 #include "renderers/null.h"
 #include "sound/sound.h"
 
+#include "harness/config.h"
+#include "harness/os.h"
+#include "harness/stdio_vfs.h"
+
 #include <errno.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -80,16 +82,22 @@ static int splatpack_xmasdemo_ascii_shift_table[128] = {
 
 int Harness_ProcessCommandLine(int* argc, char* argv[]);
 
-void Harness_DetectGameMode() {
-    if (access("DATA/RACES/CASTLE.TXT", F_OK) != -1) {
+#if defined(DETHRACE_VFS)
+#define DETECT_PREFIX "/"
+#else
+#define DETECT_PREFIX ""
+#endif
+
+static void Harness_DetectGameMode() {
+    if (access(DETECT_PREFIX "DATA/RACES/CASTLE.TXT", F_OK) != -1) {
         // All splatpack edition have the castle track
-        if (access("DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
+        if (access(DETECT_PREFIX "DATA/RACES/CASTLE2.TXT", F_OK) != -1) {
             // Only the full splat release has the castle2 track
             harness_game_info.defines.INTRO_SMK_FILE = "SPLINTRO.SMK";
             harness_game_info.defines.GERMAN_LOADSCRN = "LOADSCRN.PIX";
             harness_game_info.mode = eGame_splatpack;
             LOG_INFO("\"%s\"", "Splat Pack");
-        } else if (access("DATA/RACES/TINSEL.TXT", F_OK) != -1) {
+        } else if (access(DETECT_PREFIX "DATA/RACES/TINSEL.TXT", F_OK) != -1) {
             // Only the the splat x-mas demo has the tinsel track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "";
@@ -102,9 +110,9 @@ void Harness_DetectGameMode() {
             harness_game_info.mode = eGame_splatpack_demo;
             LOG_INFO("\"%s\"", "Splat Pack demo");
         }
-    } else if (access("DATA/RACES/CITYB3.TXT", F_OK) != -1) {
+    } else if (access(DETECT_PREFIX "DATA/RACES/CITYB3.TXT", F_OK) != -1) {
         // All non-splatpack edition have the cityb3 track
-        if (access("DATA/RACES/CITYA1.TXT", F_OK) == -1) {
+        if (access(DETECT_PREFIX "DATA/RACES/CITYA1.TXT", F_OK) == -1) {
             // The demo does not have the citya1 track
             harness_game_info.defines.INTRO_SMK_FILE = "";
             harness_game_info.defines.GERMAN_LOADSCRN = "COWLESS.PIX";
@@ -115,7 +123,7 @@ void Harness_DetectGameMode() {
         }
     } else {
     carmageddon:
-        if (access("DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
+        if (access(DETECT_PREFIX "DATA/CUTSCENE/Mix_intr.smk", F_OK) == -1) {
             harness_game_info.defines.INTRO_SMK_FILE = "Mix_intr.smk";
         } else {
             harness_game_info.defines.INTRO_SMK_FILE = "MIX_INTR.SMK";
@@ -172,8 +180,6 @@ void Harness_DetectGameMode() {
 }
 
 void Harness_Init(int* argc, char* argv[]) {
-    int result;
-
     // disable the original CD check code
     harness_game_config.disable_cd_check = 1;
     // original physics time step. Lower values seem to work better at 30+ fps
@@ -195,15 +201,11 @@ void Harness_Init(int* argc, char* argv[]) {
     }
 
     char* root_dir = getenv("DETHRACE_ROOT_DIR");
-    if (root_dir == NULL) {
-        LOG_INFO("DETHRACE_ROOT_DIR is not set, assuming '.'");
-    } else {
-        printf("DETHRACE_ROOT_DIR: %s\n", root_dir);
-        result = chdir(root_dir);
-        if (result != 0) {
-            LOG_PANIC("Failed to chdir. Error is %s", strerror(errno));
-        }
-    }
+#if defined(DETHRACE_VFS)
+    VFS_Init(*argc, (const char**)argv, root_dir);
+#else
+    chdir(root_dir);
+#endif
     if (harness_game_info.mode == eGame_none) {
         Harness_DetectGameMode();
     }
@@ -411,9 +413,4 @@ void Harness_Hook_S3Service(int unk1, int unk2) {
 }
 
 void Harness_Hook_S3StopAllOutletSounds() {
-}
-
-// Filesystem hooks
-FILE* Harness_Hook_fopen(const char* pathname, const char* mode) {
-    return OS_fopen(pathname, mode);
 }

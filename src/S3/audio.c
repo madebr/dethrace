@@ -2,20 +2,21 @@
 #include "resource.h"
 
 #include "3d.h"
-#include "harness/os.h"
-#include "harness/trace.h"
 #include "miniaudio/miniaudio.h"
 #include "s3cda.h"
 #include "s3music.h"
 #include "s3sound.h"
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <ctype.h>
-#include <errno.h>
 #include <stddef.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <SDL.h>
+#if !defined(DETHRACE_VFS)
+#include <unistd.h>
+#endif
 
 extern int
 PDGetTotalTime();
@@ -72,7 +73,7 @@ int S3Init(char* pPath, int pLow_memory_mode) {
     }
     gS3_opened_output_devices = 1;
     root_descriptor = S3MemAllocate(sizeof(tS3_descriptor), kMem_S3_sentinel);
-    if (!root_descriptor) {
+    if (root_descriptor == NULL) {
         return 3;
     }
     memset(root_descriptor, 0, sizeof(tS3_descriptor));
@@ -156,7 +157,7 @@ int S3LoadSoundbank(const char* pSoundbank_filename, int pLow_memory_mode) {
     char dir_name[256];              // [esp+124h] [ebp-100h] BYREF
 
     if (gS3_enabled) {
-        dir_name[0] = 0;
+        dir_name[0] = '\0';
         soundbank_filename[0] = 0;
         cur_dir = S3GetCurrentDir();
         strcpy(dir_name, cur_dir);
@@ -167,7 +168,7 @@ int S3LoadSoundbank(const char* pSoundbank_filename, int pLow_memory_mode) {
         strcat(dir_name, gS3_directory_separator);
         strcpy(soundbank_filename, pSoundbank_filename);
         buffer = S3LoadSoundBankFile(soundbank_filename);
-        if (!buffer) {
+        if (buffer == NULL) {
             return gS3_last_error;
         }
         read_ctx.data = (char*)buffer;
@@ -192,8 +193,8 @@ char* S3LoadSoundBankFile(char* pThe_path) {
     size_t file_size;
 
     // fd = _open(pThe_path, 0x8000);
-    fd = OS_fopen(pThe_path, "rb");
-    if (!fd) {
+    fd = fopen(pThe_path, "rb");
+    if (fd == NULL) {
         gS3_last_error = eS3_error_readfile;
         return 0;
     }
@@ -225,6 +226,8 @@ char* S3LoadSoundBankFile(char* pThe_path) {
         return buffer;
     }
     gS3_last_error = eS3_error_readfile;
+    S3MemFree(buffer);
+    fclose(fd);
     return 0;
 }
 
@@ -270,15 +273,17 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
     char cda_dir_name[4];
 
     desc = S3AllocateDescriptor();
-    if (!desc) {
+    if (desc == NULL) {
         return gS3_last_error;
     }
     if (sscanf(ctx->data, "%i%n", &desc->id, &char_count) != 1) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%i,%i%n", &desc->type, &desc->flags, &char_count) != 2) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
@@ -288,25 +293,30 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
         cda_dir_name[0] = '\0';
     }
     if (!S3SoundBankReaderReadFilename(&desc->filename, ctx, dir_name)) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%i%n", (int*)&desc->priority, &char_count) != 1) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%i%n", &desc->repeats, &char_count) != 1) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%i,%i%n", &desc->min_volume, &desc->max_volume, &char_count) != 2) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%lf,%lf%n", &tmp1, &tmp2, &char_count) != 2) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
@@ -320,6 +330,7 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
     desc->min_pitch = ldexpf(tmp1, 16);
     desc->max_pitch = ldexpf(tmp2, 16);
     if (sscanf(ctx->data, "%lf,%lf%n", &tmp1, &tmp2, &char_count) != 2) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
@@ -333,11 +344,13 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
     desc->min_speed = ldexpf(tmp1, 16);
     desc->max_speed = ldexpf(tmp2, 16);
     if (sscanf(ctx->data, "%i%n", &desc->special_fx, &char_count) != 1) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
     S3SoundBankReaderNextLine(ctx);
     if (sscanf(ctx->data, "%d%n", &nmemory_proxies, &char_count) != 1) {
+        S3_REMOVE_DESCRIPTOR(desc);
         return 0;
     }
     S3SoundBankReaderAdvance(ctx, char_count);
@@ -345,6 +358,7 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
     desc->memory_proxy = -1;
     for (i = 0; i < nmemory_proxies; i++) {
         if (sscanf(ctx->data, "%d%n", &proxy_id, &char_count) != 1) {
+            S3_REMOVE_DESCRIPTOR(desc);
             return 0;
         }
         if (low_memory_mode == i + 1) {
@@ -358,6 +372,7 @@ int S3SoundBankReadEntry(tS3_soundbank_read_ctx* ctx, char* dir_name, int low_me
             desc->sound_data = NULL;
         } else if (S3LoadSample(desc->id) != 0) {
             printf("\nSound bank file: couldn't load '%s'\n", desc->filename);
+            S3_REMOVE_DESCRIPTOR(desc);
             ctx->data_len = 1;
             return 0;
         }
@@ -370,7 +385,7 @@ tS3_descriptor* S3AllocateDescriptor() {
     tS3_descriptor* d;
 
     d = S3MemAllocate(sizeof(tS3_descriptor), kMem_S3_descriptor);
-    if (!d) {
+    if (d == NULL) {
         gS3_last_error = eS3_error_memory;
         return 0;
     }
@@ -381,6 +396,20 @@ tS3_descriptor* S3AllocateDescriptor() {
     gS3_root_descriptor = d;
     return d;
 }
+
+#ifdef S3_FIX_BUGS
+void S3RemoveDescriptor(tS3_descriptor* d) {
+    if (d->prev == NULL) {
+        gS3_root_descriptor = d->next;
+    } else {
+        d->prev->next = d->next;
+    }
+    if (d->next != NULL) {
+        d->next->prev = d->prev;
+    }
+    S3MemFree(d);
+}
+#endif
 
 int S3SoundBankReaderReadFilename(char** filename, tS3_soundbank_read_ctx* ctx, const char* dir_name) {
     char* data_start;          // [esp+10h] [ebp-Ch]
@@ -792,7 +821,7 @@ tS3_sound_tag S3StartSound(tS3_outlet* pOutlet, tS3_sound_id pSound) {
         return 0;
     }
     desc = S3GetDescriptorByID(pSound);
-    if (!desc) {
+    if (desc == NULL) {
         gS3_last_error = eS3_error_bad_id;
         return 0;
     }
@@ -1079,12 +1108,16 @@ int S3StopOutletSound(tS3_outlet* pOutlet) {
 }
 
 char* S3GetCurrentDir() {
+#if defined(DETHRACE_VFS)
+    strcpy(gS3_current_dir, "/");
+#else
     if (!gS3_have_current_dir) {
         if (getcwd(gS3_current_dir, 260) == NULL) {
             LOG_PANIC("failed to call getcwd"); // added by dethrace
         };
         gS3_have_current_dir = 1;
     }
+#endif
     return gS3_current_dir;
 }
 

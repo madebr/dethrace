@@ -1,19 +1,20 @@
 #include "sound.h"
-
-#include <stdlib.h>
-#include <string.h>
-
 #include "brender/brender.h"
 #include "controls.h"
 #include "globvars.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "opponent.h"
 #include "pd/sys.h"
 #include "piping.h"
 #include "replay.h"
 #include "s3/s3.h"
 #include "utility.h"
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 int gSound_detail_level;
 int gVirgin_pass = 1;
@@ -57,7 +58,7 @@ void UsePathFileToDetermineIfFullInstallation() {
     strcat(path_file, "PATHS.TXT");
     if (PDCheckDriveExists(path_file) != 0) {
         fp = fopen(path_file, "rt");
-        if (fp) {
+        if (fp != NULL) {
             line1[0] = 0;
             line2[0] = 0;
             line3[0] = 0;
@@ -96,7 +97,7 @@ void InitSound() {
             gSound_enabled = S3Init(the_path, gAusterity_mode) == 0;
             gSound_available = gSound_enabled;
         }
-        S3Set3DSoundEnvironment(0.14492753, -1.0, -1.0);
+        S3Set3DSoundEnvironment(0.14492753f, -1.0f, -1.0f);
         gVirgin_pass = 0;
         gCD_is_disabled = 0;
         UsePathFileToDetermineIfFullInstallation();
@@ -125,30 +126,30 @@ void InitSound() {
             return;
         }
     }
-    if (!gMusic_outlet) {
+    if (gMusic_outlet == NULL) {
         gMusic_outlet = S3CreateOutlet(1, 1);
         gIndexed_outlets[2] = gMusic_outlet;
-        gMusic_available = gMusic_outlet != 0;
+        gMusic_available = gMusic_outlet != NULL;
         DRS3SetOutletVolume(gMusic_outlet, 42 * gProgram_state.music_volume);
     }
     if (gSound_detail_level != gOld_sound_detail_level) {
-        if (gCar_outlet) {
+        if (gCar_outlet != NULL) {
             S3DisposeOutlet(gCar_outlet);
-            gCar_outlet = 0;
+            gCar_outlet = NULL;
         }
-        if (gPedestrians_outlet) {
+        if (gPedestrians_outlet != NULL) {
             S3DisposeOutlet(gPedestrians_outlet);
-            gPedestrians_outlet = 0;
+            gPedestrians_outlet = NULL;
         }
-        if (gEngine_outlet) {
+        if (gEngine_outlet != NULL) {
             S3DisposeOutlet(gEngine_outlet);
-            gEngine_outlet = 0;
+            gEngine_outlet = NULL;
         }
         if (gEngine_outlet == NULL) {
             gEngine_outlet = S3CreateOutlet(engine_channel_count, engine_channel_count);
             gIndexed_outlets[1] = gEngine_outlet;
             if (!gEngine_outlet) {
-                gSound_available = 0;
+                gSound_available = NULL;
                 return;
             }
             DRS3SetOutletVolume(gEngine_outlet, 42 * gProgram_state.effects_volume);
@@ -156,8 +157,8 @@ void InitSound() {
         if (gCar_outlet == NULL) {
             gCar_outlet = S3CreateOutlet(car_channel_count, car_channel_count);
             gIndexed_outlets[3] = gCar_outlet;
-            if (!gCar_outlet) {
-                gSound_available = 0;
+            if (gCar_outlet == NULL) {
+                gSound_available = NULL;
                 return;
             }
             DRS3SetOutletVolume(gCar_outlet, 42 * gProgram_state.effects_volume);
@@ -165,8 +166,8 @@ void InitSound() {
         if (gPedestrians_outlet == NULL) {
             gPedestrians_outlet = S3CreateOutlet(ped_channel_count, ped_channel_count);
             gIndexed_outlets[4] = gPedestrians_outlet;
-            if (!gPedestrians_outlet) {
-                gSound_available = 0;
+            if (gPedestrians_outlet == NULL) {
+                gSound_available = NULL;
                 return;
             }
             DRS3SetOutletVolume(gPedestrians_outlet, 42 * gProgram_state.effects_volume);
@@ -176,7 +177,7 @@ void InitSound() {
         gEffects_outlet = S3CreateOutlet(2, 2);
         gIndexed_outlets[5] = gEffects_outlet;
         if (!gEffects_outlet) {
-            gSound_available = 0;
+            gSound_available = NULL;
             return;
         }
         DRS3SetOutletVolume(gEffects_outlet, 42 * gProgram_state.effects_volume);

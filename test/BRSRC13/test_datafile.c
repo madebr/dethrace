@@ -3194,6 +3194,7 @@ static void test_datafile_text_block_striped() {
 
     BrWriteModeSet(BR_FS_MODE_TEXT);
     df_w = DfOpen(tmpfilename, 1, BRT_FLOAT);
+    TEST_ASSERT_NOT_NULL(df_w);
 
     TEST_ASSERT_EQUAL_INT(4, DfBlockSizeText(df_w, block_striped_input_ref, block_striped_block_size_ref, block_striped_block_stride_ref, block_striped_block_count_ref, block_striped_size_ref));
 

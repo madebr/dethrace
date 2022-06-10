@@ -8,10 +8,13 @@
 #include "globvars.h"
 #include "globvrkm.h"
 #include "globvrpb.h"
-#include "harness/trace.h"
 #include "loading.h"
 #include "pd/sys.h"
 #include "utility.h"
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdlib.h>
 
 br_actor* gOppo_path_actor;

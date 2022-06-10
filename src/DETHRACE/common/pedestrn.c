@@ -1,4 +1,5 @@
 #include "pedestrn.h"
+
 #include "brender/brender.h"
 #include "car.h"
 #include "constants.h"
@@ -8,7 +9,6 @@
 #include "globvrkm.h"
 #include "globvrpb.h"
 #include "graphics.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "loading.h"
 #include "network.h"
@@ -25,6 +25,10 @@
 #include "trig.h"
 #include "utility.h"
 #include "world.h"
+
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdlib.h>
 #include <time.h>
 

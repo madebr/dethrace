@@ -1,9 +1,10 @@
 #include "brstdfile.h"
 
 #include "CORE/FW/diag.h"
-#include "harness/hooks.h"
+
+#include "harness/stdio_vfs.h"
 #include "harness/trace.h"
-#include <stdio.h>
+
 #include <string.h>
 
 // Global variables
@@ -74,9 +75,9 @@ void* BrStdioOpenWrite(char* name, int mode) {
     FILE* fh;
 
     if (mode == BR_FS_MODE_TEXT) {
-        fh = Harness_Hook_fopen(name, "w");
+        fh = fopen(name, "w");
     } else {
-        fh = Harness_Hook_fopen(name, "wb");
+        fh = fopen(name, "wb");
     }
 
     return fh;

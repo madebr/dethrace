@@ -13,9 +13,10 @@
 #include "CORE/STD/brstdfile.h"
 #include "CORE/STD/brstdlib.h"
 #include "CORE/STD/brstdmem.h"
+
 #include "harness/trace.h"
+
 #include <stddef.h>
-#include <stdio.h>
 
 br_framework_state fw;
 void* functionPointers_BRCORE1[185];

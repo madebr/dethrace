@@ -1,11 +1,12 @@
 #include "brprintf.h"
-#include "harness/trace.h"
+
 #include "CORE/FW/scratch.h"
 #include "CORE/STD/brstdlib.h"
 #include "CORE/STD/logwrite.h"
 
+#include "harness/stdio_vfs.h"
+
 #include <stdarg.h>
-#include <stdio.h>
 
 br_int_32 BrSprintf(char* buf, char* fmt, ...) {
     int n;

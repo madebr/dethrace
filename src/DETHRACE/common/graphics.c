@@ -12,8 +12,6 @@
 #include "globvars.h"
 #include "globvrpb.h"
 #include "grafdata.h"
-#include "harness/os.h"
-#include "harness/trace.h"
 #include "init.h"
 #include "input.h"
 #include "loading.h"
@@ -32,10 +30,14 @@
 #include "trig.h"
 #include "utility.h"
 #include "world.h"
-#include <limits.h>
-#include <stdlib.h>
 
+#include "harness/os.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
+#include <limits.h>
 #include <math.h>
+#include <stdlib.h>
 
 int gPalette_munged;
 int gColourValues[1];

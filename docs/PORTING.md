@@ -64,3 +64,8 @@ cmake -DIO_PLATFORM=My_Platform ..
 ```
 cmake --build .
 ```
+
+## Virtual File System
+
+DethRace uses [PhysFS](https://icculus.org/physfs/) to create a virtual file
+system consisting of archives and directories.

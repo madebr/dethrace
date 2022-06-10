@@ -1,7 +1,8 @@
 #include "brlists.h"
+
 #include "harness/trace.h"
+
 #include <assert.h>
-#include <stdio.h>
 
 
 // IDA: void __cdecl BrNewList(br_list *list)

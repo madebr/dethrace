@@ -9,8 +9,6 @@
 #include "globvrpb.h"
 #include "grafdata.h"
 #include "graphics.h"
-#include "harness/config.h"
-#include "harness/trace.h"
 #include "input.h"
 #include "intrface.h"
 #include "loading.h"
@@ -21,6 +19,11 @@
 #include "structur.h"
 #include "utility.h"
 #include "world.h"
+
+#include "harness/config.h"
+#include "harness/stdio_vfs.h"
+#include "harness/trace.h"
+
 #include <stdlib.h>
 
 int gGrid_number_colour[4] = { 49u, 201u, 1u, 201u };
@@ -1120,7 +1123,7 @@ void SelectRaceDraw(int pCurrent_choice, int pCurrent_mode) {
         PathCat(s, s, "PROG.ACT");
         PDFileUnlock(s);
         f = fopen(s, "wb");
-        if (f) {
+        if (f != NULL) {
             DRS3StartSound(gEffects_outlet, 9000);
             if (gDecode_thing) {
                 for (i = 0; i < strlen(gDecode_string); i++) {
@@ -1653,7 +1656,7 @@ void ChallengeStart() {
     TransBrPixelmapText(the_map, 0, 0, 1u, gBig_font, (signed char*)gOpponents[gChallenger_index__racestrt].abbrev_name);
     PathCat(the_path, gApplication_path, "DARES.TXT");
     f = DRfopen(the_path, "rt");
-    if (!f) {
+    if (f == NULL) {
         FatalError(100);
     }
 
