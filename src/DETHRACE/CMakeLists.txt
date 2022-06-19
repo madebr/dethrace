@@ -10,7 +10,7 @@ target_include_directories(dethrace_obj
         pd
 )
 
-target_link_libraries(dethrace_obj PUBLIC SDL2::SDL2 smacker harness brender s3)
+target_link_libraries(dethrace_obj PUBLIC smacker harness brender s3)
 
 if (CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(dethrace_obj PRIVATE
@@ -156,28 +156,39 @@ target_sources(dethrace_obj PRIVATE
     pd/sys.h
 )
 
-# Create our main game binary.
-add_executable(dethrace)
-target_link_libraries(dethrace PRIVATE glad dethrace_obj)
-target_sources(dethrace PRIVATE main.c)
-
-if(NOT MSVC)
-    if(APPLE)
-        target_link_libraries(dethrace PRIVATE "-framework OpenGL")
-        target_link_options(dethrace PRIVATE -fno-pie)
-    else()
-        set(OpenGL_GL_PREFERENCE GLVND)
-        find_package(OpenGL REQUIRED)
-        if(TARGET OpenGL::OpenGL)
-            target_link_libraries(dethrace PRIVATE OpenGL::OpenGL)
-        else()
-            target_link_libraries(dethrace PRIVATE OpenGL::GL)
-        endif()
-    endif()
+if(ANDROID)
+    # Create our main game binary.
+    add_library(dethrace SHARED
+        main.c
+    )
 else()
+    # Create our main game binary.
+    add_executable(dethrace
+        main.c
+    )
+endif()
+target_link_libraries(dethrace PRIVATE glad dethrace_obj)
+set_target_properties(dethrace
+    PROPERTIES
+        ANDROID_GUI ON
+)
+
+if(MSVC)
     target_link_libraries(dethrace PRIVATE dbghelp)
     target_link_options(dethrace PRIVATE /subsystem:windows /ENTRY:mainCRTStartup)
     target_compile_definitions(dethrace PRIVATE -D_CRT_SECURE_NO_WARNINGS -DSDL_MAIN_HANDLED)
+elseif(APPLE)
+        target_link_libraries(dethrace PRIVATE "-framework OpenGL")
+        target_link_options(dethrace PRIVATE -fno-pie)
+elseif(ANDROID)
+else()
+    set(OpenGL_GL_PREFERENCE GLVND)
+    find_package(OpenGL REQUIRED)
+    if(TARGET OpenGL::OpenGL)
+        target_link_libraries(dethrace PRIVATE OpenGL::OpenGL)
+    else()
+        target_link_libraries(dethrace PRIVATE OpenGL::GL)
+    endif()
 endif()
 
 if(DETHRACE_IDE_ROOT_DIR)

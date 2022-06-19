@@ -9,11 +9,13 @@ endif()
 set(DETHRACE_IDE_ARGUMENTS "" CACHE STRING "DethRace arguments (only used by MSVC when debugging")
 set(DETHRACE_IDE_ROOT_DIR "" CACHE PATH "DethRace rootdir (only used by MSVC when debugging)")
 
-set(CMAKE_POSITION_INDEPENDENT_CODE OFF)
+option(CMAKE_POSITION_INDEPENDENT_CODE "Enable PIC" ON)
 
 project(dethrace C)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+if(NOT ANDROID)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+endif()
 
 include(CMakeDependentOption)
 
@@ -30,6 +32,16 @@ cmake_dependent_option(DETHRACE_PHYSFS_VENDORED "Use a vendored physfs library" 
 option(BUILD_TESTS "Build unit tests." OFF)
 
 find_package(SDL2 REQUIRED)
+if(TARGET SDL2::SDL2)
+    add_library(dethrace_sdl2 INTERFACE)
+    target_link_libraries(dethrace_sdl2 INTERFACE SDL2::SDL2)
+elseif(TARGET SDL2::SDL2-static)
+    add_library(dethrace_sdl2 INTERFACE)
+    target_link_libraries(dethrace_sdl2 INTERFACE SDL2::SDL2-static)
+else()
+    message(FATAL_ERROR "Neither SDL2::SDL2 or SDL2::SDL2-static is available")
+endif()
+
 if(DETHRACE_VFS)
     add_library(dethrace_physfs INTERFACE)
     add_library(DethRace::PhysFS ALIAS dethrace_physfs)

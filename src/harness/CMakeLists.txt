@@ -72,7 +72,7 @@ if (IO_PLATFORM STREQUAL "SDL_OpenGL")
         renderers/gl/stored_context.c
         renderers/gl/stored_context.h
     )
-    target_link_libraries(harness PRIVATE SDL2::SDL2 glad)
+    target_link_libraries(harness PRIVATE dethrace_sdl2 glad)
 endif()
 
 if(WIN32)
@@ -82,6 +82,10 @@ if(WIN32)
 elseif(APPLE)
     target_sources(harness PRIVATE
         os/macos.c
+    )
+elseif(ANDROID)
+    target_sources(harness PRIVATE
+        os/android.c
     )
 else()
     target_sources(harness PRIVATE
