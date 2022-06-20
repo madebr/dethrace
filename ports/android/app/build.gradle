@@ -11,6 +11,12 @@ android {
         targetSdk 31
         versionCode 1
         versionName '1.0'
+        externalNativeBuild {
+            cmake {
+                arguments "-DCMAKE_POSITION_INDEPENDENT_CODE=TRUE"
+            }
+        }
+
     }
 
     externalNativeBuild {
