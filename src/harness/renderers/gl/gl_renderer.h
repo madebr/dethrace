@@ -1,7 +1,7 @@
 #ifndef HARNESS_GL_RENDERER
 #define HARNESS_GL_RENDERER
 
-#include "renderers/renderer.h"
+#include "renderer.h"
 
 #define CHECK_GL_ERROR(msg)                                         \
     {                                                               \

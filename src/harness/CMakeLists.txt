@@ -11,6 +11,7 @@ target_include_directories(harness
         ${CMAKE_SOURCE_DIR}/src/DETHRACE
     PUBLIC
         include
+        "${CMAKE_CURRENT_SOURCE_DIR}/renderers"
 )
 
 target_link_libraries(harness PRIVATE brender)
@@ -48,14 +49,14 @@ target_sources(harness PRIVATE
     harness.c
     harness.h
     io_platforms/io_platform.h
-    renderers/null.h
+    renderers/null/null.c
+    renderers/null/null.h
     renderers/renderer.h
     brender_emu/renderer_impl.c
     brender_emu/renderer_impl.h
     sound/sound.c
     sound/sound.h
 )
-
 if (IO_PLATFORM STREQUAL "SDL_OpenGL")
     target_sources(harness PRIVATE
         io_platforms/sdl_gl.c
