@@ -136,23 +136,6 @@ static struct {
 } sdl_window_scale;
 static int is_full_screen = 0;
 
-tRenderer gl_renderer = {
-    GLRenderer_Init,
-    GLRenderer_BeginScene,
-    GLRenderer_EndScene,
-    GLRenderer_SetPalette,
-    GLRenderer_FullScreenQuad,
-    GLRenderer_Model,
-    GLRenderer_ClearBuffers,
-    GLRenderer_BufferTexture,
-    GLRenderer_BufferMaterial,
-    GLRenderer_BufferModel,
-    GLRenderer_FlushBuffers,
-    GLRenderer_GetRenderSize,
-    GLRenderer_GetWindowSize,
-    GLRenderer_SetWindowSize,
-    GLRenderer_GetViewport
-};
 
 tRenderer* Window_Create(char* title, int width, int height, int pRender_width, int pRender_height) {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
