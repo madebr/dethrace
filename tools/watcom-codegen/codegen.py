@@ -1,19 +1,17 @@
-#!/usr/bin/env python3 -u
+#!/usr/bin/env python3
 
 #######################################################
 # Parses Watcom "exedump" output into c skeleton coode
 # exedump: https://github.com/jeff-1amstudios/open-watcom-v2/tree/master/bld/exedump
 #
 # Usage: codegen.py <path to dump file> <path to write generated code>
-# Note: for some hacky reason <path to write generated code> must end with a slash
 #######################################################
+import argparse
 import sys
 import re
 import os
 import errno
 import shutil
-
-#BASE_OUTPUT_DIR = '_generated/'
 
 module_start_regex = '\d+\\) Name:\s+(\S+)'
 LOCAL_HEADER_REGEX = '(\S+):\s+(\S+)'
@@ -38,8 +36,18 @@ ENUM_ITEM_REGEX = '"(\S+)"   value = (\S+)'
 
 SECTION_UNDERLINE = '^(=*)$' # ignore these lines
 
-fp = open(sys.argv[1], 'r')
-BASE_OUTPUT_DIR = sys.argv[2]
+parser = argparse.ArgumentParser(allow_abbrev=False)
+parser.add_argument("dumpfile", help="Path to output of wdump")
+parser.add_argument("base", default="_generated", nargs="?", help="Path where to generate the symbols")
+args = parser.parse_args()
+
+DUMPFILE = args.dumpfile
+BASE_OUTPUT_DIR = os.path.realpath(args.base)
+
+print("dump file:        {}".format(DUMPFILE))
+print("output base path: {}".format(BASE_OUTPUT_DIR))
+
+fp = open(DUMPFILE, 'r')
 
 STATE_NONE = 0
 STATE_MODULE = 1
@@ -611,13 +619,13 @@ def generate_c_skeleton():
   global br_types_file
 
   try:
-    shutil.rmtree(BASE_OUTPUT_DIR + '/*')
+    shutil.rmtree(BASE_OUTPUT_DIR)
   except:
     pass
-  mkdir_p(BASE_OUTPUT_DIR + '/types')
+  mkdir_p(os.path.join(BASE_OUTPUT_DIR, "types"))
 
-  dr_types_file = open(BASE_OUTPUT_DIR + '/types/dr_types.h', 'w')
-  br_types_file = open(BASE_OUTPUT_DIR + '/types/br_types.h', 'w')
+  dr_types_file = open(os.path.join(BASE_OUTPUT_DIR, "types/dr_types.h"), "w")
+  br_types_file = open(os.path.join(BASE_OUTPUT_DIR, "types/br_types.h"), "w")
 
   dr_types_file.write("#ifndef DR_TYPES_H\n")
   dr_types_file.write("#define DR_TYPES_H\n\n")
@@ -641,7 +649,7 @@ def generate_c_skeleton():
   dr_types_file.write("\n#endif")
 
 def generate_h_file(module):
-  filename = BASE_OUTPUT_DIR + module['name'][3:].replace('\\', '/').replace('.c', '.h')
+  filename = os.path.join(BASE_OUTPUT_DIR, module['name'][3:].replace('\\', '/').replace('.c', '.h'))
 
   dir = os.path.dirname(filename)
   name = os.path.basename(filename)
@@ -683,7 +691,7 @@ def generate_h_file(module):
   h_file.write('#endif\n')
 
 def generate_c_file(module):
-  filename = BASE_OUTPUT_DIR + module['name'][3:].replace('\\', '/')
+  filename = os.path.join(BASE_OUTPUT_DIR, module['name'][3:].replace('\\', '/'))
 
   c_file = open(filename, 'w')
   c_file.write('#include \"')
