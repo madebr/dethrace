@@ -1,6 +1,8 @@
 #ifndef S3_SOUND_H
 #define S3_SOUND_H
 
+#include <brender/brender.h>
+
 // External typedefs
 
 typedef float tF32;
@@ -59,5 +61,7 @@ void S3BindListenerVelocityBRender(br_vector3* vel);
 void S3BindListenerLeftBRender(br_vector3* left);
 
 int S3IsCDAPlaying2();
+
+int S3SetEffects(tS3_sample_filter* filter1, tS3_sample_filter* filter2);
 
 #endif

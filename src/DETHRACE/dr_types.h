@@ -3932,7 +3932,7 @@ typedef struct BYTEREGS {
     unsigned short _4;
 } BYTEREGS;
 
-typedef struct REGS {
+typedef union REGS {
     DWORDREGS x;
     WORDREGS w;
     BYTEREGS h;
@@ -4070,7 +4070,7 @@ typedef struct INTPACKB {
     unsigned short _4;
 } INTPACKB;
 
-typedef struct INTPACK {
+typedef union INTPACK {
     INTPACKB h;
     INTPACKW w;
     INTPACKX x;
