@@ -658,6 +658,7 @@ void LoadInRegisteeDir(char* pThe_dir_path) {
     PathCat(reg_path, pThe_dir_path, "REG");
     LoadInFiles(reg_path, "PALETTES", DRLoadPalette);
     LoadInFiles(reg_path, "SHADETAB", DRLoadShadeTable);
+    InitializePalettes();
     LoadInFiles(reg_path, "PIXELMAP", DRLoadPixelmaps);
     LoadInFiles(reg_path, "MATERIAL", DRLoadMaterials);
     LoadInFiles(reg_path, "MODELS", DRLoadModels);
@@ -666,7 +667,8 @@ void LoadInRegisteeDir(char* pThe_dir_path) {
 }
 
 // IDA: void __cdecl LoadInRegistees()
-void LoadInRegistees() {
+void LoadInRegistees(void) {
+
     LoadInRegisteeDir(gApplication_path);
 }
 

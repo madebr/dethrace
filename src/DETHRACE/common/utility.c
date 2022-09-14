@@ -1195,7 +1195,7 @@ void EncodeLine2(char* pS) {
     len = strlen(pS);
     count = 0;
     key = (char*)gLong_key;
-    while (len > 0 && (pS[len - 1] == 13 || pS[len - 1] == 10)) {
+    while (len > 0 && (pS[len - 1] == '\r' || pS[len - 1] == '\n')) {
         --len;
         pS[len] = 0;
     }
