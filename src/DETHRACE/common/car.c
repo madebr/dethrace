@@ -94,9 +94,12 @@ float gEngine_powerup_factor[6] = { 1.3f, 1.9f, 2.5f, 3.2f, 4.0f, 10.0f };
 br_angle gPanning_camera_angle;
 br_scalar gPanning_camera_height;
 int gFace_count;
-float gCar_simplification_factor[2][5] = {
+float gCar_simplification_factor[COUNT_GRAF_DATA][5] = {
     { 10.0f, 3.0f, 1.5f, 0.75f, 0.0f },
-    { 10.0f, 5.0f, 2.5f, 1.5f, 0.0f }
+    { 10.0f, 5.0f, 2.5f, 1.5f, 0.0f },
+#if defined(DETHRACE_FIX_BUGS)
+    { 10.0f, 5.0f, 2.5f, 1.5f, 0.0f },
+#endif
 };
 int gCar_simplification_level = 0;
 int gNum_active_non_cars = 0;

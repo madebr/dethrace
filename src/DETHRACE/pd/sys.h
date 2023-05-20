@@ -12,6 +12,13 @@
 
 #include "harness/compiler.h"
 
+#if defined(DETHRACE_FIX_BUGS)
+#define COUNT_GRAF_SPECS 3
+#define GFX_INIT_STRING_1920X1080X8 "1920x1080 init string"
+#else
+#define COUNT_GRAF_SPECS 2
+#endif
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +27,7 @@
 extern int gASCII_table[128];
 extern tU32 gKeyboard_bits[8];
 extern int gASCII_shift_table[128];
-extern tGraf_spec gGraf_specs[2];
+extern tGraf_spec gGraf_specs[COUNT_GRAF_SPECS];
 extern char gNetwork_profile_fname[256];
 extern tS32 gJoystick_min1y;
 extern tS32 gJoystick_min2y;

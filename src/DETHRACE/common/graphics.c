@@ -3118,7 +3118,7 @@ int SwitchToLoresMode(void) {
     }
     gGraf_data_index = 0;
     gGraf_spec_index = 0;
-    gCurrent_graf_data = gGraf_data;
+    gCurrent_graf_data = &gGraf_data[0];
     PDSwitchToLoresMode();
     return 1;
 }

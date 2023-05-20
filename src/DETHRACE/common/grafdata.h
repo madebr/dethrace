@@ -4,7 +4,13 @@
 #include "brender/br_types.h"
 #include "dr_types.h"
 
-extern tGraf_data gGraf_data[2];
+#if defined(DETHRACE_FIX_BUGS)
+#define COUNT_GRAF_DATA 3
+#else
+#define COUNT_GRAF_DATA 2
+#endif
+
+extern tGraf_data gGraf_data[COUNT_GRAF_DATA];
 extern tGraf_data* gCurrent_graf_data;
 extern int gGraf_data_index;
 

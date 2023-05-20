@@ -4,6 +4,8 @@
 #include "brender/br_types.h"
 #include "dr_types.h"
 
+#include "grafdata.h"
+
 #define CAR_MAX_SIMPLIFICATION_LEVEL 4
 
 extern int gDoing_physics;
@@ -43,7 +45,7 @@ extern float gEngine_powerup_factor[6];
 extern br_angle gPanning_camera_angle;
 extern br_scalar gPanning_camera_height;
 extern int gFace_count;
-extern float gCar_simplification_factor[2][5];
+extern float gCar_simplification_factor[COUNT_GRAF_DATA][5];
 extern int gCar_simplification_level;
 extern int gNum_active_non_cars;
 extern int gCamera_has_collided;

@@ -341,6 +341,12 @@ void InitPratcam(void) {
     case 1:
         the_pixels = BrMemAllocate(104 * 110, kMem_pratcam_pixelmap);
         break;
+#if defined(DETHRACE_FIX_BUGS)
+    case 2:
+        // FIXME: scale appropriately for HD resolution
+        the_pixels = BrMemAllocate(104 * 110, kMem_pratcam_pixelmap);
+        break;
+#endif
     default:
         TELL_ME_IF_WE_PASS_THIS_WAY();
     }
@@ -354,6 +360,12 @@ void InitPratcam(void) {
     case 1:
         gPrat_buffer = DRPixelmapAllocate(gScreen->type, 104, 110, the_pixels, 0);
         break;
+#if defined(DETHRACE_FIX_BUGS)
+    case 2:
+        // FIXME: scale appropriately for HD resolution
+        gPrat_buffer = DRPixelmapAllocate(gScreen->type, 104, 110, the_pixels, 0);
+        break;
+#endif
     default:
         TELL_ME_IF_WE_PASS_THIS_WAY();
     }

@@ -26,14 +26,20 @@
 
 #define GFX_INIT_STRING_32X20X8 "320x200 init string"
 #define GFX_INIT_STRING_64X48X8 "640x480 init string"
+#if defined(DETHRACE_FIX_BUGS)
+#define GFX_INIT_STRING_1920X1080X8 "1920x1080 init string"
+#endif
 
 #define KEYDOWN(var, key) (var[key] & 0x80)
 
 int gExtra_mem;
 int gReplay_override;
-tGraf_spec gGraf_specs[2] = {
+tGraf_spec gGraf_specs[COUNT_GRAF_SPECS] = {
     { 8, 1, 0, 320, 200, 0, 0, "32X20X8", GFX_INIT_STRING_32X20X8, 320, 320, 200, NULL },
-    { 8, 1, 0, 640, 480, 0, 0, "64X48X8", GFX_INIT_STRING_64X48X8, 640, 640, 480, NULL }
+    { 8, 1, 0, 640, 480, 0, 0, "64X48X8", GFX_INIT_STRING_64X48X8, 640, 640, 480, NULL },
+#if defined(DETHRACE_FIX_BUGS)
+    { 8, 1, 0, 1920, 1080, 0, 0, "64X48X8", GFX_INIT_STRING_64X48X8, 1920, 1920, 1080, NULL },
+#endif
 };
 int gASCII_table[128];
 tU32 gKeyboard_bits[8];
@@ -905,6 +911,10 @@ int original_main(int pArgc, char** pArgv) {
     for (i = 1; i < pArgc; i++) {
         if (strcasecmp(pArgv[i], "-hires") == 0) {
             gGraf_spec_index = 1;
+#if defined(DETHRACE_FIX_BUGS)
+        } else if (strcasecmp(pArgv[i], "-hdres") == 0) {
+            gGraf_spec_index = 2;
+#endif
         } else if (strcasecmp(pArgv[i], "-yon") == 0 && i < pArgc - 1) {
             i++;
             sscanf(pArgv[i], "%f", &f);
