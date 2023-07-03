@@ -164,7 +164,7 @@ static int get_and_handle_message(MSG_* msg) {
             break;
 
         case SDL_QUIT:
-            msg->message = WM_QUIT;
+            msg->message = WM_QUIT_;
             return 1;
         }
     }

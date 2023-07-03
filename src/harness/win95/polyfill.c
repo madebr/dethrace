@@ -1,19 +1,38 @@
-
 #include "harness/hooks.h"
 #include "harness/win95_polyfill.h"
+
+#define VALUEOF(V) V
+#define JOIN2(A, B) A##B
+#define JOIN(A, B) JOIN2(A, B)
+#define POLY_STATIC_ASSERT(V) typedef JOIN(poly_static_assert_, VALUEOF(__COUNTER__))[(V) ? 1 : -1]
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
 
 #include <direct.h>
 #include <windows.h>
 // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/getcwd-wgetcwd?view=msvc-170
 #define getcwd _getcwd
 #define chdir _chdir
+
+POLY_STATIC_ASSERT(GENERIC_READ_ == GENERIC_READ);
+POLY_STATIC_ASSERT(OPEN_EXISTING_ == OPEN_EXISTING);
+POLY_STATIC_ASSERT(FILE_ATTRIBUTE_NORMAL_ == FILE_ATTRIBUTE_NORMAL);
+POLY_STATIC_ASSERT(INVALID_HANDLE_VALUE_ == INVALID_HANDLE_VALUE);
+POLY_STATIC_ASSERT(INVALID_FILE_ATTRIBUTES_ == INVALID_FILE_ATTRIBUTES);
+POLY_STATIC_ASSERT(FILE_ATTRIBUTE_READONLY_ == FILE_ATTRIBUTE_READONLY);
+POLY_STATIC_ASSERT(FILE_ATTRIBUTE_NORMAL_ == FILE_ATTRIBUTE_NORMAL);
+POLY_STATIC_ASSERT(HWND_BROADCAST_ == HWND_BROADCAST);
+#ifdef _CERT_ASSERT
+POLY_STATIC_ASSERT(_CRT_ASSERT_ == _CRT_ASSERT);
+#endif
+POLY_STATIC_ASSERT(WM_QUIT_ == WM_QUIT);
+POLY_STATIC_ASSERT(MB_ICONERROR_ == MB_ICONERROR);
+
 #else
 #include <dirent.h>
 #include <libgen.h>
@@ -26,9 +45,9 @@ uint32_t GetFileAttributesA_(char* lpFileName) {
 
     FILE* f = fopen(lpFileName, "r");
     if (!f) {
-        return INVALID_FILE_ATTRIBUTES;
+        return INVALID_FILE_ATTRIBUTES_;
     }
-    return FILE_ATTRIBUTE_NORMAL;
+    return FILE_ATTRIBUTE_NORMAL_;
 }
 
 int SetFileAttributesA_(char* lpFileName, uint32_t dwFileAttributes) {
@@ -38,13 +57,13 @@ int SetFileAttributesA_(char* lpFileName, uint32_t dwFileAttributes) {
 
 void* CreateFileA_(char* lpFileName, uint32_t dwDesiredAccess, uint32_t dwShareMode, void* lpSecurityAttributes, uint32_t dwCreationDisposition, uint32_t dwFlagsAndAttributes, void* hTemplateFile) {
 
-    assert(dwDesiredAccess == GENERIC_READ);
+    assert(dwDesiredAccess == GENERIC_READ_);
     assert(lpSecurityAttributes == NULL);
-    assert(dwCreationDisposition == OPEN_EXISTING);
+    assert(dwCreationDisposition == OPEN_EXISTING_);
 
     FILE* f = fopen(lpFileName, "r");
     if (!f) {
-        return INVALID_HANDLE_VALUE;
+        return INVALID_HANDLE_VALUE_;
     }
 
     return f;
@@ -113,10 +132,10 @@ int SetCurrentDirectoryA_(char* lpPathName) {
 HANDLE_ FindFirstFileA_(char* lpFileName, WIN32_FIND_DATAA_* lpFindFileData) {
     assert(strcmp(lpFileName, "*.???") == 0);
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
     WIN32_FIND_DATA fd;
     void* hFile = FindFirstFile(lpFileName, &fd);
-    if (hFile != INVALID_HANDLE_VALUE) {
+    if (hFile != INVALID_HANDLE_VALUE_) {
         strcpy(lpFindFileData->cFileName, fd.cFileName);
     }
     return hFile;
@@ -125,19 +144,19 @@ HANDLE_ FindFirstFileA_(char* lpFileName, WIN32_FIND_DATAA_* lpFindFileData) {
     strcpy(lpFileName, ".");
     dir = opendir(lpFileName);
     if (dir == NULL) {
-        return INVALID_HANDLE_VALUE;
+        return INVALID_HANDLE_VALUE_;
     }
     if (FindNextFileA_(dir, lpFindFileData)) {
         return dir;
     } else {
         closedir(dir);
-        return INVALID_HANDLE_VALUE;
+        return INVALID_HANDLE_VALUE_;
     }
 #endif
 }
 
 int FindNextFileA_(HANDLE_ hFindFile, WIN32_FIND_DATAA_* lpFindFileData) {
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
     WIN32_FIND_DATA fd;
     int result = FindNextFile(hFindFile, &fd);
     if (result) {
@@ -161,7 +180,7 @@ int FindNextFileA_(HANDLE_ hFindFile, WIN32_FIND_DATAA_* lpFindFileData) {
 }
 
 int FindClose_(HANDLE_ hFindFile) {
-#if defined(_WIN32) || defined(_WIN64)
+#if defined(_WIN32)
     return FindClose(hFindFile);
 #else
     return closedir(hFindFile);
@@ -188,7 +207,7 @@ int SendMessageA_(void* hWnd, unsigned int Msg, unsigned int wParam, long lParam
 
 int MessageBoxA_(void* hWnd, char* lpText, char* lpCaption, unsigned int uType) {
     // only ever used for errors
-    assert(uType == MB_ICONERROR);
+    assert(uType == MB_ICONERROR_);
     return gHarness_platform.ShowErrorMessage(hWnd, lpText, lpCaption);
 }
 

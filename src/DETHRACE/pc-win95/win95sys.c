@@ -320,7 +320,7 @@ void Win32PumpMessages(void) {
 
     PDUnlockRealBackScreen();
     while ((!gWin32_window_has_focus || PeekMessageA_(&msg, 0, 0, 0, 1u)) && (gWin32_window_has_focus || GetMessageA_(&msg, 0, 0, 0) != -1)) {
-        if (msg.message == WM_QUIT) {
+        if (msg.message == WM_QUIT_) {
             dr_dprintf("WM_QUIT received.");
             if (gWin32_window_has_focus) {
                 dr_dprintf("Active, so lock the surface");
@@ -441,10 +441,10 @@ void PDShutdownSystem(void) {
         dr_dprintf("Servicing messages...");
         Win32PumpMessages();
         dr_dprintf("Sending WM_SHOWWINDOW broadcast message...");
-        SendMessageA_(HWND_BROADCAST, 0x18u, 1u, 0);
+        SendMessageA_(HWND_BROADCAST_, 0x18u, 1u, 0);
         if (gWin32_show_fatal_error_message) {
             dr_dprintf("Displaying fatal error...");
-            MessageBoxA_(0, gWin32_fatal_error_message, "Carmageddon Fatal Error", MB_ICONERROR);
+            MessageBoxA_(0, gWin32_fatal_error_message, "Carmageddon Fatal Error", MB_ICONERROR_);
         }
         if (gWin32_hwnd) {
             dr_dprintf("Destroying window...");
@@ -691,7 +691,7 @@ void PDForEveryFile(char* pThe_path, void (*pAction_routine)(char*)) {
     if (SetCurrentDirectoryA_(pThe_path)) {
         strcpy(file_filter, "*.???");
         hFindFile = FindFirstFileA_(file_filter, &find_data);
-        if (hFindFile != INVALID_HANDLE_VALUE) {
+        if (hFindFile != INVALID_HANDLE_VALUE_) {
             do {
                 PathCat(found_path, pThe_path, find_data.cFileName);
                 pAction_routine(found_path);
@@ -967,7 +967,7 @@ void PDEnterDebugger(char* pStr) {
 #else
     if (pStr != "Bet you weren't expecting this"
 #endif
-        && _CrtDbgReport_(_CRT_ASSERT, "C:\\Msdev\\Projects\\DethRace\\Win95sys.c", 437, 0, 0) == 1) {
+        && _CrtDbgReport_(_CRT_ASSERT_, "C:\\Msdev\\Projects\\DethRace\\Win95sys.c", 437, 0, 0) == 1) {
 
         abort(); // original: __debugbreak();
     }
@@ -1105,7 +1105,7 @@ int PDFileUnlock(char* pThe_path) {
     LOG_TRACE("(\"%s\")", pThe_path);
 
     dwFileAttributes = GetFileAttributesA_(pThe_path);
-    return dwFileAttributes != INVALID_FILE_ATTRIBUTES && SetFileAttributesA_(pThe_path, dwFileAttributes & ~FILE_ATTRIBUTE_READONLY);
+    return dwFileAttributes != INVALID_FILE_ATTRIBUTES_ && SetFileAttributesA_(pThe_path, dwFileAttributes & ~FILE_ATTRIBUTE_READONLY_);
 }
 
 int PDCheckDriveExists2(char* pThe_path, char* pFile_name, tU32 pMin_size) {
@@ -1124,11 +1124,11 @@ int PDCheckDriveExists2(char* pThe_path, char* pFile_name, tU32 pMin_size) {
     if (the_path[0] && the_path[1] == ':' && !the_path[2]) {
         strcat(the_path, gDir_separator);
     }
-    if (GetFileAttributesA_(pThe_path) == INVALID_FILE_ATTRIBUTES) {
+    if (GetFileAttributesA_(pThe_path) == INVALID_FILE_ATTRIBUTES_) {
         return 0;
     }
-    hFile = CreateFileA_(the_path, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
-    if (hFile != INVALID_HANDLE_VALUE) {
+    hFile = CreateFileA_(the_path, GENERIC_READ_, 0, 0, OPEN_EXISTING_, FILE_ATTRIBUTE_NORMAL_, 0);
+    if (hFile != INVALID_HANDLE_VALUE_) {
         file_size = GetFileSize_(hFile, 0);
         CloseHandle_(hFile);
     }
