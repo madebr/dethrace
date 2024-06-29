@@ -260,6 +260,9 @@ int Harness_ProcessCommandLine(int* argc, char* argv[]) {
         } else if (strcasecmp(argv[i], "--no-bind") == 0) {
             harness_game_config.no_bind = 1;
             handled = 1;
+        } else if (strcasecmp(argv[i], "--kill-unreachable-peds") == 0) {
+            harness_game_config.kill_unreachable_peds = 1;
+            handled = 1;
         }
 
         if (handled) {

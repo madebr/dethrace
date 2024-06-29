@@ -3954,3 +3954,70 @@ void SendAllPedestrianPositions(tPlayer_ID pPlayer) {
         }
     }
 }
+
+#if defined(DETHRACE_FIX_BUGS)
+
+#include "grafdata.h"
+
+void KillUnreachablePedestrians(void) {
+    int i;
+    int kill_count = 0;
+
+    for (i = 0; i < gPed_count; i++) {
+        br_vector3 ped_pos;
+        br_vector3 map_pos;
+        int ped_type;
+        const char *kill_reason = NULL;
+
+        ped_type = GetPedPosition(i, &ped_pos);
+        BrMatrix34ApplyP(&map_pos, &ped_pos, &gCurrent_race.map_transformation);
+
+        if (kill_reason == NULL) {
+            br_vector3 cast_point;
+            br_scalar new_y;
+
+            BrVector3Copy(&cast_point, &ped_pos);
+            cast_point.v[1] += .4f;
+            new_y = FindYVerticallyBelow2(&cast_point);
+
+            if (new_y < -100.f) {
+                kill_reason = "no underlying ground";
+            }
+
+        }
+
+        if (kill_reason == NULL) {
+            if (map_pos.v[X] < 0.f || map_pos.v[Y] < 0.f || map_pos.v[X] >= gGraf_data[0].width || map_pos.v[Y] >= gGraf_data[0].height) {
+                kill_reason = "not visible on map";
+            }
+        }
+
+        if (kill_reason != NULL) {
+            const char *ped_description;
+            if (ped_type > 0) {
+                ped_description = "person";
+            } else if (ped_type < 0) {
+                ped_description = "powerup";
+            } else {
+                ped_description = "dead";
+            }
+            LOG_WARN("Detected unreachable %s ped %d at <%g,%g,%g>(map=<%g,%g,%g>): %s",
+                ped_description,
+                i,
+                ped_pos.v[X], ped_pos.v[Y], ped_pos.v[Z],
+                map_pos.v[X], map_pos.v[Y], map_pos.v[Z],
+                kill_reason
+            );
+            KillPedestrian(&gPedestrian_array[i]);
+            kill_count += 1;
+        }
+    }
+    if (kill_count != 0) {
+        char s[256];
+
+        sprintf(s, "Killed %d pedestrian(s) and/or powerup(s)", kill_count);
+        LOG_WARN(s);
+        NewTextHeadupSlot2(4, 0, 3000, -4, s, 0);
+    }
+}
+#endif

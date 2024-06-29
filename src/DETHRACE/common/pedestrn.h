@@ -268,4 +268,8 @@ void ReceivedPedestrian(tNet_contents* pContents, tNet_message* pMessage, tU32 p
 
 void SendAllPedestrianPositions(tPlayer_ID pPlayer);
 
+#if defined(DETHRACE_FIX_BUGS)
+void KillUnreachablePedestrians(void);
+#endif
+
 #endif

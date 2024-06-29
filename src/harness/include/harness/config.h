@@ -44,6 +44,7 @@ typedef struct tHarness_game_config {
     int gore_check;
     int sound_options;
     int no_bind;
+    int kill_unreachable_peds;
     int verbose;
 
     int install_signalhandler;

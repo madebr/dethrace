@@ -519,6 +519,12 @@ tRace_result MainGameLoop(void) {
     NetPlayerStatusChanged(ePlayer_status_racing);
     GetAverageGridPosition(&gCurrent_race);
     ForceRebuildActiveCarList();
+#ifdef DETHRACE_FIX_BUGS
+    if (harness_game_config.kill_unreachable_peds) {
+        KillUnreachablePedestrians();
+    }
+#endif
+
     PrintMemoryDump(0, "ABOUT TO ENTER MAINLOOP");
 
     do {
