@@ -243,5 +243,11 @@ if(DETHRACE_INSTALL)
             DESTINATION "."
             OPTIONAL
         )
+        if(MSVC AND TARGET SDL2::SDL2)
+            install(FILES "$<TARGET_PDB_FILE:SDL2::SDL2>"
+                DESTINATION "."
+                OPTIONAL
+            )
+        endif()
     endif()
 endif()
