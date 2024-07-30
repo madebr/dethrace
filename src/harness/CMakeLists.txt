@@ -2,9 +2,7 @@ configure_file(version.h.in version.h @ONLY)
 
 add_library(harness STATIC)
 
-if (NOT DEFINED IO_PLATFORM)
-    set(IO_PLATFORM "SDL2")
-endif()
+set(IO_PLATFORM "SDL2" CACHE STRING "Dethrace IO platform")
 
 target_include_directories(harness
     PRIVATE
@@ -64,12 +62,26 @@ target_sources(harness PRIVATE
     "${CMAKE_CURRENT_BINARY_DIR}/version.h"
 )
 
-if (IO_PLATFORM STREQUAL "SDL2")
+if(IO_PLATFORM STREQUAL "SDL2")
+    find_package(SDL2 CONFIG)
+    if(NOT SDL2_FOUND)
+        find_package(SDL2 MODULE REQUIRED)
+    endif()
     target_sources(harness PRIVATE
         platforms/sdl2.c
         platforms/sdl2_scancode_to_dinput.h
     )
     target_link_libraries(harness PRIVATE SDL2::SDL2)
+elseif(IO_PLATFORM STREQUAL "SDL12")
+    cmake_minimum_required(VERSION 3.19)
+    find_package(SDL REQUIRED)
+    target_sources(harness PRIVATE
+        platforms/sdl12.c
+        platforms/sdl12_scancode_to_dinput.h
+    )
+    target_link_libraries(harness PRIVATE SDL::SDL)
+else()
+    message(FATAL_ERROR "Unknown IO_PLATFORM=${IO_PLATFORM}")
 endif()
 
 if(WIN32)
