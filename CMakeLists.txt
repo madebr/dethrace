@@ -37,6 +37,11 @@ option(BUILD_TESTS "Build unit tests." OFF)
 option(DETHRACE_INSTALL "Add install target" OFF)
 option(DETHRACE_WERROR "Treat warnings as errors")
 option(DETHRACE_FIX_BUGS "Fix Dethrace bugs" ON)
+option(DETHRACE_IMGUI "Build with imgui debug interface" OFF)
+
+if(DETHRACE_IMGUI)
+    enable_language(CXX)
+endif()
 
 function(add_compile_flag_if_supported TARGET FLAG)
     cmake_parse_arguments(ARGS "" "" "LANGUAGES" ${ARGN})

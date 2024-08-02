@@ -68,6 +68,25 @@ if (IO_PLATFORM STREQUAL "SDL2")
         platforms/sdl2_scancode_to_dinput.h
     )
     target_link_libraries(harness PRIVATE SDL2::SDL2)
+    if(DETHRACE_IMGUI)
+        target_compile_definitions(harness PRIVATE DETHRACE_IMGUI)
+        target_include_directories(harness PRIVATE "${dethrace_SOURCE_DIR}/lib/imgui")
+        target_include_directories(harness PRIVATE "${dethrace_SOURCE_DIR}/lib/imgui/backends")
+        target_include_directories(harness PRIVATE "${dethrace_SOURCE_DIR}/src/DETHRACE")
+        target_include_directories(harness PRIVATE "${dethrace_SOURCE_DIR}/src/DETHRACE/common")
+        target_include_directories(harness PRIVATE "${dethrace_SOURCE_DIR}/src/S3/include")
+        target_sources(harness PRIVATE
+            harness_imgui.cpp
+            platforms/sdl2_imgui.cpp
+            "${dethrace_SOURCE_DIR}/lib/imgui/imgui.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/imgui_demo.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/imgui_draw.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/imgui_tables.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/imgui_widgets.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/backends/imgui_impl_sdlrenderer2.cpp"
+            "${dethrace_SOURCE_DIR}/lib/imgui/backends/imgui_impl_sdl2.cpp"
+        )
+    endif()
 endif()
 
 if(WIN32)

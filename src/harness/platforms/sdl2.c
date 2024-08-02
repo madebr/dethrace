@@ -6,6 +6,9 @@
 #include "harness/trace.h"
 #include "sdl2_scancode_to_dinput.h"
 
+#include "sdl2_imgui.h"
+#include "harness_imgui.h"
+
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Texture* screen_texture;
@@ -56,6 +59,8 @@ static void* create_window_and_renderer(char* title, int x, int y, int width, in
         LOG_PANIC("Failed to create screen_texture: %s", SDL_GetError());
     }
 
+    sdl2_imgui_init();
+
     return window;
 }
 
@@ -87,6 +92,7 @@ static int get_and_handle_message(MSG_* msg) {
     int dinput_key;
 
     while (SDL_PollEvent(&event)) {
+        imgui_sdl2_process_event(&event);
         switch (event.type) {
         case SDL_KEYDOWN:
         case SDL_KEYUP:
@@ -208,6 +214,10 @@ static void present_screen(br_pixelmap* src) {
 
     if (harness_game_config.fps != 0) {
         limit_fps();
+    }
+    if (imgui_sdl2_initframe()) {
+        dethrace_imgui();
+        imgui_sdl2_drawframe();
     }
 }
 
