@@ -2579,9 +2579,7 @@ void EnterUserMessage(void) {
                 }
                 gString[20 + len + 1] = '\0';
             }
-        } else if (the_key < KEY_KP_0 || the_key >  KEY_KP_9) {
-            gEntering_message = 0;
-        } else {
+        } else if (the_key >= KEY_KP_0 && the_key <= KEY_KP_9) {
             if (the_key == KEY_KP_0) {
                 abuse_num = 9;
             } else {
@@ -2590,6 +2588,8 @@ void EnterUserMessage(void) {
             if (gAbuse_text[abuse_num] != NULL) {
                 strcpy(&gString[20], gAbuse_text[abuse_num]);
             }
+        } else {
+            gEntering_message = 0;
         }
     }
 }

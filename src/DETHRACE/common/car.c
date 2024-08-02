@@ -846,7 +846,8 @@ void ControlOurCar(tU32 pTime_difference) {
         BrMatrix34ApplyV(&car->direction, &minus_k, &car->car_master_actor->t.t.mat);
     }
 }
-
+float gAccForceBefore,gAccForceAfter, gAccForceAfterAfter;
+float gTorque_before, gTorque_after, gTorque_after2;
 // IDA: void __usercall CalcEngineForce(tCar_spec *c@<EAX>, br_scalar dt)
 void CalcEngineForce(tCar_spec* c, br_scalar dt) {
     br_scalar torque;
@@ -880,7 +881,9 @@ void CalcEngineForce(tCar_spec* c, br_scalar dt) {
         c->joystick.acc = c->joystick.dec;
         c->joystick.dec = temp_for_swap;
     }
+    gTorque_before = c->torque;
     c->torque = -(c->revs * c->revs / 100000000.0f) - 0.2f;
+    gTorque_after = c->torque;
     if (c->keys.acc || c->joystick.acc >= 0) {
         if (fabsf(c->curvature) > c->maxcurve / 2.0f && c->gear < 2 && c->gear && c->traction_control) {
             ts = 0.7f;
@@ -898,6 +901,7 @@ void CalcEngineForce(tCar_spec* c, br_scalar dt) {
     } else {
         c->traction_control = 1;
     }
+    gTorque_after2 = c->torque;
     if (!c->keys.dec && (!c->keys.acc || c->gear) && c->joystick.dec <= 0 && (c->joystick.acc <= 0 || c->gear)) {
         c->brake_force = 0.0f;
     } else {
@@ -918,7 +922,9 @@ void CalcEngineForce(tCar_spec* c, br_scalar dt) {
         if (c->brake_force == 0.0f) {
             if (c->revs - 1.0f > c->target_revs || c->revs + 1.0f < c->target_revs) {
                 ts2 = c->torque * dt / 0.0002 + c->revs - c->target_revs;
+                gAccForceBefore = c->acc_force;
                 c->acc_force += ts2 / ((1.0f / (c->speed_revs_ratio * c->M) / (float)c->gear + 1.0 / (c->force_torque_ratio * 0.0002) * (double)c->gear) * dt);
+                gAccForceAfter = c->acc_force;
             }
         } else {
             c->revs = c->target_revs;
@@ -2621,6 +2627,7 @@ void CalcForce(tCar_spec* c, br_scalar dt) {
     AddDrag(c, dt);
     if (c->driver >= eDriver_net_human) {
         c->acc_force = -(v136.v[2] * force[0]) - v136.v[2] * force[1];
+        gAccForceAfterAfter = c->acc_force;
         // LOG_DEBUG("old %f new %f", old, c->acc_force);
     }
 }
