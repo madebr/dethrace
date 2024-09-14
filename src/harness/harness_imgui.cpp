@@ -2,7 +2,11 @@
 
 #include "imgui.h"
 
+extern "C" {
 #include "globvars.h"
+extern float gAccForceBefore,gAccForceAfter, gAccForceAfterAfter;
+extern float gTorque_before, gTorque_after, gTorque_after2;
+}
 
 #include <vector>
 
@@ -46,13 +50,6 @@ private:
 #define CAR_LOGGER(member) { #member, &(gProgram_state.current_car. member) }
 #define CAR_LOGGER_MIN_MAX(member, min, max) { #member, &(gProgram_state.current_car. member), min, max }
 
-extern float gAccForceBefore;
-extern float gAccForceAfter;
-extern float gAccForceAfterAfter;
-extern float gTorque_before;
-extern float gTorque_after;
-extern float gTorque_after2;
-
 static Logger<float> float_loggers[] = {
     CAR_LOGGER(speed),
     CAR_LOGGER(sk[0]),
@@ -72,6 +69,7 @@ static Logger<float> float_loggers[] = {
 };
 
 static Logger<int> int_loggers[] = {
+    { "gShow_peds_on_map", &gShow_peds_on_map, 0.f, 1.f },
 };
 
 
