@@ -23,7 +23,7 @@ if(MSVC)
         /wd4101
         /wd4996
     )
-else()
+elseif(CMAKE_C_COMPILER_ID MATCHES ".*(GNU|Clang).*")
     target_compile_options(dethrace_obj PRIVATE
         -Wall
     )

@@ -19,14 +19,14 @@ endif()
 
 target_link_libraries(harness PRIVATE brender miniaudio stb compile_with_werror)
 
-if(NOT MSVC)
+if(CMAKE_C_COMPILER_ID MATCHES ".*(GNU|Clang).*")
     target_compile_options(harness PRIVATE
         -Wall
         -Wextra
         -Wno-unused-parameter
     )
     add_compile_flag_if_supported(harness -Wstrict-prototypes LANGUAGES C)
-else()
+elseif(MSVC)
     target_compile_definitions(harness PRIVATE -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
