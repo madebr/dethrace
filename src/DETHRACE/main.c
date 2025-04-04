@@ -30,7 +30,7 @@ void BR_CALLBACK _BrEndHook(void) {
 int main(int argc, char* argv[]) {
     int result;
 
-#ifdef _WIN32
+#if defined(_WIN32) && defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0500
     /* Attach to the console that started us if any */
     if (AttachConsole(ATTACH_PARENT_PROCESS)) {
         /* We attached successfully, lets redirect IO to the consoles handles if not already redirected */

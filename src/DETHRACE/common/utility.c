@@ -406,6 +406,7 @@ br_pixelmap* DRPixelmapMatchSized(br_pixelmap* pSrc, tU8 pMatch_type, tS32 pWidt
     br_pixelmap* result;
     LOG_TRACE("(%p, %d, %d, %d)", pSrc, pMatch_type, pWidth, pHeight);
     NOT_IMPLEMENTED();
+
 }
 
 // IDA: void __usercall CopyDoubled8BitTo16BitRectangle(br_pixelmap *pDst@<EAX>, br_pixelmap *pSrc@<EDX>, int pSrc_width@<EBX>, int pSrc_height@<ECX>, int pDst_x, int pDst_y, br_pixelmap *pPalette)
@@ -557,7 +558,7 @@ br_uintptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, 
 }
 
 // IDA: br_uint_32 __cdecl CompareActorID(br_actor *pActor, void *pArg)
-br_uintptr_t CompareActorID(br_actor* pActor, void* pArg) {
+br_uintptr_t BR_CALLBACK CompareActorID(br_actor* pActor, void* pArg) {
     LOG_TRACE("(%p, %p)", pActor, pArg);
 
     if (pActor->identifier && !strcmp(pActor->identifier, (const char*)pArg)) {

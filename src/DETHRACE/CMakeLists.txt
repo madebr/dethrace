@@ -23,6 +23,7 @@ if(MSVC)
         /wd4101
         /wd4996
     )
+elseif(WATCOM)
 else()
     target_compile_options(dethrace_obj PRIVATE
         -Wall
@@ -165,10 +166,13 @@ target_sources(dethrace_obj PRIVATE
     pc-win95/dinput.h
     pc-win95/ssdx.c
     pc-win95/ssdx.h
-    pc-win95/win95net.c
-    pc-dos/dosnet.c
-    pc-dos/dossys.c
 )
+if(DOS)
+    target_sources(dethrace_obj PRIVATE pc-dos/dosnet.c)
+    target_sources(dethrace_obj PRIVATE pc-dos/dossys.c)
+else()
+    target_sources(dethrace_obj PRIVATE pc-win95/win95net.c)
+endif()
 
 # Create our main game binary.
 add_executable(dethrace

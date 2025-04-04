@@ -6,6 +6,17 @@ endif()
 
 project(dethrace C)
 
+if(DOS)
+    enable_language(ASM_MASM)
+    add_compile_definitions(-D__GO32__=1 -D__DPMI__=1 -D__DOS__=1)
+    add_compile_options(-U__unix__)
+endif()
+
+if(WATCOM)
+    add_compile_options(-zastd=c99)
+    add_compile_options(-ei)
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
 if(MSVC)
@@ -79,6 +90,9 @@ if(DETHRACE_PLATFORM_SDL2)
     endif()
     list(APPEND DETHRACE_PLATFORMS SDL2)
     math(EXPR count_sdl_platforms "${count_sdl_platforms} + 1")
+endif()
+if(DOS)
+    list(APPEND DETHRACE_PLATFORMS DOS)
 endif()
 
 if(count_sdl_platforms GREATER 1)

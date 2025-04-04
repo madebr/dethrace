@@ -18,13 +18,13 @@ void MAMSInitMem(void);
 
 void PrintMemoryDump(int pFlags, char* pTitle);
 
-void* DRStdlibAllocate(br_size_t size, br_uint_8 type);
+void* BR_CALLBACK DRStdlibAllocate(br_size_t size, br_uint_8 type);
 
-void DRStdlibFree(void* mem);
+void BR_CALLBACK DRStdlibFree(void* mem);
 
-br_size_t DRStdlibInquire(br_uint_8 type);
+br_size_t BR_CALLBACK DRStdlibInquire(br_uint_8 type);
 
-br_uint_32 Claim4ByteAlignment(br_uint_8 type);
+br_uint_32 BR_CALLBACK Claim4ByteAlignment(br_uint_8 type);
 
 void InstallDRMemCalls(void);
 

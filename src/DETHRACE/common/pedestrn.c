@@ -3451,7 +3451,7 @@ void DropInitPedPointAir(void) {
 }
 
 // IDA: br_uint_32 __cdecl KillActorsModel(br_actor *pActor, void *pArg)
-br_uintptr_t KillActorsModel(br_actor* pActor, void* pArg) {
+br_uintptr_t BR_CALLBACK KillActorsModel(br_actor* pActor, void* pArg) {
     LOG_TRACE("(%p, %p)", pActor, pArg);
 
     if (pActor->model != NULL) {

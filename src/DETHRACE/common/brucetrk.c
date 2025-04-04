@@ -308,7 +308,7 @@ void LollipopizeActor4(br_actor* pActor, br_matrix34* pRef_to_world, br_actor* p
 }
 
 // IDA: br_uint_32 __cdecl LollipopizeChildren(br_actor *pActor, void *pArg)
-br_uintptr_t LollipopizeChildren(br_actor* pActor, void* pArg) {
+br_uintptr_t BR_CALLBACK LollipopizeChildren(br_actor* pActor, void* pArg) {
     tMatrix_and_actor* maa;
     LOG_TRACE("(%p, %p)", pActor, pArg);
 

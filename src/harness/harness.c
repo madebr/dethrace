@@ -18,6 +18,7 @@ extern void Harness_Platform_Init(tHarness_platform* platform);
 
 extern const tPlatform_bootstrap SDL1_bootstrap;
 extern const tPlatform_bootstrap SDL2_bootstrap;
+extern const tPlatform_bootstrap DOS_bootstrap;
 
 static const tPlatform_bootstrap *platform_bootstraps[] = {
 #ifdef DETHRACE_PLATFORM_SDL2
@@ -25,6 +26,9 @@ static const tPlatform_bootstrap *platform_bootstraps[] = {
 #endif
 #ifdef DETHRACE_PLATFORM_SDL1
     &SDL1_bootstrap,
+#endif
+#ifdef DETHRACE_PLATFORM_DOS
+    &DOS_bootstrap,
 #endif
 };
 
@@ -95,11 +99,14 @@ static void Harness_DetectGameMode(void) {
     harness_game_info.localization = eGameLocalization_none;
     if (access("DATA/TRNSLATE.TXT", F_OK) != -1) {
         FILE* f = fopen("DATA/TRNSLATE.TXT", "rb");
+        int filesize;
+        char* buffer;
+        int nb;
         fseek(f, 0, SEEK_END);
-        int filesize = ftell(f);
+        filesize = ftell(f);
         fseek(f, 0, SEEK_SET);
-        char* buffer = malloc(filesize + 1);
-        int nb = fread(buffer, 1, filesize, f);
+        buffer = malloc(filesize + 1);
+        nb = fread(buffer, 1, filesize, f);
         if (nb != filesize) {
             LOG_PANIC("Unable to read DATA/TRNSLATE.TXT");
         }
@@ -152,6 +159,8 @@ static void Harness_DetectGameMode(void) {
 
 int Harness_Init(int* argc, char* argv[]) {
     int result;
+    tArgument_config argument_config;
+    char* root_dir;
 
     printf("Dethrace version: %s\n", DETHRACE_VERSION);
 
@@ -182,7 +191,6 @@ int Harness_Init(int* argc, char* argv[]) {
     // Disable verbose logging
     harness_game_config.verbose = 0;
 
-    tArgument_config argument_config;
     // don't require a particular platform
     argument_config.platform_name = NULL;
     // request software renderer capability
@@ -199,7 +207,7 @@ int Harness_Init(int* argc, char* argv[]) {
         OS_InstallSignalHandler(argv[0]);
     }
 
-    char* root_dir = getenv("DETHRACE_ROOT_DIR");
+    root_dir = getenv("DETHRACE_ROOT_DIR");
     if (root_dir != NULL) {
         LOG_INFO("DETHRACE_ROOT_DIR is set to '%s'", root_dir);
     } else {
@@ -282,7 +290,8 @@ void Harness_ForceNullPlatform(void) {
 }
 
 int Harness_ProcessCommandLine(tArgument_config* config, int* argc, char* argv[]) {
-    for (int i = 1; i < *argc;) {
+    int i;
+    for (i = 1; i < *argc;) {
         int consumed = -1;
 
         if (strcasecmp(argv[i], "--cdcheck") == 0) {
@@ -362,8 +371,9 @@ int Harness_ProcessCommandLine(tArgument_config* config, int* argc, char* argv[]
         }
 
         if (consumed > 0) {
+            int j;
             // shift args downwards
-            for (int j = i; j < *argc - consumed; j++) {
+            for (j = i; j < *argc - consumed; j++) {
                 argv[j] = argv[j + consumed];
             }
             *argc -= consumed;
@@ -383,9 +393,10 @@ FILE* Harness_Hook_fopen(const char* pathname, const char* mode) {
 // Localization
 int Harness_Hook_isalnum(int c) {
     if (harness_game_info.localization == eGameLocalization_polish) {
+        int i;
         // Polish diacritic letters in Windows-1250
         unsigned char letters[] = { 140, 143, 156, 159, 163, 165, 175, 179, 185, 191, 198, 202, 209, 211, 230, 234, 241, 243 };
-        for (int i = 0; i < (int)sizeof(letters); i++) {
+        for (i = 0; i < (int)sizeof(letters); i++) {
             if ((unsigned char)c == letters[i]) {
                 return 1;
             }

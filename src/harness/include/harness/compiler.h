@@ -1,7 +1,7 @@
 #ifndef HARNESS_COMPILER_H
 #define HARNESS_COMPILER_H
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(__WATCOMC__)
 #define HARNESS_NORETURN __declspec(noreturn)
 #else
 #define HARNESS_NORETURN __attribute__((noreturn))

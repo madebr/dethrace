@@ -17,15 +17,16 @@ endif()
 
 target_link_libraries(harness PRIVATE brender miniaudio stb compile_with_werror)
 
-if(NOT MSVC)
+if(MSVC)
+    target_compile_definitions(harness PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+elseif(WATCOM)
+else()
     target_compile_options(harness PRIVATE
         -Wall
         -Wextra
         -Wno-unused-parameter
     )
     add_compile_flag_if_supported(harness -Wstrict-prototypes LANGUAGES C)
-else()
-    target_compile_definitions(harness PRIVATE -D_CRT_SECURE_NO_WARNINGS)
 endif()
 
 if(IS_BIGENDIAN)
@@ -49,7 +50,6 @@ target_sources(harness PRIVATE
     harness_trace.c
     harness.c
     harness.h
-    audio/miniaudio.c
     win95/polyfill.c
     win95/winsock.c
     platforms/null.c
@@ -57,6 +57,18 @@ target_sources(harness PRIVATE
 
     "${CMAKE_CURRENT_BINARY_DIR}/version.h"
 )
+
+cmake_dependent_option(DETHRACE_AUDIO_MINIAUDIO "Use miniaudio audio driver" ON "NOT DOS" OFF)
+
+if(DETHRACE_AUDIO_MINIAUDIO)
+    target_sources(harness PRIVATE
+        audio/miniaudio.c
+    )
+else()
+    target_sources(harness PRIVATE
+        audio/null.c
+    )
+endif()
 
 if(DETHRACE_PLATFORM_SDL1)
     target_sources(harness PRIVATE
@@ -90,6 +102,13 @@ if(DETHRACE_PLATFORM_SDL2)
     endif()
 endif()
 
+if(DOS)
+    target_sources(harness PRIVATE
+        platforms/dos.c
+    )
+    target_compile_definitions(harness PRIVATE DETHRACE_PLATFORM_DOS)
+endif()
+
 if(DETHRACE_PLATFORM_SDL_DYNAMIC)
     target_compile_definitions(harness PRIVATE DETHRACE_SDL_DYNAMIC)
     target_link_libraries(harness PRIVATE ${CMAKE_DL_LIBS})
@@ -103,6 +122,10 @@ if(WIN32)
 elseif(APPLE)
     target_sources(harness PRIVATE
         os/macos.c
+    )
+elseif(DOS)
+    target_sources(harness PRIVATE
+        os/dos.c
     )
 else()
     target_sources(harness PRIVATE

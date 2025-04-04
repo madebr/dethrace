@@ -6,22 +6,26 @@
 
 typedef void* HANDLE_;
 
+#ifndef __WATCOMC__
 #define GENERIC_READ 0x80000000
 #define OPEN_EXISTING 3
 #define FILE_ATTRIBUTE_NORMAL 0x80
 #define INVALID_HANDLE_VALUE ((HANDLE_*)-1)
 #define INVALID_FILE_ATTRIBUTES -1
 
-#define FILE_ATTRIBUTE_READONLY 0x01
+#define FILE_ATTRIBUTE_READONLY 0x01L
 #define FILE_ATTRIBUTE_NORMAL 0x80
 
 #define HWND_BROADCAST ((void*)0xffff)
+#endif
 
 #define _CRT_ASSERT 2
 
+#ifndef __WATCOMC__
 #define WM_QUIT 0x0012
 
 #define MB_ICONERROR 0x00000010
+#endif
 
 typedef struct _MEMORYSTATUS_ {
     uint32_t dwLength;

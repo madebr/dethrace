@@ -92,7 +92,7 @@ void SmokeLine(int l, int x, br_scalar zbuff, int r_squared, tU8* scr_ptr, tU16*
 
 void SmokeCircle(br_vector3* o, br_scalar r, br_scalar extra_z, br_scalar strength, br_scalar pAspect, br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer, br_pixelmap* pShade_table);
 
-int CmpSmokeZ(const void* p1, const void* p2);
+int BR_CALLBACK CmpSmokeZ(const void* p1, const void* p2);
 
 void RenderRecordedSmokeCircles(void);
 
@@ -186,7 +186,7 @@ void DisposeKevStuffCar(tCar_spec* pCar);
 
 void DoTrueColModelThing(br_actor* actor, br_model* pModel, br_material* material, void* render_data, br_uint_8 style, int on_screen);
 
-void DoModelThing(br_actor* actor, br_model* pModel, br_material* material, void* render_data, br_uint_8 style, int on_screen);
+void BR_CALLBACK DoModelThing(br_actor* actor, br_model* pModel, br_material* material, void* render_data, br_uint_8 style, int on_screen);
 
 void SetModelShade(br_actor* pActor, br_pixelmap* pShade);
 

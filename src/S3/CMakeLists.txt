@@ -7,16 +7,21 @@ target_include_directories(s3
 
 target_link_libraries(s3 PRIVATE brender harness compile_with_werror)
 
-if(NOT MSVC)
-    target_link_libraries(s3 PUBLIC pthread m)
-    add_compile_flags_if_supported(s3
-        -Wstrict-prototypes
-    )
-else()
+if(MSVC)
     target_compile_definitions(s3 PRIVATE -D_CRT_SECURE_NO_WARNINGS)
     target_compile_options(s3 PRIVATE
         /wd4101
         /wd4996
+    )
+else()
+    if(DOS)
+        # FIXME!!!!!!!
+        target_link_libraries(s3 PUBLIC "/home/maarten/djgpp/i586-pc-msdosdjgpp/lib/libm.a")
+    else()
+        target_link_libraries(s3 PUBLIC pthread m)
+    endif()
+    add_compile_flags_if_supported(s3
+        -Wstrict-prototypes
     )
 endif()
 if(DETHRACE_FIX_BUGS)

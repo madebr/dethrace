@@ -210,7 +210,7 @@ void SplashScreenWith(char* pPixmap_name);
 
 void EnsurePaletteUp(void);
 
-br_uint_32 AmbientificateMaterial(br_material* pMat, void* pArg);
+br_uint_32 BR_CALLBACK AmbientificateMaterial(br_material* pMat, void* pArg);
 
 void ChangeAmbience(br_scalar pDelta);
 
@@ -284,7 +284,7 @@ void ToggleShadow(void);
 
 void InitShadow(void);
 
-br_uint_32 SaveShadeTable(br_pixelmap* pTable, void* pArg);
+br_uint_32 BR_CALLBACK SaveShadeTable(br_pixelmap* pTable, void* pArg);
 
 void SaveShadeTables(void);
 

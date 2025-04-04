@@ -17,11 +17,15 @@ int WSACleanup(void) {
 
 // Only implement non-blocking call for now
 int ioctlsocket(int handle, long cmd, unsigned long* argp) {
+#if defined(__DOS__)
+    return -1;
+#else
     assert(cmd == FIONBIO);
 
     int flags = fcntl(handle, F_GETFL);
     flags |= O_NONBLOCK;
     return fcntl(handle, F_SETFL, flags);
+#endif
 }
 
 int closesocket(int handle) {

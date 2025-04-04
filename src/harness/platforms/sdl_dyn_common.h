@@ -50,7 +50,8 @@ FOREACH_SDLX_SYM(X_STATIC_SYMBOL)
 
 static int STR_JOIN(SYMBOL_PREFIX,LoadSymbols)(void) {
 #ifdef DETHRACE_SDL_DYNAMIC
-    for (size_t i = 0; i < BR_ASIZE(possible_locations); i++) {
+    size_t i;
+    for (i = 0; i < BR_ASIZE(possible_locations); i++) {
         OBJECT_NAME = Harness_LoadObject(possible_locations[i]);
         if (OBJECT_NAME != NULL) {
             break;

@@ -11,6 +11,18 @@
 
 #ifdef __DOS__
 
+typedef struct _IPX_LOCAL_TARGET _IPX_LOCAL_TARGET;
+typedef struct _IPX_ELEMENT {int a;} _IPX_ELEMENT;
+typedef struct tRM_info {int a;} tRM_info;
+typedef struct _IPX_HEADER {int a;} _IPX_HEADER;
+typedef struct _IPX_ECB {int a;} _IPX_ECB;
+typedef struct _IPX_INTERNET_ADDR {int a;} _IPX_INTERNET_ADDR;
+typedef struct REGS {int a;} REGS;
+typedef struct SREGS {int a;} SREGS;
+typedef struct _IPX_LOCAL_TARGET {int a;} _IPX_LOCAL_TARGET;
+typedef struct _NETNOW_NODE_ADDR _NETNOW_NODE_ADDR;
+typedef unsigned int W32;
+
 tU32 gNetwork_init_flags;
 tPD_net_game_info* gJoinable_games;
 int gMatts_PC;

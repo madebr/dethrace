@@ -238,7 +238,7 @@ void DropPedPointAir(void);
 
 void DropInitPedPointAir(void);
 
-br_uintptr_t KillActorsModel(br_actor* pActor, void* pArg);
+br_uintptr_t BR_CALLBACK KillActorsModel(br_actor* pActor, void* pArg);
 
 void DisposePedPaths(void);
 

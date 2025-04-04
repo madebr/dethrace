@@ -22,7 +22,7 @@ br_filesystem gFilesystem = {
 br_filesystem* gOld_file_system;
 
 // IDA: void* __cdecl DRStdioOpenRead(char *name, br_size_t n_magics, br_mode_test_cbfn *identify, int *mode_result)
-void* DRStdioOpenRead(char* name, br_size_t n_magics, br_mode_test_cbfn* identify, int* mode_result) {
+void* BR_CALLBACK DRStdioOpenRead(char* name, br_size_t n_magics, br_mode_test_cbfn* identify, int* mode_result) {
     if (mode_result != NULL) {
         *mode_result = 0;
     }
@@ -30,23 +30,23 @@ void* DRStdioOpenRead(char* name, br_size_t n_magics, br_mode_test_cbfn* identif
 }
 
 // IDA: void* __cdecl DRStdioOpenWrite(char *name, int mode)
-void* DRStdioOpenWrite(char* name, int mode) {
+void* BR_CALLBACK DRStdioOpenWrite(char* name, int mode) {
     return gOld_file_system->open_write(name, mode);
 }
 
 // IDA: void __cdecl DRStdioClose(void *f)
-void DRStdioClose(void* f) {
+void BR_CALLBACK DRStdioClose(void* f) {
     gOld_file_system->close(f);
 }
 
 // IDA: br_size_t __cdecl DRStdioRead(void *buf, br_size_t size, unsigned int n, void *f)
-br_size_t DRStdioRead(void* buf, br_size_t size, unsigned int n, void* f) {
+br_size_t BR_CALLBACK DRStdioRead(void* buf, br_size_t size, unsigned int n, void* f) {
     br_size_t result;
     return gOld_file_system->read(buf, size, n, f);
 }
 
 // IDA: br_size_t __cdecl DRStdioWrite(void *buf, br_size_t size, unsigned int n, void *f)
-br_size_t DRStdioWrite(void* buf, br_size_t size, unsigned int n, void* f) {
+br_size_t BR_CALLBACK DRStdioWrite(void* buf, br_size_t size, unsigned int n, void* f) {
     br_size_t result;
     return gOld_file_system->write(buf, size, n, f);
 }

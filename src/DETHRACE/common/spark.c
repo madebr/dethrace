@@ -1138,7 +1138,7 @@ void SmokeCircle(br_vector3* o, br_scalar r, br_scalar extra_z, br_scalar streng
 }
 
 // IDA: int __cdecl CmpSmokeZ(void *p1, void *p2)
-int CmpSmokeZ(const void* p1, const void* p2) {
+int BR_CALLBACK CmpSmokeZ(const void* p1, const void* p2) {
     tBRender_smoke** a;
     tBRender_smoke** b;
     LOG_TRACE("(%p, %p)", p1, p2);
@@ -2815,7 +2815,7 @@ void DoTrueColModelThing(br_actor* actor, br_model* pModel, br_material* materia
 }
 
 // IDA: void __cdecl DoModelThing(br_actor *actor, br_model *pModel, br_material *material, void *render_data, br_uint_8 style, int on_screen)
-void DoModelThing(br_actor* actor, br_model* pModel, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
+void BR_CALLBACK DoModelThing(br_actor* actor, br_model* pModel, br_material* material, void* render_data, br_uint_8 style, int on_screen) {
     int j;
     int i;
     int group;

@@ -2286,7 +2286,7 @@ void EnsurePaletteUp(void) {
 }
 
 // IDA: br_uint_32 __cdecl AmbientificateMaterial(br_material *pMat, void *pArg)
-br_uint_32 AmbientificateMaterial(br_material* pMat, void* pArg) {
+br_uint_32 BR_CALLBACK AmbientificateMaterial(br_material* pMat, void* pArg) {
     float a;
 
     a = pMat->ka + *(br_scalar*)pArg;
@@ -3312,7 +3312,7 @@ void InitShadow(void) {
 }
 
 // IDA: br_uint_32 __cdecl SaveShadeTable(br_pixelmap *pTable, void *pArg)
-br_uint_32 SaveShadeTable(br_pixelmap* pTable, void* pArg) {
+br_uint_32 BR_CALLBACK SaveShadeTable(br_pixelmap* pTable, void* pArg) {
     LOG_TRACE("(%p, %p)", pTable, pArg);
 
     if (gSaved_table_count == COUNT_OF(gSaved_shade_tables)) {

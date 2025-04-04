@@ -14,14 +14,28 @@
 
 #else /* Assume posix style sockets on non-windows */
 
+#ifndef __MSDOS__
 #include <arpa/inet.h>
+#endif
 #include <errno.h>
 #include <fcntl.h>
+#ifndef __MSDOS__
 #include <netdb.h> // for getaddrinfo() and freeaddrinfo()
+#endif
 #include <sys/ioctl.h>
+#ifndef __MSDOS__
 #include <sys/socket.h>
+#endif
 #include <sys/types.h>
 #include <unistd.h> // for close()
+
+#if defined(__DOS__)
+struct sockaddr_in {
+    char a[14];
+    short sin_port;
+};
+
+#endif
 
 #define WSAEISCONN EISCONN
 #define WSAEINPROGRESS EINPROGRESS

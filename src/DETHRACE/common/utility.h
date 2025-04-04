@@ -72,7 +72,7 @@ void WaitFor(tU32 pDelay);
 
 br_uintptr_t DRActorEnumRecurse(br_actor* pActor, br_actor_enum_cbfn* callback, void* arg);
 
-br_uintptr_t CompareActorID(br_actor* pActor, void* pArg);
+br_uintptr_t BR_CALLBACK CompareActorID(br_actor* pActor, void* pArg);
 
 br_actor* DRActorFindRecurse(br_actor* pSearch_root, char* pName);
 

@@ -254,7 +254,7 @@ void FreeExceptions(void);
 
 void LoadTrack(char* pFile_name, tTrack_spec* pTrack_spec, tRace_info* pRace_info);
 
-/*br_uint_32*/ br_uintptr_t RemoveBounds(br_actor* pActor, void* pArg);
+/*br_uint_32*/ br_uintptr_t BR_CALLBACK RemoveBounds(br_actor* pActor, void* pArg);
 
 void RemoveBoundsStructures(br_actor* pActor);
 

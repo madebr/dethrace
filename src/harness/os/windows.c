@@ -1,10 +1,15 @@
 // Based on https://gist.github.com/jvranish/4441299
 
+#if !defined(__WATCOMC__)
+#define HAVE_DBGHELP
+#endif
+
 // this has to be first
 #include <windows.h>
 //
-
+#ifdef HAVE_DBGHELP
 #include <dbghelp.h>
+#endif
 
 #include "harness/config.h"
 #include "harness/os.h"
@@ -32,6 +37,8 @@ static char fname_buf[_MAX_FNAME];
 
 HANDLE directory_handle = NULL;
 char last_found_file[260];
+
+#ifdef HAVE_DBGHELP
 
 #if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(__i386) || defined(_M_IX86)
 #define DETHRACE_CPU_X86 1
@@ -220,6 +227,7 @@ static void print_stacktrace(CONTEXT* context) {
         print_address_location(hProcess, frame.AddrPC.Offset);
     }
 }
+#endif
 
 static LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) {
     HANDLE hProcess;
@@ -289,6 +297,7 @@ static LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) 
         break;
     }
     fflush(stderr);
+#ifdef HAVE_DBGHELP
     hProcess = GetCurrentProcess();
     init_dbghelp(hProcess);
     /* If this is a stack overflow then we can't walk the stack, so just show
@@ -306,6 +315,7 @@ static LONG WINAPI windows_exception_handler(EXCEPTION_POINTERS* ExceptionInfo) 
         print_address_location(hProcess, addr);
     }
     cleanup_dbghelp(hProcess);
+#endif
 
     return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -316,7 +326,11 @@ void OS_InstallSignalHandler(char* program_name) {
     path_addr2line[0] = '\0';
     env_addr2line = getenv("ADDR2LINE");
     if (env_addr2line != NULL) {
+#if defined __WATCOMC__
+        int e = 1;
+#else
         errno_t e = _access_s(env_addr2line, F_OK);
+#endif
         if (e == 0) {
             strcpy(path_addr2line, env_addr2line);
         } else {
@@ -357,6 +371,15 @@ char* OS_GetNextFileInDirectory(void) {
 }
 
 FILE* OS_fopen(const char* pathname, const char* mode) {
+#ifdef __WATCOMC__
+    FILE* f;
+
+    f = fopen(pathname, mode);
+    if (f == NULL) {
+        fprintf(stderr, "Failed to open \"%s\"\r\n", pathname);
+    }
+    return f;
+#else
     FILE* f;
     errno_t err;
 
@@ -369,6 +392,7 @@ FILE* OS_fopen(const char* pathname, const char* mode) {
     }
 
     return f;
+#endif
 }
 
 size_t OS_ConsoleReadPassword(char* pBuffer, size_t pBufferLen) {

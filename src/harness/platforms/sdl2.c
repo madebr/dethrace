@@ -173,12 +173,13 @@ static void SDL2_Harness_GetKeyboardState(unsigned int count, uint8_t* buffer) {
 }
 
 static int SDL2_Harness_GetMouseButtons(int* pButton1, int* pButton2) {
+    int state;
     if (SDL2_GetMouseFocus() != window) {
         *pButton1 = 0;
         *pButton2 = 0;
         return 0;
     }
-    int state = SDL2_GetMouseState(NULL, NULL);
+    state = SDL2_GetMouseState(NULL, NULL);
     *pButton1 = state & SDL_BUTTON_LMASK;
     *pButton2 = state & SDL_BUTTON_RMASK;
     return 0;
@@ -296,9 +297,10 @@ static void SDL2_Harness_CreateWindow(const char* title, int width, int height, 
 
         screen_texture = SDL2_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, width, height);
         if (screen_texture == NULL) {
+            Uint32 i;
             SDL_RendererInfo info;
             SDL2_GetRendererInfo(renderer, &info);
-            for (Uint32 i = 0; i < info.num_texture_formats; i++) {
+            for (i = 0; i < info.num_texture_formats; i++) {
                 LOG_INFO("%s\n", SDL2_GetPixelFormatName(info.texture_formats[i]));
             }
             LOG_PANIC("Failed to create screen_texture: %s", SDL2_GetError());
@@ -327,9 +329,10 @@ static void SDL2_Harness_Swap(br_pixelmap* back_buffer) {
         uint8_t* src_pixels = back_buffer->pixels;
         uint32_t* dest_pixels;
         int dest_pitch;
+        int i;
 
         SDL2_LockTexture(screen_texture, NULL, (void**)&dest_pixels, &dest_pitch);
-        for (int i = 0; i < back_buffer->height * back_buffer->width; i++) {
+        for (i = 0; i < back_buffer->height * back_buffer->width; i++) {
             *dest_pixels = converted_palette[*src_pixels];
             dest_pixels++;
             src_pixels++;
@@ -347,7 +350,8 @@ static void SDL2_Harness_Swap(br_pixelmap* back_buffer) {
 }
 
 static void SDL2_Harness_PaletteChanged(br_colour entries[256]) {
-    for (int i = 0; i < 256; i++) {
+    int i;
+    for (i = 0; i < 256; i++) {
         converted_palette[i] = (0xff << 24 | BR_RED(entries[i]) << 16 | BR_GRN(entries[i]) << 8 | BR_BLU(entries[i]));
     }
     if (last_screen_src != NULL) {
@@ -362,14 +366,30 @@ static void SDL2_Harness_GetViewport(int* x, int* y, float* width_multipler, flo
     *height_multiplier = viewport.scale_y;
 }
 
+static void SDL2_Harness_Sleep(uint32_t time) {
+    SDL2_Delay(time);
+}
+
+static uint32_t SDL2_Harness_GetTicks(void) {
+    return SDL2_GetTicks();
+}
+
+static int SDL2_Harness_ShowCursor(int show) {
+    return SDL2_ShowCursor(show);
+}
+
+static void *SDL2_Harness_GL_GetProcAddress(const char* name) {
+    return SDL2_GL_GetProcAddress;
+}
+
 static int SDL2_Harness_Platform_Init(tHarness_platform* platform) {
     if (SDL2_LoadSymbols() != 0) {
         return 1;
     }
     platform->ProcessWindowMessages = SDL2_Harness_ProcessWindowMessages;
-    platform->Sleep = SDL2_Delay;
-    platform->GetTicks = SDL2_GetTicks;
-    platform->ShowCursor = SDL2_ShowCursor;
+    platform->Sleep = SDL2_Harness_Sleep;
+    platform->GetTicks = SDL2_Harness_GetTicks;
+    platform->ShowCursor = SDL2_Harness_ShowCursor;
     platform->SetWindowPos = SDL2_Harness_SetWindowPos;
     platform->DestroyWindow = SDL2_Harness_DestroyWindow;
     platform->GetKeyboardState = SDL2_Harness_GetKeyboardState;
@@ -380,7 +400,7 @@ static int SDL2_Harness_Platform_Init(tHarness_platform* platform) {
     platform->CreateWindow_ = SDL2_Harness_CreateWindow;
     platform->Swap = SDL2_Harness_Swap;
     platform->PaletteChanged = SDL2_Harness_PaletteChanged;
-    platform->GL_GetProcAddress = SDL2_GL_GetProcAddress;
+    platform->GL_GetProcAddress = SDL2_Harness_GL_GetProcAddress;
     platform->GetViewport = SDL2_Harness_GetViewport;
     return 0;
 };

@@ -15,10 +15,10 @@ target_include_directories(libsmacker
         .
 )
 
-if(NOT MSVC)
-    target_compile_options(libsmacker PRIVATE -Wall)
-else()
+if(MSVC)
     target_compile_definitions(libsmacker PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+elseif(NOT WATCOM)
+    target_compile_options(libsmacker PRIVATE -Wall)
 endif()
 
 target_sources(libsmacker PRIVATE

@@ -87,6 +87,8 @@ int GetProfileText(char* pDest, int pDest_len, char* pFname, char* pKeyname) {
     int len;
     LOG_TRACE("(\"%s\", %d, \"%s\", \"%s\")", pDest, pDest_len, pFname, pKeyname);
     NOT_IMPLEMENTED();
+
+    return 1;
 }
 
 // IDA: int __cdecl GetSocketNumberFromProfileFile()
@@ -96,6 +98,8 @@ int GetSocketNumberFromProfileFile(void) {
     tU32 socknum;
     LOG_TRACE("()");
     NOT_IMPLEMENTED();
+
+    return 1;
 }
 
 // tU32 EthernetAddressToU32(SOCKADDR_IPX_* pAddr_ipx) {
@@ -105,12 +109,20 @@ int GetSocketNumberFromProfileFile(void) {
 
 void NetNowIPXLocalTarget2String(char* pString, struct sockaddr_in* pSock_addr_ipx) {
     LOG_TRACE("(\"%s\", %p)", pString, pSock_addr_ipx);
+#ifdef __WATCOMC__
+    // FIXME
+    char portbuf[10];
+
+    sprintf(portbuf, "unknown");
+    strcat(pString, portbuf);
+#else
 
     char portbuf[10];
 
     inet_ntop(AF_INET, &pSock_addr_ipx->sin_addr, pString, 32);
     sprintf(portbuf, ":%d", ntohs(pSock_addr_ipx->sin_port));
     strcat(pString, portbuf);
+#endif
 }
 
 // IDA: int __usercall GetMessageTypeFromMessage@<EAX>(char *pMessage_str@<EAX>)
@@ -144,6 +156,7 @@ int SameEthernetAddress(struct sockaddr_in* pAddr_ipx1, struct sockaddr_in* pAdd
     int i;
     tU8* nodenum;
     NOT_IMPLEMENTED();
+    return NULL;
 }
 
 // IDA: void __usercall MakeMessageToSend(int pMessage_type@<EAX>)
@@ -159,16 +172,19 @@ void MakeMessageToSend(int pMessage_type) {
 
 // IDA: int __cdecl ReceiveHostResponses()
 int ReceiveHostResponses(void) {
+#if defined(__DOS__)
+    return 1;
+#else
     char str[256];
     int i;
     int already_registered;
     LOG_TRACE("()");
 
     char addr_string[32];
-    unsigned int sa_len;
+    int sa_len;
     int wsa_error;
 
-    sa_len = sizeof(gRemote_addr);
+    sa_len = (int)sizeof(gRemote_addr);
     while (1) {
         if (recvfrom(gSocket, gReceive_buffer, sizeof(gReceive_buffer), 0, (struct sockaddr*)&gRemote_addr, &sa_len) == -1) {
             break;
@@ -217,10 +233,14 @@ int ReceiveHostResponses(void) {
     }
     dr_dprintf("ReceiveHostResponses(): Error on recvfrom() - WSAGetLastError=%d", wsa_error);
     return 0;
+#endif
 }
 
 // IDA: int __cdecl BroadcastMessage()
 int BroadcastMessage(void) {
+#if defined(__DOS__)
+    return 0;
+#else
     int i;
     int errors;
     char broadcast_addr_string[32];
@@ -238,10 +258,14 @@ int BroadcastMessage(void) {
         }
     }
     return errors == 0;
+#endif
 }
 
 // IDA: int __cdecl PDNetInitialise()
 int PDNetInitialise(void) {
+#if defined(__DOS__)
+    return 1;
+#else
     tU32 timenow;
     char profile_string[32];
     char key_name[32];
@@ -252,11 +276,11 @@ int PDNetInitialise(void) {
     int mess_num;
 
     struct linger so_linger;
-    unsigned int sa_len;
+    int sa_len;
     WSADATA wsadata;
     LOG_TRACE("()");
 
-    sa_len = sizeof(struct sockaddr_in);
+    sa_len = (int)sizeof(struct sockaddr_in);
     dr_dprintf("PDNetInitialise()");
     int ipx_socket_num = 12286;
     // Dont bother to handle network.ini
@@ -321,10 +345,10 @@ int PDNetInitialise(void) {
         return -1;
     }
     int broadcast = 1;
-    setsockopt(gSocket, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+    setsockopt(gSocket, SOL_SOCKET, SO_BROADCAST, (char*)&broadcast, sizeof(broadcast));
     so_linger.l_onoff = 1;
     so_linger.l_linger = 0;
-    setsockopt(gSocket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
+    setsockopt(gSocket, SOL_SOCKET, SO_LINGER, (char*)&so_linger, sizeof(so_linger));
 
     unsigned long nobio = 1;
     if (ioctlsocket(gSocket, FIONBIO, &nobio) == -1) {
@@ -386,6 +410,7 @@ int PDNetInitialise(void) {
         gMatts_PC = 1;
     }
     return 0;
+#endif
 }
 
 // IDA: int __cdecl PDNetShutdown()
@@ -505,17 +530,25 @@ void PDNetHostFinishGame(tNet_game_details* pDetails) {
 // IDA: tU32 __usercall PDNetExtractGameID@<EAX>(tNet_game_details *pDetails@<EAX>)
 tU32 PDNetExtractGameID(tNet_game_details* pDetails) {
     LOG_TRACE("(%p)", pDetails);
+#if defined(__DOS__)
+    return 0;
+#else
 
     dr_dprintf("PDNetExtractGameID()");
     return ntohs(pDetails->pd_net_info.addr_in.sin_port); // PDGetTotalTime();
+#endif
 }
 
 // IDA: tPlayer_ID __usercall PDNetExtractPlayerID@<EAX>(tNet_game_details *pDetails@<EAX>)
 tPlayer_ID PDNetExtractPlayerID(tNet_game_details* pDetails) {
     LOG_TRACE("(%p)", pDetails);
+#if defined(__DOS__)
+    return 0;
+#else
 
     dr_dprintf("PDNetExtractPlayerID()");
     return ntohs(gLocal_addr_ipx->sin_port);
+#endif
 }
 
 // IDA: void __usercall PDNetObtainSystemUserName(char *pName@<EAX>, int pMax_length@<EDX>)
@@ -543,6 +576,8 @@ int PDNetSendMessageToPlayer(tNet_game_details* pDetails, tNet_message* pMessage
     // SOCKADDR_IPX_* remote_addr_ipx;
     LOG_TRACE("(%p, %p, %d)", pDetails, pMessage, pPlayer);
     NOT_IMPLEMENTED();
+
+    return 1;
 }
 
 // IDA: int __usercall PDNetSendMessageToAllPlayers@<EAX>(tNet_game_details *pDetails@<EAX>, tNet_message *pMessage@<EDX>)
@@ -567,17 +602,20 @@ int PDNetSendMessageToAllPlayers(tNet_game_details* pDetails, tNet_message* pMes
 
 // IDA: tNet_message* __usercall PDNetGetNextMessage@<EAX>(tNet_game_details *pDetails@<EAX>, void **pSender_address@<EDX>)
 tNet_message* PDNetGetNextMessage(tNet_game_details* pDetails, void** pSender_address) {
+#if defined(__DOS__)
+    return NULL;
+#else
     char* receive_buffer;
     char str[256];
     int msg_type;
     LOG_TRACE("(%p, %p)", pDetails, pSender_address);
 
     char addr_str[32];
-    unsigned int sa_len;
+    int sa_len;
     int res;
     tNet_message* msg;
 
-    sa_len = sizeof(gRemote_addr);
+    sa_len = (int)sizeof(gRemote_addr);
     msg = NetAllocateMessage(512);
     receive_buffer = (char*)msg;
     res = recvfrom(gSocket, receive_buffer, 512, 0, (struct sockaddr*)&gRemote_addr, &sa_len);
@@ -615,13 +653,15 @@ tNet_message* PDNetGetNextMessage(tNet_game_details* pDetails, void** pSender_ad
     }
     msg->guarantee_number = 0;
     NetDisposeMessage(pDetails, msg);
-    return 0;
+    return NULL;
+#endif
 }
 
 // IDA: tNet_message* __usercall PDNetAllocateMessage@<EAX>(tU32 pSize@<EAX>, tS32 pSize_decider@<EDX>)
 tNet_message* PDNetAllocateMessage(tU32 pSize, tS32 pSize_decider) {
     LOG_TRACE("(%d, %d)", pSize, pSize_decider);
     NOT_IMPLEMENTED();
+    return NULL;
 }
 
 // IDA: void __usercall PDNetDisposeMessage(tNet_game_details *pDetails@<EAX>, tNet_message *pMessage@<EDX>)
@@ -646,6 +686,9 @@ void PDNetDisposePlayer(tNet_game_player_info* pPlayer) {
 
 // IDA: int __usercall PDNetSendMessageToAddress@<EAX>(tNet_game_details *pDetails@<EAX>, tNet_message *pMessage@<EDX>, void *pAddress@<EBX>)
 int PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessage, void* pAddress) {
+#if defined(__DOS__)
+    return 1;
+#else
     char str[256];
     LOG_TRACE("(%p, %p, %p)", pDetails, pMessage, pAddress);
 
@@ -659,12 +702,15 @@ int PDNetSendMessageToAddress(tNet_game_details* pDetails, tNet_message* pMessag
 
     NetDisposeMessage(pDetails, pMessage);
     return 0;
+#endif
 }
 
 // IDA: int __usercall PDNetInitClient@<EAX>(tNet_game_details *pDetails@<EAX>)
 int PDNetInitClient(tNet_game_details* pDetails) {
     LOG_TRACE("(%p)", pDetails);
     NOT_IMPLEMENTED();
+
+    return 1;
 }
 
 // IDA: int __cdecl PDNetGetHeaderSize()
