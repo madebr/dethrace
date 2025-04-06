@@ -16,8 +16,9 @@ static int null_show_error_message(void* window, char* text, char* caption) {
     return 0;
 }
 
-static void null_get_and_handle_message(MSG_* msg) {
+static int null_get_and_handle_message(MSG_* msg) {
     null_time += 1;
+    return 0;
 }
 
 static void null_get_keyboard_state(unsigned int count, uint8_t* buffer) {

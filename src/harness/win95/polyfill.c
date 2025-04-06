@@ -1,4 +1,3 @@
-#if 0
 #include "harness/hooks.h"
 #include "harness/os.h"
 #include "harness/win95_polyfill.h"
@@ -250,5 +249,3 @@ int _CrtDbgReport_(int reportType, const char* filename, int linenumber, const c
     printf("_CrtDbgReport: (TODO)\n");
     return 1;
 }
-
-#endif

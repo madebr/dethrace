@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.10)
-
 if(NOT DEFINED CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo" FORCE)
 endif()
@@ -16,6 +15,22 @@ if(WATCOM)
     add_compile_options(-zastd=c99)
     add_compile_options(-ei)
 endif()
+
+if(WATCOM)
+    add_compile_definitions(-Dsqrtf=sqrt)
+    add_compile_definitions(-Dsinf=sin)
+    add_compile_definitions(-Dcosf=cos)
+    add_compile_definitions(-Dfabsf=fabs)
+    add_compile_definitions(-Datanf=atan)
+    add_compile_definitions(-Dfmodf=fmod)
+    add_compile_definitions(-Datan2f=atan2)
+    add_compile_definitions(-Dasinf=asin)
+    add_compile_definitions(-Dpowf=pow)
+    add_compile_definitions(-Dfmaxf=fmax)
+    add_compile_definitions(-Dldexpf=ldexp)
+    add_compile_definitions(-Dceilf=ceil)
+endif()
+
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 

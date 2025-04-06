@@ -18,8 +18,8 @@ static void DOS_Harness_DestroyWindow(void* hWnd) {
     return;
 }
 
-static void DOS_Harness_ProcessWindowMessages(MSG_* msg) {
-    return;
+static int DOS_Harness_ProcessWindowMessages(MSG_* msg) {
+    return 0;
 }
 
 static void DOS_Harness_GetKeyboardState(unsigned int count, uint8_t* buffer) {

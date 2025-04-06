@@ -115,7 +115,7 @@ static int is_only_key_modifier(int modifier_flags, int flag_check) {
     return (modifier_flags & flag_check) && (modifier_flags & (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_GUI)) == (modifier_flags & flag_check);
 }
 
-static void SDL2_Harness_ProcessWindowMessages(MSG_* msg) {
+static int SDL2_Harness_ProcessWindowMessages(MSG_* msg) {
     SDL_Event event;
     int dinput_key;
 
@@ -130,7 +130,7 @@ static void SDL2_Harness_ProcessWindowMessages(MSG_* msg) {
                 if (event.key.type == SDL_KEYDOWN) {
                     if ((event.key.keysym.mod & (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_GUI))) {
                         // Ignore keydown of RETURN when used together with some modifier
-                        return;
+                        return 0;
                     }
                 } else if (event.key.type == SDL_KEYUP) {
                     if (is_only_key_modifier(event.key.keysym.mod, KMOD_ALT)) {
@@ -144,7 +144,7 @@ static void SDL2_Harness_ProcessWindowMessages(MSG_* msg) {
             dinput_key = sdlScanCodeToDirectInputKeyNum[event.key.keysym.scancode];
             if (dinput_key == 0) {
                 LOG_WARN("unexpected scan code %s (%d)", SDL2_GetScancodeName(event.key.keysym.scancode), event.key.keysym.scancode);
-                return;
+                return 0;
             }
             // DInput expects high bit to be set if key is down
             // https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ee418261(v=vs.85)
@@ -166,6 +166,7 @@ static void SDL2_Harness_ProcessWindowMessages(MSG_* msg) {
             QuitGame();
         }
     }
+    return 0;
 }
 
 static void SDL2_Harness_GetKeyboardState(unsigned int count, uint8_t* buffer) {

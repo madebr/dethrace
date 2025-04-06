@@ -162,7 +162,6 @@ target_sources(dethrace_obj PRIVATE
     dr_types.h
     pd/net.h
     pd/sys.h
-    pc-win95/win95sys.c
     pc-win95/dinput.h
     pc-win95/ssdx.c
     pc-win95/ssdx.h
@@ -172,6 +171,7 @@ if(DOS)
     target_sources(dethrace_obj PRIVATE pc-dos/dossys.c)
 else()
     target_sources(dethrace_obj PRIVATE pc-win95/win95net.c)
+    target_sources(dethrace_obj PRIVATE pc-win95/win95sys.c)
 endif()
 
 # Create our main game binary.

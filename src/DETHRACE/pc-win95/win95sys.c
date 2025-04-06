@@ -1,4 +1,3 @@
-#if 0
 #include "brender.h"
 #include "car.h"
 #include "dinput.h"
@@ -131,8 +130,8 @@ static void Usage(char* pProgpath);
 /*static*/ int OurGetChar(void);
 /*static*/ int InitJoysticks(void);
 /*static*/ tU32 ReadJoystickAxis(int pBit);
-static void Win32BRenderWarningFunc(char* msg);
-static void Win32BRenderFailureFunc(char* msg);
+static void BR_CALLBACK Win32BRenderWarningFunc(char* msg);
+static void BR_CALLBACK Win32BRenderFailureFunc(char* msg);
 
 extern void QuitGame(void);
 
@@ -146,6 +145,7 @@ void KeyboardHandler(void) {
 
 int KeyDown(tU8 pScan_code) {
     NOT_IMPLEMENTED();
+    return 0;
 }
 
 void KeyTranslation(tU8 pKey_index, tU8 pScan_code_1, tU8 pScan_code_2) {
@@ -271,6 +271,7 @@ void KeyEnd(void) {
 int KeyDown22(int pKey_index) {
     LOG_TRACE("(%d)", pKey_index);
     NOT_IMPLEMENTED();
+    return 0;
 }
 
 void PDSetKeyArray(int* pKeys, int pMark) {
@@ -349,13 +350,13 @@ int PDGetASCIIFromKey(int pKey) {
 void Win32PumpMessages(void) {
     MSG_ msg; // [esp+Ch] [ebp-20h] BYREF
 
-    PDUnlockRealBackScreen();
+    PDUnlockRealBackScreen(1);
     while ((!gWin32_window_has_focus || PeekMessageA_(&msg, 0, 0, 0, 1u)) && (gWin32_window_has_focus || GetMessageA_(&msg, 0, 0, 0) != -1)) {
         if (msg.message == WM_QUIT) {
             dr_dprintf("WM_QUIT received.");
             if (gWin32_window_has_focus) {
                 dr_dprintf("Active, so lock the surface");
-                PDLockRealBackScreen();
+                PDLockRealBackScreen(1);
                 dr_dprintf("QuitGame being called...");
                 QuitGame();
             }
@@ -364,7 +365,7 @@ void Win32PumpMessages(void) {
         TranslateMessage_(&msg);
         DispatchMessageA_(&msg);
     }
-    PDLockRealBackScreen();
+    PDLockRealBackScreen(1);
 }
 
 void PDFatalError(char* pThe_str) {
@@ -524,13 +525,13 @@ void Win32InitScreen(void) {
     Win32PumpMessages();
 }
 
-void PDLockRealBackScreen(void) {
+void PDLockRealBackScreen(int lock) {
     LOG_TRACE("()");
 
     // no-op
 }
 
-void PDUnlockRealBackScreen(void) {
+void PDUnlockRealBackScreen(int lock) {
     LOG_TRACE("()");
 
     // no-op
@@ -647,6 +648,7 @@ void Double8BitTo16BitPixelmap(br_pixelmap* pDst, br_pixelmap* pSrc, br_pixelmap
 br_pixelmap* PDInterfacePixelmap(void) {
     LOG_TRACE("()");
     NOT_IMPLEMENTED();
+    return NULL;
 }
 
 void SwapBackScreen(void) {
@@ -1025,7 +1027,7 @@ void PDEnterDebugger(char* pStr) {
 }
 
 // Added function
-br_material* PDMissingMaterial(char* name) {
+br_material* BR_CALLBACK PDMissingMaterial(char* name) {
     LOG_TRACE("(\"%s\")", name);
 
     // FIXME: call functiont in harness
@@ -1034,7 +1036,7 @@ br_material* PDMissingMaterial(char* name) {
 }
 
 // Added function
-br_pixelmap* PDMissingTable(char* name) {
+br_pixelmap* BR_CALLBACK PDMissingTable(char* name) {
     LOG_TRACE("(\"%s\")", name);
 
     // FIXME: call function in harness
@@ -1043,7 +1045,7 @@ br_pixelmap* PDMissingTable(char* name) {
 }
 
 // Added function
-br_model* PDMissingModel(char* name) {
+br_model* BR_CALLBACK PDMissingModel(char* name) {
     LOG_TRACE("(\"%s\")", name);
 
     // FIXME: call function in harness
@@ -1052,7 +1054,7 @@ br_model* PDMissingModel(char* name) {
 }
 
 // Added function
-br_pixelmap* PDMissingMap(char* name) {
+br_pixelmap* BR_CALLBACK PDMissingMap(char* name) {
     LOG_TRACE("(\"%s\")", name);
 
     // FIXME: call function in harness
@@ -1191,17 +1193,15 @@ int PDDoWeLeadAnAustereExistance(void) {
 
 // Windows-specific functions. The only name we know for sure is "Win32AllocateReplayBuffer".
 
-void Win32BRenderWarningFunc(char* msg) {
+void BR_CALLBACK Win32BRenderWarningFunc(char* msg) {
     dr_dprintf("*******************************************************************************");
     dr_dprintf("BRender WARNING: '%s'", msg);
     dr_dprintf("*******************************************************************************");
 }
 
-void Win32BRenderFailureFunc(char* msg) {
+void BR_CALLBACK Win32BRenderFailureFunc(char* msg) {
     dr_dprintf("*******************************************************************************");
     dr_dprintf("BRender FAILURE: '%s'", msg);
     dr_dprintf("*******************************************************************************");
     Win32FatalError("BRender error detected:", msg);
 }
-
-#endif

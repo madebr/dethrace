@@ -154,16 +154,16 @@ void PDDisplayGoreworthiness(int pGory);
 void PDEnterDebugger(char* pStr);
 
 // Added function
-br_material* PDMissingMaterial(char* name);
+br_material* BR_CALLBACK PDMissingMaterial(char* name);
 
 // Added function
-br_pixelmap* PDMissingTable(char* name);
+br_pixelmap* BR_CALLBACK PDMissingTable(char* name);
 
 // Added function
-br_model* PDMissingModel(char* name);
+br_model* BR_CALLBACK PDMissingModel(char* name);
 
 // Added function
-br_pixelmap* PDMissingMap(char* name);
+br_pixelmap* BR_CALLBACK PDMissingMap(char* name);
 
 void PDEndItAllAndReRunTheBastard(void);
 

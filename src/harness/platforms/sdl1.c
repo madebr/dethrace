@@ -140,7 +140,7 @@ static int is_only_key_modifier(int modifier_flags, int flag_check) {
     return (modifier_flags & flag_check) && (modifier_flags & (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_META)) == (modifier_flags & flag_check);
 }
 
-static void SDL1_Harness_ProcessWindowMessages(MSG_* msg) {
+static int SDL1_Harness_ProcessWindowMessages(MSG_* msg) {
     SDL_Event event;
     int dinput_key;
 
@@ -152,7 +152,7 @@ static void SDL1_Harness_ProcessWindowMessages(MSG_* msg) {
                 if (event.key.type == SDL_KEYDOWN) {
                     if ((event.key.keysym.mod & (KMOD_CTRL | KMOD_SHIFT | KMOD_ALT | KMOD_META))) {
                         // Ignore keydown of RETURN when used together with some modifier
-                        return;
+                        return 0;
                     }
                 } else if (event.key.type == SDL_KEYUP) {
                     if (is_only_key_modifier(event.key.keysym.mod, KMOD_ALT)) {
@@ -166,7 +166,7 @@ static void SDL1_Harness_ProcessWindowMessages(MSG_* msg) {
             dinput_key = sdl1KeyToDirectInputKeyNum[event.key.keysym.sym];
             if (dinput_key == 0) {
                 LOG_WARN("unexpected key \"%s\" (0x%x)", SDL1_GetKeyName(event.key.keysym.sym), event.key.keysym.sym);
-                return;
+                return 0;
             }
             // DInput expects high bit to be set if key is down
             // https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ee418261(v=vs.85)
@@ -184,10 +184,10 @@ static void SDL1_Harness_ProcessWindowMessages(MSG_* msg) {
 
         case SDL_QUIT:
             QuitGame();
-            return;
+            return 0;
         }
     }
-    return;
+    return 0;
 }
 
 static void get_keyboard_state(unsigned int count, uint8_t* buffer) {
