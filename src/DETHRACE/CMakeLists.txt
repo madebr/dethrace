@@ -239,15 +239,17 @@ if(DETHRACE_INSTALL)
     endif()
 
     if(MSVC)
-        install(FILES $<TARGET_PDB_FILE:dethrace>
-            DESTINATION "."
-            OPTIONAL
-        )
-    endif()
-    if(WIN32)
-        install(FILES  $<TARGET_RUNTIME_DLLS:dethrace>
-            DESTINATION "."
-            OPTIONAL
-        )
+        if(DETHRACE_PLATFORM_SDL1)
+            install(FILES $<TARGET_FILE:SDL::SDL>
+                DESTINATION "."
+                OPTIONAL
+            )
+        endif()
+        if(DETHRACE_PLATFORM_SDL2)
+            install(FILES $<TARGET_FILE:SDL2::SDL2>
+                DESTINATION "."
+                OPTIONAL
+            )
+        endif()
     endif()
 endif()
