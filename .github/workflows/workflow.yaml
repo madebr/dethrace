@@ -41,7 +41,7 @@ jobs:
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgl-dev libxext-dev ${{ matrix.platform.apt-packages }}
+          sudo apt-get install -y libgl-dev libgl1-mesa-dev libglu1-mesa-dev libxext-dev
       - name: Set up SDL
         uses: madebr/setup-sdl@support-compat-libraries
         with:
