@@ -706,7 +706,15 @@ void DoProgram(void) {
             if (gGame_to_load >= 0) {
                 DoLoadGame();
             } else {
-                DoMainMenuScreen(30000u, 0, 0);
+#ifdef DETHRACE_FIX_BUGS
+                tU32 MAIN_MENU_TIMEOUT = 30000u;
+                if (gCut_scene_override) {
+                    MAIN_MENU_TIMEOUT = 0;
+                }
+#else
+#define MAIN_MENU_TIMEOUT 30000u
+#endif
+                DoMainMenuScreen(MAIN_MENU_TIMEOUT, 0, 0);
             }
             break;
         case eProg_demo:
