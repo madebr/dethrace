@@ -70,6 +70,18 @@ int gKey_mapping[67];
 // GLOBAL: CARM95 0x0053a450
 char gCurrent_typing[110];
 
+// GLOBAL: CARM95 0x0051d5dc
+int gJoystick1_axisX_enabled = 1;
+
+// GLOBAL: CARM95 0x0051d5e0
+int gJoystick1_axisY_enabled = 1;
+
+// GLOBAL: CARM95 0x0051d5e4
+int gJoystick2_axisX_enabled = 1;
+
+// GLOBAL: CARM95 0x0051d5e8
+int gJoystick2_axisY_enabled = 1;
+
 #define NBR_ROLLING_LETTERS 500
 
 // IDA: void __usercall SetJoystickArrays(int *pKeys@<EAX>, int pMark@<EDX>)
@@ -86,6 +98,117 @@ void SetJoystickArrays(int* pKeys, int pMark) {
     static tS32 old_joy2X;
     // GLOBAL: CARM95 0x53a23c
     static tS32 old_joy2Y;
+    return;
+
+    for (i = 0; i < 16; i++) {
+        pKeys[107 + i] = 0;
+    }
+    PDReadJoySticks();
+    for (i = 0; i < 8; i++) {
+        gJoy_array[i] = -1;
+    }
+    for (i = 0; i < 8; i++) {
+        pKeys[107 + i] = 0;
+    }
+    if (gJoystick1_axisX_enabled || gJoystick1_axisY_enabled) {
+        if (PDGetJoy1Button1()) {
+            pKeys[107] = pMark;
+        }
+        if (PDGetJoy1Button2()) {
+            pKeys[108] = pMark;
+        }
+        if (PDGetJoy1Button3()) {
+            pKeys[109] = pMark;
+        }
+        if (PDGetJoy1Button4()) {
+            pKeys[110] = pMark;
+        }
+    }
+    if (gJoystick2_axisX_enabled || gJoystick2_axisY_enabled) {
+        if (PDGetJoy2Button1()) {
+            pKeys[111] = pMark;
+        }
+        if (PDGetJoy2Button2()) {
+            pKeys[112] = pMark;
+        }
+        if (PDGetJoy2Button3()) {
+            pKeys[113] = pMark;
+        }
+        if (PDGetJoy2Button4()) {
+            pKeys[114] = pMark;
+        }
+    }
+    if (gJoystick1_axisX_enabled) {
+        joyX = PDGetJoy1X();
+        if (joyX != -1) {
+            if (joyX < 0x8000) {
+                if (joyX < 0x4000 && old_joy1X >= 0x4000) {
+                    pKeys[115] = pMark;
+                }
+                gJoy_array[0] = 2 * (0x8000 - joyX);
+            } else {
+                if (joyX > 0xc000 && old_joy1X <= 0xc000) {
+                    pKeys[116] = pMark;
+                }
+                gJoy_array[1] = 2 * (joyX - 0x8000);
+            }
+        }
+        old_joy1X = joyX;
+    }
+    if (gJoystick1_axisY_enabled) {
+        joyY = PDGetJoy1Y();
+        if (joyY != -1) {
+            if (joyY < 0x8000) {
+                if (joyY < 0x4000 && old_joy1Y >= 0x4000) {
+                    pKeys[117] = pMark;
+                }
+                gJoy_array[2] = 2 * (0x8000 - joyY);
+            }
+            else {
+                if (joyY > 0xc000 && old_joy1Y <= 0xc000) {
+                    pKeys[118] = pMark;
+                }
+                gJoy_array[3] = 2 * (joyY - 0x8000);
+            }
+        }
+        old_joy1Y = joyY;
+    }
+    if (gJoystick2_axisX_enabled) {
+        joyX = PDGetJoy2X();
+        if (joyX != -1) {
+            if (joyX < 0x8000) {
+                if (joyX < 0x4000 && old_joy2X >= 0x4000) {
+                    pKeys[119] = pMark;
+                }
+                gJoy_array[4] = 2 * (0x8000 - joyX);
+            } else {
+                if (joyX > 0xc000 && old_joy2X <= 0xc000) {
+                    pKeys[120] = pMark;
+                }
+                gJoy_array[5] = 2 * (joyX - 0x8000);
+            }
+        }
+        old_joy2X = joyX;
+    }
+    if (gJoystick2_axisY_enabled) {
+        joyY = PDGetJoy2Y();
+        if (joyY != -1) {
+            if (joyY < 0x8000) {
+                if (joyY < 0x4000 && old_joy2Y >= 0x4000) {
+                    pKeys[121] = pMark;
+                }
+                gJoy_array[6] = 2 * (0x8000 - joyY);
+            } else {
+                if (joyY > gJoystick_deadzone + 0x8000) {
+                    if (joyY > 0xc000 && old_joy2Y <= 0xc000) {
+                        pKeys[122] = pMark;
+                    }
+                    gJoy_array[7] = 2 * (joyY - 0x8000);
+                }
+            }
+        }
+        old_joy2Y = joyY;
+    }
 }
 
 // IDA: void __cdecl PollKeys()

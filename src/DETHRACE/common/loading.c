@@ -3772,6 +3772,17 @@ int SaveOptions(void) {
         || fprintf(f, "EVolume %d\n", gProgram_state.effects_volume) < 0
         || fprintf(f, "MVolume %d\n", gProgram_state.music_volume) < 0
         || fprintf(f, "KeyMapIndex %d\n", gKey_map_index) < 0
+#ifdef __DOS__
+        // this code only exists in the DOS build
+        || fprintf(f, "Joystick_min1x %d\n", gJoystick_min1x) < 0
+        || fprintf(f, "Joystick_min1y %d\n", gJoystick_min1y) < 0
+        || fprintf(f, "Joystick_min2x %d\n", gJoystick_min2x) < 0
+        || fprintf(f, "Joystick_min2y %d\n", gJoystick_min2y) < 0
+        || fprintf(f, "Joystick_range1x %d\n", gJoystick_range1x) < 0
+        || fprintf(f, "Joystick_range1y %d\n", gJoystick_range1y) < 0
+        || fprintf(f, "Joystick_range2x %d\n", gJoystick_range2x) < 0
+        || fprintf(f, "Joystick_range2y %d\n", gJoystick_range2y) < 0
+#endif
         || fprintf(f, "NETGAMETYPE %d\n", gLast_game_type) < 0
         || PrintNetOptions(f, 0) < 0
         || PrintNetOptions(f, 1) < 0

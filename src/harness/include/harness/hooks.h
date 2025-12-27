@@ -9,6 +9,12 @@ typedef enum tHarness_window_type {
     eWindow_type_opengl = 1,
 } tHarness_window_type;
 
+typedef struct {
+    int x;
+    int y;
+    unsigned int buttons;
+} tJoystick_state;
+
 // Platform implementation functions
 typedef struct tHarness_platform {
     // Render a fullscreen quad using the specified pixel data
@@ -31,6 +37,8 @@ typedef struct tHarness_platform {
     void (*SetKeyHandler)(void (*handler_func)(void));
     // Get keyboard state. Argument expected to point to 32 byte buffer - 1 bit per key
     void (*GetKeyboardState)(br_uint_32* buffer);
+
+    void (*GetJoystickState)(tJoystick_state* state);
 
     // Sleep
     void (*Sleep)(br_uint_32 dwMilliseconds);

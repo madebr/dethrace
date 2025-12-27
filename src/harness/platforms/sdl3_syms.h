@@ -6,12 +6,16 @@
 #define FOREACH_SDL3_SYM(X)                                                                             \
     X(free, void, (void *))                                                                             \
     X(Init, bool, (Uint32))                                                                             \
+    X(InitSubSystem, bool, (SDL_InitFlags))                                                             \
     X(Quit, void, (void))                                                                               \
     X(Delay, void, (Uint32))                                                                            \
     X(GetTicks, Uint64, (void))                                                                         \
     X(GetError, const char*, (void))                                                                    \
     X(GetPointerProperty, void*, (SDL_PropertiesID, const char*, void*))                                \
     X(PollEvent, bool, (SDL_Event*))                                                                    \
+    X(OpenGamepad, SDL_Gamepad *, (SDL_JoystickID))                                                     \
+    X(CloseGamepad, void, (SDL_Gamepad*))                                                               \
+    X(GetJoysticks, SDL_JoystickID *, (int*))                                                           \
     X(ShowSimpleMessageBox, bool, (SDL_MessageBoxFlags flags, const char*, const char *, SDL_Window*))  \
     X(CreateWindow, SDL_Window*, (const char*, int, int, SDL_WindowFlags))                              \
     X(DestroyWindow, void, (SDL_Window*))                                                               \

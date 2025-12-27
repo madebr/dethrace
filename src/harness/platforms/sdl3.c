@@ -128,6 +128,57 @@ static int is_only_key_modifier(SDL_Keymod modifier_flags, SDL_Keymod flag_check
     return (modifier_flags & flag_check) && (modifier_flags & (SDL_KMOD_CTRL | SDL_KMOD_SHIFT | SDL_KMOD_ALT | SDL_KMOD_GUI)) == (modifier_flags & flag_check);
 }
 
+static struct {
+    SDL_JoystickID joy_id;
+    SDL_Gamepad *gamepad;
+    bool buttons[SDL_GAMEPAD_BUTTON_COUNT];
+} sdl3_joystick_data;
+
+static void add_joystick(SDL_JoystickID joy_id)
+{
+    sdl3_joystick_data.gamepad = SDL3_OpenGamepad(joy_id);
+    if (sdl3_joystick_data.gamepad != NULL) {
+        sdl3_joystick_data.joy_id = joy_id;
+        SDL_zero(sdl3_joystick_data.buttons);
+    } else {
+        LOG_WARN("Failed to open joystick id %d (%s)", joy_id, SDL3_GetError());
+    }
+}
+
+static const char *get_name_of_gamepad_button(SDL_GamepadButton button)
+{
+    switch (button) {
+    case SDL_GAMEPAD_BUTTON_INVALID: return "SDL_GAMEPAD_BUTTON_INVALID";
+    case SDL_GAMEPAD_BUTTON_SOUTH: return "SDL_GAMEPAD_BUTTON_SOUTH";
+    case SDL_GAMEPAD_BUTTON_EAST: return "SDL_GAMEPAD_BUTTON_EAST";
+    case SDL_GAMEPAD_BUTTON_WEST: return "SDL_GAMEPAD_BUTTON_WEST";
+    case SDL_GAMEPAD_BUTTON_NORTH: return "SDL_GAMEPAD_BUTTON_NORTH";
+    case SDL_GAMEPAD_BUTTON_BACK: return "SDL_GAMEPAD_BUTTON_BACK";
+    case SDL_GAMEPAD_BUTTON_GUIDE: return "SDL_GAMEPAD_BUTTON_GUIDE";
+    case SDL_GAMEPAD_BUTTON_START: return "SDL_GAMEPAD_BUTTON_START";
+    case SDL_GAMEPAD_BUTTON_LEFT_STICK: return "SDL_GAMEPAD_BUTTON_LEFT_STICK";
+    case SDL_GAMEPAD_BUTTON_RIGHT_STICK: return "SDL_GAMEPAD_BUTTON_RIGHT_STICK";
+    case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER: return "SDL_GAMEPAD_BUTTON_LEFT_SHOULDER";
+    case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER: return "SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER";
+    case SDL_GAMEPAD_BUTTON_DPAD_UP: return "SDL_GAMEPAD_BUTTON_DPAD_UP";
+    case SDL_GAMEPAD_BUTTON_DPAD_DOWN: return "SDL_GAMEPAD_BUTTON_DPAD_DOWN";
+    case SDL_GAMEPAD_BUTTON_DPAD_LEFT: return "SDL_GAMEPAD_BUTTON_DPAD_LEFT";
+    case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return "SDL_GAMEPAD_BUTTON_DPAD_RIGHT";
+    case SDL_GAMEPAD_BUTTON_MISC1: return "SDL_GAMEPAD_BUTTON_MISC1";
+    case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1: return "SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1";
+    case SDL_GAMEPAD_BUTTON_LEFT_PADDLE1: return "SDL_GAMEPAD_BUTTON_LEFT_PADDLE1";
+    case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2: return "SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2";
+    case SDL_GAMEPAD_BUTTON_LEFT_PADDLE2: return "SDL_GAMEPAD_BUTTON_LEFT_PADDLE2";
+    case SDL_GAMEPAD_BUTTON_TOUCHPAD: return "SDL_GAMEPAD_BUTTON_TOUCHPAD";
+    case SDL_GAMEPAD_BUTTON_MISC2: return "SDL_GAMEPAD_BUTTON_MISC2";
+    case SDL_GAMEPAD_BUTTON_MISC3: return "SDL_GAMEPAD_BUTTON_MISC3";
+    case SDL_GAMEPAD_BUTTON_MISC4: return "SDL_GAMEPAD_BUTTON_MISC4";
+    case SDL_GAMEPAD_BUTTON_MISC5: return "SDL_GAMEPAD_BUTTON_MISC5";
+    case SDL_GAMEPAD_BUTTON_MISC6: return "SDL_GAMEPAD_BUTTON_MISC6";
+    default: return "<unknown>";
+    }
+}
+
 static void SDL3_Harness_ProcessWindowMessages(void) {
     SDL_Event event;
 
@@ -172,6 +223,77 @@ static void SDL3_Harness_ProcessWindowMessages(void) {
 
         case SDL_EVENT_QUIT:
             QuitGame();
+            break;
+//        case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
+//            LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_DOWN [%" SDL_PRIu64 "] id=%d", event.gdevice.timestamp, event.gdevice.which);
+//            break;
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+            if (event.gbutton.which == sdl3_joystick_data.joy_id) {
+                sdl3_joystick_data.buttons[event.gbutton.button] = true;
+//                LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_DOWN [%" SDL_PRIu64 "] id=%d button=%s", event.gbutton.timestamp, event.gbutton.which, get_name_of_gamepad_button(event.gbutton.button));
+            } else {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_DOWN ignore id=%d", event.gbutton.which);
+            }
+            LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_DOWN %s up=%d down=%d left=%d right=%d",
+                get_name_of_gamepad_button(event.gbutton.button),
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_UP],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_DOWN],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_LEFT],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_RIGHT]);
+            break;
+        case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            if (event.gbutton.which == sdl3_joystick_data.joy_id) {
+                sdl3_joystick_data.buttons[event.gbutton.button] = false;
+//                LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_UP [%" SDL_PRIu64 "] id=%d, button=%s", event.gbutton.timestamp, event.gbutton.which, get_name_of_gamepad_button(event.gbutton.button));
+            } else {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_UP ignore id=%d", event.gbutton.which);
+            }
+            LOG_DEBUG("SDL_EVENT_GAMEPAD_BUTTON_UP %s up=%d down=%d left=%d right=%d",
+                get_name_of_gamepad_button(event.gbutton.button),
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_UP],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_DOWN],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_LEFT],
+                sdl3_joystick_data.buttons[SDL_GAMEPAD_BUTTON_DPAD_RIGHT]);
+            break;
+        case  :
+            LOG_DEBUG("SDL_EVENT_JOYSTICK_AXIS_MOTION  id=%d axis=%d value=%d", event.jaxis.which, event.jaxis.axis, event.jaxis.value);
+            break;
+        case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+            if (event.gaxis.which == sdl3_joystick_data.joy_id) {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_AXIS_MOTION id=%u axis=%d value=%d", event.gaxis.which, event.gaxis.axis, event.gaxis.value);
+            } else {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_AXIS_MOTION ignore id=%d", event.gaxis.which);
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
+
+            if (event.gtouchpad.which == sdl3_joystick_data.joy_id) {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN id=%u touchpad=%d finger=%d axis=%d x=%f y=%f pressure=%f", event.gtouchpad.which, event.gtouchpad.touchpad, event.gtouchpad.finger, event.gtouchpad.x, event.gtouchpad.y, event.gtouchpad.pressure);
+            } else {
+                LOG_DEBUG("SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN ignore id=%d", event.gtouchpad.which);
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_ADDED:
+            LOG_DEBUG("SDL_EVENT_GAMEPAD_ADDED id=%u", event.gdevice.which);
+            if (sdl3_joystick_data.gamepad == NULL) {
+                add_joystick(event.gdevice.which);
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_REMOVED:
+            LOG_DEBUG("SDL_EVENT_GAMEPAD_REMOVED id=%u\n", event.gdevice.which);
+            if (sdl3_joystick_data.joy_id == event.gdevice.which) {
+                SDL3_CloseGamepad(sdl3_joystick_data.gamepad);
+                sdl3_joystick_data.gamepad = NULL;
+                sdl3_joystick_data.joy_id = 0;
+
+                int count_joysticks;
+                SDL_JoystickID *joysticks = SDL3_GetJoysticks(&count_joysticks);
+                if (count_joysticks > 0) {
+                    add_joystick(joysticks[0]);
+                }
+                SDL3_free(joysticks);
+            }
+            break;
         }
     }
 }
@@ -182,6 +304,11 @@ static void SDL3_Harness_SetKeyHandler(void (*handler_func)(void)) {
 
 static void SDL3_Harness_GetKeyboardState(br_uint_32* buffer) {
     memcpy(buffer, key_state, sizeof(key_state));
+}
+
+static void SDL3_Harness_GetJoystickState(tJoystick_state *state) {
+    SDL_zerop(state);
+
 }
 
 static int SDL3_Harness_GetMouseButtons(int* pButton1, int* pButton2) {
@@ -259,6 +386,10 @@ static void SDL3_Harness_CreateWindow(const char* title, int width, int height, 
 
     if (!SDL3_Init(SDL_INIT_VIDEO)) {
         LOG_PANIC2("SDL_INIT_VIDEO error: %s", SDL3_GetError());
+    }
+
+    if (!SDL3_InitSubSystem(SDL_INIT_GAMEPAD)) {
+        LOG_PANIC2("SDL_INIT_GAMEPAD error: %s", SDL3_GetError());
     }
 
     if (window_type == eWindow_type_opengl) {
@@ -415,6 +546,7 @@ static int SDL3_Harness_Platform_Init(tHarness_platform* platform) {
     platform->DestroyWindow = SDL3_Harness_DestroyWindow;
     platform->SetKeyHandler = SDL3_Harness_SetKeyHandler;
     platform->GetKeyboardState = SDL3_Harness_GetKeyboardState;
+    platform->GetJoystickState = SDL3_Harness_GetJoystickState;
     platform->GetMousePosition = SDL3_Harness_GetMousePosition;
     platform->GetMouseButtons = SDL3_Harness_GetMouseButtons;
     platform->ShowErrorMessage = SDL3_Harness_ShowErrorMessage;

@@ -942,7 +942,9 @@ void PDReadJoySticks(void) {
     tU32 temp1y;
     tU32 temp2x;
     tU32 temp2y;
-    NOT_IMPLEMENTED();
+    tJoystick_state state;
+
+    gHarness_platform.GetJoystickState(&state);
 }
 
 // IDA: tS32 __cdecl PDGetJoy1X()

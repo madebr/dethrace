@@ -743,10 +743,14 @@ void PDSetPaletteEntries(br_pixelmap* pPalette, int pFirst_colour, int pCount) {
 }
 
 void PDSwitchToRealResolution(void) {
-    }
+    gSwitched_resolution = 0;
+    gBack_screen->pixels = gOffscreen_pixels;
+}
 
 void PDSwitchToLoresMode(void) {
-    }
+    gSwitched_resolution = 1;
+    gBack_screen->pixels = gTemp_screen->pixels;
+}
 
 void PDMouseButtons(int* pButton_1, int* pButton_2) {
     br_uint_32 mouse_buttons;
@@ -883,7 +887,7 @@ void PDAllocateActionReplayBuffer(char** pBuffer, tU32* pBuffer_size) {
 }
 
 void PDDisposeActionReplayBuffer(char* pBuffer) {
-    }
+}
 
 // this function is taken from dossys
 void Usage(char* pProgpath) {
@@ -1017,7 +1021,46 @@ void PDEndItAllAndReRunTheBastard(void) {
 }
 
 int InitJoysticks(void) {
-        NOT_IMPLEMENTED();
+    GUID guid_sysKeyboard = { 0x6F1D2B61,0xD5A0,0x11CF,0xBF,0xC7,0x44,0x45,0x53,0x54,0x00,0x00 };
+    HRESULT hres;
+
+    if (DirectInputCreateA(gHInstance, MAKEWORD(3, 0), &gDirectInput, NULL) != DI_OK) {
+        PDFatalError("Unable to create DirectInput object - please check that DirectX is installed");
+        return 0;
+    }
+    if (IDirectInput_CreateDevice(gDirectInput, &guid_sysKeyboard, &gDirectInputDevice, NULL) != DI_OK) {
+        PDFatalError("Direct Input: Can\'t create device");
+        return 0;
+    }
+    if (IDirectInputDevice_SetDataFormat(gDirectInputDevice, &c_dfDIKeyboard) != DI_OK) {
+        PDFatalError("Direct Input: Can\'t set data format");
+        return 0;
+    }
+    if (IDirectInputDevice_SetCooperativeLevel(gDirectInputDevice, gHWnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE) != DI_OK) {
+        PDFatalError("Direct Input: Can\'t set keyboard cooperative level");
+        return 0;
+    }
+    hres = IDirectInputDevice_Acquire(gDirectInputDevice);
+    if (FAILED(hres)) {
+        dr_dprintf("ERROR: Can\'t aquire keyboard; HRESULT %x",iVar1);
+    }
+    gPD_count_joysticks = joyGetNumDevs();
+    if (gPD_count_joysticks != 0) {
+        if (joyGetDevCapsA(0, &gPD_joystick1_caps, sizeof(gPD_joystick1_caps)) == JOYERR_NOERROR) {
+            gPD_joystick1_info.dwSize = sizeof(gPD_joystick1_info);
+            gPD_joystick1_info.dwFlags = 0x83;
+            gPD_joystick1_available = 1;
+        }
+    }
+    if (gPD_count_joysticks > 1) {
+        if (joyGetDevCapsA(1, &gPD_joystick2_caps, sizeof(gPD_joystick2_caps)) == JOYERR_NOERROR) {
+            gPD_joystick2_info.dwSize = sizeof(gPD_joystick2_info);
+            gPD_joystick2_info.dwFlags = 0x83;
+            gPD_joystick2_available = 1;
+        }
+    }
+    gJoystick_deadzone = 8000;
+    return 1;
 }
 
 tU32 ReadJoystickAxis(int pBit) {
@@ -1031,59 +1074,113 @@ void PDReadJoySticks(void) {
     tU32 temp1y;
     tU32 temp2x;
     tU32 temp2y;
-        NOT_IMPLEMENTED();
+
+    if (gPD_joystick1_available) {
+        if (joyGetPosEx(0, &gPD_joystick1_info) != JOYERR_NOERROR) {
+            gPD_joystick1_available = 0;
+        }
+    }
+    if (gPD_joystick2_available) {
+        if (joyGetPosEx(1, &gPD_joystick2_info) != JOYERR_NOERROR) {
+            gPD_joystick2_available = 0;
+        }
+    }
 }
 
 tS32 PDGetJoy1X(void) {
     tS32 joy;
-        NOT_IMPLEMENTED();
+
+    joy = gPD_joystick1_info.dwXpos;
+    if (!gPD_joystick1_available) {
+      joy = -1;
+    }
+    return joy;
 }
 
 tS32 PDGetJoy1Y(void) {
     tS32 joy;
-        NOT_IMPLEMENTED();
+
+    joy = gPD_joystick1_info.dwYpos;
+    if (!gPD_joystick1_available) {
+        joy = -1;
+    }
+    return joy;
 }
 
 tS32 PDGetJoy2X(void) {
     tS32 joy;
-        NOT_IMPLEMENTED();
+
+    joy = gPD_joystick2_info.dwXpos;
+    if (!gPD_joystick2_available) {
+        joy = -1;
+    }
+    return joy;
 }
 
 tS32 PDGetJoy2Y(void) {
     tS32 joy;
-        NOT_IMPLEMENTED();
+
+    joy = gPD_joystick2_info.dwYpos;
+    if (!gPD_joystick2_available) {
+        joy = -1;
+    }
+    return joy;
 }
 
 int PDGetJoy1Button1(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick1_available) {
+        return 0;
+    }
+    return gPD_joystick1_info.dwButtons & 0x1;
 }
 
 int PDGetJoy1Button2(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick1_available) {
+        return 0;
+    }
+    return gPD_joystick1_info.dwButtons & 0x2;
 }
 
 int PDGetJoy1Button3(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick1_available) {
+        return 0;
+    }
+    return gPD_joystick1_info.dwButtons & 0x4;
 }
 
 int PDGetJoy1Button4(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick1_available) {
+        return 0;
+    }
+    return gPD_joystick1_info.dwButtons & 0x8;
 }
 
 int PDGetJoy2Button1(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick2_available) {
+        return 0;
+    }
+    return gPD_joystick2_info.dwButtons & 0x1;
 }
 
 int PDGetJoy2Button2(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick2_available) {
+        return 0;
+    }
+    return gPD_joystick2_info.dwButtons & 0x2;
 }
 
 int PDGetJoy2Button3(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick2_available) {
+        return 0;
+    }
+    return gPD_joystick2_info.dwButtons & 0x4;
 }
 
 int PDGetJoy2Button4(void) {
-        NOT_IMPLEMENTED();
+    if (!gPD_joystick2_available) {
+        return 0;
+    }
+    return gPD_joystick2_info.dwButtons & 0x8;
 }
 
 int PDFileUnlock(char* pThe_path) {
