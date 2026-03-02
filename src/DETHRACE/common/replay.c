@@ -27,6 +27,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef INT32_MAX
+#define INT32_MAX 0x7fffffff
+#endif
+
 // GLOBAL: CARM95 0x0050a1b0
 char* gReplay_pixie_names[10] = {
     "REPLAY.PIX",
@@ -328,7 +332,6 @@ void MoveToEndOfReplay(void) {
     DisablePipedSounds();
     old_replay_rate = gReplay_rate;
     gReplay_rate = 100.f;
-#define INT32_MAX 2147483647
     MoveReplayBuffer(INT32_MAX);
     gReplay_rate = old_replay_rate;
     EnablePipedSounds();

@@ -28,6 +28,7 @@ elseif(MSVC)
 else()
     target_compile_options(dethrace_obj PRIVATE
         -Wall
+        -Wno-format-overflow
     )
     add_compile_flags_if_supported(dethrace_obj
         -Wformat
