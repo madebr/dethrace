@@ -5,6 +5,7 @@
 #include "displays.h"
 #include "errors.h"
 #include "globvars.h"
+#include "globvrbm.h"
 #include "globvrkm.h"
 #include "globvrpb.h"
 #include "graphics.h"
@@ -3875,6 +3876,20 @@ void RenderProximityRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer
     br_scalar distance;
     br_scalar t;
 
+#ifdef DETHRACE_3DFX_PATCH
+    if (gNo_2d_effects) {
+        BrActorRemove(gLine_actor);
+        BrActorAdd(gCamera, gLine_actor);
+        gLine_model->vertices[0].red = 0x80;
+        gLine_model->vertices[0].grn = 0x80;
+        gLine_model->vertices[0].blu = 0xff;
+        gLine_model->vertices[1].red = 0xff;
+        gLine_model->vertices[1].grn = 0xff;
+        gLine_model->vertices[1].blu = 0xff;
+        BrModelUpdate(gLine_model, BR_MODU_ALL);
+    }
+#endif
+
     the_time = GetTotalTime();
     StartPipingSession(ePipe_chunk_prox_ray);
     for (i = 0; i < COUNT_OF(gProximity_rays); i++) {
@@ -3923,6 +3938,12 @@ void RenderProximityRays(br_pixelmap* pRender_screen, br_pixelmap* pDepth_buffer
         }
     }
     EndPipingSession();
+#ifdef DETHRACE_3DFX_PATCH
+    if (gNo_2d_effects) {
+        BrActorRemove(gLine_actor);
+        BrActorAdd(gDont_render_actor, gLine_actor);
+    }
+#endif
 }
 
 // IDA: void __usercall AdjustProxRay(int pRay_index@<EAX>, tU16 pCar_ID@<EDX>, tU16 pPed_index@<EBX>, tU32 pTime@<ECX>)
