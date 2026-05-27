@@ -64,6 +64,11 @@ else()
     target_sources(harness PRIVATE audio/null.c)
 endif()
 
+if(DETHRACE_STEAM)
+    target_compile_definitions(harness PRIVATE ENABLE_STEAM)
+    target_sources(harness PRIVATE harness_steam.cpp)
+endif()
+
 if(MSVC_42_FOR_RECCMP)
     # we don't currently care about running it, just get it compiled!
     target_sources(harness PRIVATE os/null.c)

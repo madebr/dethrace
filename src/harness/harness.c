@@ -8,6 +8,10 @@
 #include "platforms/null.h"
 #include "version.h"
 
+#ifdef ENABLE_STEAM
+#include "harness_steam.h"
+#endif
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdio.h>
@@ -123,6 +127,9 @@ static int Harness_InitPlatform(void) {
         }
         LOG_INFO3("Platform: %s (%s)", selected_bootstrap->name, selected_bootstrap->description);
     }
+#ifdef ENABLE_STEAM
+    Harness_Steam_Init();
+#endif
 
     return 0;
 }
@@ -342,6 +349,9 @@ void Harness_Quit(void) {
     if (harness_game_config.install_signalhandler) {
         OS_RemoveSignalHandler();
     }
+#ifdef ENABLE_STEAM
+    Harness_Steam_Shutdown();
+#endif
 }
 
 // used by unit tests
