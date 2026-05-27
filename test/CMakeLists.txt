@@ -1,5 +1,8 @@
 add_executable(dethrace_test)
 add_test(NAME test_dethrace COMMAND dethrace_test)
+if(DETHRACE_STEAM AND WIN32 AND CMAKE_VERSION VERSION_GREATER_EQUAL "3.27")
+    set_property(TEST test_dethrace APPEND PROPERTY ENVIRONMENT_MODIFICATION "PATH=path_list_prepend:$<TARGET_RUNTIME_DLL_DIRS:dethrace_test>")
+endif()
 
 target_link_libraries(dethrace_test PRIVATE dethrace_obj)
 
